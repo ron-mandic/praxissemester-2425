@@ -36,7 +36,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@langchain/textsplitters": "^0.0.3",
 		"@mistralai/mistralai": "^1.0.2",
-		"@picocss/pico": "^2.0.6"
+		"@picocss/pico": "^2.0.6",
+		"@supabase/supabase-js": "^2.45.1",
+		"langchain": "^0.2.16"
 	}
 }

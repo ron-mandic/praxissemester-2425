@@ -7,7 +7,7 @@
 	console.log(data);
 
 	let refInput: HTMLInputElement;
-	let value = '';
+	let value = 'December 25th is on a Sunday, do I get any extra time off to account for that?';
 	let responses: { value: string; response: any }[] = [];
 	let loadingIndex: number | null = null; // Um den aktuellen Ladezustand zu verfolgen
 
@@ -28,7 +28,7 @@
 		loadingIndex = responses.length - 1;
 
 		try {
-			const response = await fetch(`/api/test1?content=${val}`, {
+			const response = await fetch(`/api/test6?content=${val}`, {
 				method: 'POST',
 				body: JSON.stringify({ content: val }),
 				headers: {
@@ -38,6 +38,8 @@
 
 			if (response.ok) {
 				const responseData = await response.json();
+				console.log(responseData);
+
 				responses[loadingIndex] = {
 					value: val + `<span style="margin-left: .75rem; opacity: .75;">${formatDate(d)}</span>`,
 					response: responseData

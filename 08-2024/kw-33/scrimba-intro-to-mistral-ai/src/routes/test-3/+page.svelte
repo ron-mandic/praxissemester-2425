@@ -28,7 +28,7 @@
 		loadingIndex = responses.length - 1;
 
 		try {
-			const response = await fetch(`/api/test1?content=${val}`, {
+			const response = await fetch(`/api/test3?content=${val}`, {
 				method: 'POST',
 				body: JSON.stringify({ content: val }),
 				headers: {
@@ -38,6 +38,8 @@
 
 			if (response.ok) {
 				const responseData = await response.json();
+				console.log(responseData);
+
 				responses[loadingIndex] = {
 					value: val + `<span style="margin-left: .75rem; opacity: .75;">${formatDate(d)}</span>`,
 					response: responseData
@@ -76,7 +78,9 @@
 					<span class="value" aria-busy={loadingIndex === index}>{@html value}</span>
 				</summary>
 				{#if response}
-					<p class="answer">{response}</p>
+					<code>
+						{response}
+					</code>
 				{/if}
 			</details>
 		</article>

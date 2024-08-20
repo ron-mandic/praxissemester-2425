@@ -21,11 +21,15 @@ export const POST: RequestHandler = async ({ request }) => {
 			},
 			{
 				content:
-					'Behave like a super smart assistant and provide the best possible response. But, if appropriate, you can also reply humorously or with a touch of sarcasm.',
+					'Behave like a super smart assistant and provide the best possible response. But, if appropriate, you can also reply humorously or with a touch of sarcasm. Reply with JSON',
 				role: 'system'
 			}
 		],
-		temperature: 0.375
+		temperature: 0.375,
+		responseFormat: {
+			type: 'json_object'
+		},
+		safePrompt: true
 	});
 
 	if (choices && choices.length > 0 && choices[0].message) {

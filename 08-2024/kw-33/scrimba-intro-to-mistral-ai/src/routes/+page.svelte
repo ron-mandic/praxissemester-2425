@@ -17,8 +17,40 @@
 	</p>
 </article>
 
+<article>
+	<a href="/test-3"><h2>Chat Completion with JSON</h2></a>
+	<p>
+		Und wenn die Developer ein bestimmtes Format benötigen, dann können wir das auch anbieten. Das
+		geschieht, indem wir einfach im Anfragekörper mitgeben, dass die Ausgabe als JSON ankommen soll
+	</p>
+</article>
+
+<article>
+	<a href="/test-4"><h2>Embeddings</h2></a>
+	<p>
+		Und wenn wir die API noch weiter ausbauen wollen, dann können wir auch Embeddings anbieten. Das
+		heißt, dass wir nicht nur die Antwort des Servers bekommen, sondern auch gleich die Antwort
+		verarbeiten und darstellen können.
+	</p>
+</article>
+
+<article>
+	<a href="/test-5"><h2>Chat Completion + Embeddings</h2></a>
+	<p>
+		Jetzt können wir die generierten Embeddings auch gleich in die Chat Completions einbauen. Das
+	</p>
+</article>
+
+<article>
+	<a href="/test-6"><h2>Chat Completion + Embeddings + Supabase</h2></a>
+	<p>
+		MitSupabase können wir die Datenbankanbindung auch gleich mit einbauen. Das heißt, dass wir
+		unsere Embeddings hochladen und dann direkt in unserem Chat benutzen können
+	</p>
+</article>
+
 <style lang="scss">
 	h1 {
-		margin-bottom: 2rem;
+		margin: 20px 0 2rem;
 	}
 </style>

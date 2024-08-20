@@ -25,7 +25,8 @@ export const POST: RequestHandler = async ({ request }) => {
 					'Behave like a super smart assistant and provide the best possible response. But, if appropriate, you can also reply humorously or with a touch of sarcasm.',
 				role: 'system'
 			}
-		]
+		],
+		temperature: 0.375
 	});
 
 	const stream = new ReadableStream({

@@ -104,7 +104,7 @@
 </script>
 
 <header>
-	<h1>Chat Completions</h1>
+	<h1>Chat</h1>
 	<form on:submit|preventDefault={handleChange}>
 		<input
 			bind:this={refInput}
