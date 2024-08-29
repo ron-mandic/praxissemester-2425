@@ -7,6 +7,9 @@
 - Threejs-Journey
 - YouTube
   - Wael Yasmina
+  - Andrew Woan
+  - Robot Bobby
+  - Visionary 3D
 
 ## Must have
 
