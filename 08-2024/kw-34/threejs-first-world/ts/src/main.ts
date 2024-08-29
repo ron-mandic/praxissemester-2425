@@ -1,8 +1,9 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import gsap from "gsap";
+import { getAngle } from "./ts/math";
 
 const textureLoader = new THREE.TextureLoader();
 const matcapTexture = textureLoader.load("/textures/matcaps/2.png");
@@ -10,49 +11,15 @@ matcapTexture.colorSpace = THREE.SRGBColorSpace;
 
 const Player = {
 	mesh: null as THREE.Group<THREE.Object3DEventMap> | null,
-	velocity: new THREE.Vector3(),
-	acceleration: 0.35,
-	deceleration: 0.875,
-	maxSpeed: 0.125,
-	direction: new THREE.Vector3(),
 };
 const material = new THREE.MeshMatcapMaterial({
 	matcap: matcapTexture,
 });
 
-const loader = new OBJLoader();
-function onProgress(xhr: ProgressEvent) {
-	if (xhr.lengthComputable) {
-		const percentComplete = (xhr.loaded / xhr.total) * 100;
-		console.log("model " + percentComplete.toFixed(2) + "% downloaded");
-	}
-}
-
-function onError() {}
-loader.load(
-	"/models/obj/robot.obj",
-	function (model) {
-		model.traverse(function (child) {
-			if (child instanceof THREE.Mesh) {
-				child.material = material;
-			}
-			const rotationMatrix = new THREE.Matrix4().makeRotationY(Math.PI);
-			child.getObjectByName("model_1")?.applyMatrix4(rotationMatrix);
-			child.rotation.set(0, 0, 0);
-		});
-		model.scale.set(0.1, 0.1, 0.1);
-		model.position.setY(1e-2);
-		Player.mesh = model;
-		scene.add(model);
-	},
-	onProgress,
-	onError
-);
-
 // Create scene, camera, and renderer
 const scene = new THREE.Scene();
 const aspectRatio = window.innerWidth / window.innerHeight;
-const fove = 5; // Field of view expansion
+const fove = 1.75; // Field of view expansion
 const camera = new THREE.OrthographicCamera(
 	-fove * aspectRatio,
 	fove * aspectRatio,
@@ -61,19 +28,22 @@ const camera = new THREE.OrthographicCamera(
 	0.001,
 	1000
 );
+
 const renderer = new THREE.WebGLRenderer({
 	canvas: document.querySelector("#app canvas")!,
 	antialias: true,
-	precision: "lowp",
 });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 2;
 
 // Create GridHelper
-const gridHelper = new THREE.GridHelper(16, 16, undefined, 0x666666);
+const gridHelper = new THREE.GridHelper(4, 4, undefined, 0x666666);
 scene.add(gridHelper);
 
 // Create AxesHelper
-const axesHelper = new THREE.AxesHelper(8);
+const axesHelper = new THREE.AxesHelper(100);
 scene.add(axesHelper);
 
 // Create CameraHelper
@@ -90,76 +60,49 @@ controls.enableRotate = false;
 controls.autoRotate = false;
 controls.update();
 
-camera.position.x = 20;
-camera.position.y = 20;
-camera.position.z = 20;
+camera.position.set(20, 20, 20);
 camera.lookAt(0, 0, 0);
 
-window.addEventListener("keydown", (e) => {
-	const deltaSpeed = 0.5;
+const gltfLoader = new GLTFLoader().setPath("/models/gltf/");
+gltfLoader.load("robot.glb", function (gltf) {
+	console.log(gltf);
+	const model = gltf.scene;
+	model.traverse(function (child) {
+		if (child instanceof THREE.Mesh) {
+			child.material = material;
+		}
+	});
 
-	switch (e.key) {
-		case "w":
-		case "W":
-			Player.direction.x = -deltaSpeed;
-			console.log(Player.direction);
-			if (e.repeat) break;
-			gsap.to(Player.mesh!.rotation, {
-				duration: 0.25,
-				y: 0,
-			});
-			break;
-		case "s":
-		case "S":
-			Player.direction.x = deltaSpeed;
-			console.log(Player.direction);
-			if (e.repeat) break;
-			// TODO: Fix rotation issue
-			gsap.to(Player.mesh!.rotation, {
-				duration: 0.25,
-				y: -Math.PI,
-			});
-			break;
-		case "a":
-		case "A":
-			Player.direction.z = deltaSpeed;
-			console.log(Player.direction);
-			if (e.repeat) break;
-			gsap.to(Player.mesh!.rotation, {
-				duration: 0.25,
-				y: Math.PI / 2,
-			});
-			break;
-		case "d":
-		case "D":
-			Player.direction.z = -deltaSpeed;
-			console.log(Player.direction);
-			if (e.repeat) break;
-			gsap.to(Player.mesh!.rotation, {
-				duration: 0.25,
-				y: -Math.PI / 2,
-			});
-			break;
-	}
-});
+	// Berechne die Bounding Box des Modells
+	const boundingBox = new THREE.Box3().setFromObject(model);
 
-window.addEventListener("keyup", (e) => {
-	console.log(e.key);
+	// Ermittle die Maße des Modells
+	const size = new THREE.Vector3();
+	boundingBox.getSize(size);
 
-	switch (e.key) {
-		case "w":
-		case "W":
-		case "s":
-		case "S":
-			Player.direction.x = 0;
-			break;
-		case "a":
-		case "A":
-		case "d":
-		case "D":
-			Player.direction.z = 0;
-			break;
-	}
+	console.log("Breite:", size.x);
+	console.log("Höhe:", size.y);
+	console.log("Tiefe:", size.z);
+
+	// Zielmaße (1x1x1)
+	const targetSize = new THREE.Vector3(1, 1, 1);
+
+	const SCALAR = size.x / 100;
+	// Berechne den Skalierungsfaktor
+	const scale = new THREE.Vector3(
+		targetSize.x / size.x,
+		targetSize.y / size.y,
+		targetSize.z / size.z
+	).applyMatrix3(new THREE.Matrix3(SCALAR, 0, 0, 0, SCALAR, 0, 0, 0, SCALAR));
+
+	// Wähle den kleinsten Skalierungsfaktor, um das Objekt so zu skalieren, dass es innerhalb der 1x1x1-Einheit bleibt
+	const minScale = Math.min(scale.x, scale.y, scale.z);
+
+	// Skaliere das Modell
+	Player.mesh = model;
+	model.scale.set(minScale, minScale, minScale);
+
+	scene.add(model);
 });
 
 window.addEventListener("resize", function () {
@@ -174,17 +117,95 @@ window.addEventListener("resize", function () {
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
+const vec3Dir = new THREE.Vector3();
+const vec3DirLast = new THREE.Vector3();
+
+let keyPressed: null | string = null;
+const keysPressed = new Map<string, boolean>();
+
+window.addEventListener("keydown", function (event) {
+	if (!Player || !Player.mesh) return;
+	keyPressed = event.code;
+	if (!keysPressed.has(event.code) && keysPressed.size < 2) {
+		keysPressed.set(event.code, true);
+	}
+	if (keysPressed.size === 2) return;
+
+	switch (event.code) {
+		case "KeyW":
+			if (keysPressed.size === 2) return;
+			vec3Dir.set(-1, 0, 0);
+			if (!event.repeat) {
+				gsap.to(Player.mesh.rotation, {
+					y: `+=${getAngle(vec3Dir, vec3DirLast)}`,
+					duration: 0.5,
+					ease: "slow(0.7,0.7,false)",
+				});
+			}
+			vec3DirLast.copy(vec3Dir);
+			break;
+		case "KeyA":
+			if (keysPressed.size === 2) return;
+			vec3Dir.set(0, 0, 1);
+			if (!event.repeat) {
+				gsap.to(Player.mesh.rotation, {
+					y: `+=${getAngle(vec3Dir, vec3DirLast)}`,
+					duration: 0.5,
+					ease: "slow(0.7,0.7,false)",
+				});
+			}
+			vec3DirLast.copy(vec3Dir);
+			break;
+		case "KeyS":
+			if (keysPressed.size === 2) return;
+			vec3Dir.set(1, 0, 0);
+			if (!event.repeat) {
+				gsap.to(Player.mesh.rotation, {
+					y: `+=${getAngle(vec3Dir, vec3DirLast)}`,
+					duration: 0.5,
+					ease: "slow(0.7,0.7,false)",
+				});
+			}
+			vec3DirLast.copy(vec3Dir);
+			break;
+		case "KeyD":
+			if (keysPressed.size === 2) return;
+			vec3Dir.set(0, 0, -1);
+			keyPressed = event.code;
+			if (!keysPressed.has(event.code) && keysPressed.size < 2) {
+				keysPressed.set(event.code, true);
+			}
+			if (keysPressed.size === 2) return;
+			if (!event.repeat) {
+				gsap.to(Player.mesh.rotation, {
+					y: `+=${getAngle(vec3Dir, vec3DirLast)}`,
+					duration: 0.5,
+					ease: "slow(0.7,0.7,false)",
+				});
+			}
+			vec3DirLast.copy(vec3Dir);
+			break;
+		default:
+			return;
+	}
+});
+
+window.addEventListener("keyup", function (event) {
+	vec3Dir.set(0, 0, 0);
+	keyPressed = null;
+	if (keysPressed.has(event.code)) keysPressed.delete(event.code);
+});
+
+const clock = new THREE.Clock();
+
 function animate(_: number) {
 	// console.log(time);
 
 	// Update Player
-	// if (Player.direction.length() > 0)
-	Player.velocity.addScaledVector(Player.direction, Player.acceleration); // if
-	Player.velocity.clampLength(0, Player.maxSpeed); // else
-	Player.velocity.multiplyScalar(Player.deceleration);
-	Player.mesh?.position.add(Player.velocity);
-	if (Player.velocity.length() < 0.01) {
-		Player.velocity.set(0, 0, 0);
+	const dt = clock.getDelta();
+
+	if (Player.mesh && keysPressed.size <= 1) {
+		Player.mesh.position.add(vec3Dir.clone().multiplyScalar(2 * dt));
 	}
 
 	camera.position.x = (Player.mesh?.position?.x || 0) + 20;
