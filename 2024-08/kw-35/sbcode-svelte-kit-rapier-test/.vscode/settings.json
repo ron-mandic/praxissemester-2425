@@ -1,0 +1,7 @@
+{
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	},
+	// https://byby.dev/at-rule-tailwind
+	"scss.lint.unknownAtRules": "ignore"
+}
