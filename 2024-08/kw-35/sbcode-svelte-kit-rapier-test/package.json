@@ -50,6 +50,7 @@
 		"@types/three": "^0.167.2",
 		"drizzle-orm": "^0.31.2",
 		"postgres": "^3.4.4",
+		"runed": "^0.15.1",
 		"three": "^0.168.0"
 	}
 }

@@ -1,29 +1,16 @@
 <script lang="ts">
-	import { getContext } from 'svelte';
-
-	let { ...props } = $props();
-	const obj = getContext('three');
-	console.log(obj);
+	import app from '$lib/ts/classes/App.svelte';
 </script>
 
-<button {...props}>Click me</button>
-
-<style>
-	button {
-		position: fixed;
-		z-index: 999;
-		background-color: rgb(187, 230, 124);
-		bottom: 1rem;
-		left: 50%;
-		transform: translateX(-50%);
-		padding: 0.75rem 1.5rem;
-		border-radius: 1.25rem;
-		transition: all 0.2s ease;
-		transform-origin: center center;
-
-		&:hover {
-			transition: all 0.2s ease;
-			scale: 1.1;
-		}
-	}
-</style>
+<div id="app-ui" class="pointer-events-none flex h-full w-full items-end justify-between p-3 debug">
+	<aside
+		class="h-full w-1/2 max-w-64 rounded-2xl border-[.125rem] border-slate-400/10 bg-slate-900 p-6"
+	>
+		{#each app.scene.get().children as child}
+			<p class="px-2 py-3 text-slate-300">{child.type}</p>
+		{/each}
+	</aside>
+	<footer
+		class="h-24 w-24 max-w-64 rounded-2xl border-[.125rem] border-slate-400/10 bg-slate-900"
+	></footer>
+</div>
