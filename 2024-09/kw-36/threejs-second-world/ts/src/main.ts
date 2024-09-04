@@ -109,6 +109,26 @@ function animate(/* time: number */) {
 			);
 			dynamicBodies[i][0].quaternion.copy(dynamicBodies[i][1].rotation());
 		}
+
+		if (dynamicBodies[0][1].translation().y <= -10) {
+			// dynamicBodies[0][1].setEnabled(false);
+			dynamicBodies[0][1].setTranslation(
+				new RAPIER.Vector3(
+					0,
+					PLAYER_HEIGHT / 2 + PLAYER_HEIGHT_OFFSET * 0.5,
+					0
+				),
+				false
+			);
+			// set roptation to 0
+			dynamicBodies[0][1].setRotation(
+				new RAPIER.Quaternion(0, 0, 0, 1),
+				true
+			);
+			dynamicBodies[0][1].setLinvel(new RAPIER.Vector3(0, 0, 0), true);
+			dynamicBodies[0][1].setAngvel(new RAPIER.Vector3(0, 0, 0), true);
+			// dynamicBodies[0][1].setEnabled(true);
+		}
 	}
 	// console.log(time);
 

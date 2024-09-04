@@ -14,6 +14,7 @@
     "vite": "^5.4.1"
   },
   "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.14.0",
     "@gltf-transform/cli": "^4.0.8",
     "@monogrid/gainmap-js": "^3.0.6",
     "@types/three": "^0.167.2",
