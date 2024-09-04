@@ -1,6 +1,5 @@
 import "./style.css";
 import * as THREE from "three";
-import Stats from "three/addons/libs/stats.module.js";
 import { createWorld } from "./ts/functions";
 
 const canvas = document.querySelector("#app canvas")! as HTMLCanvasElement;
@@ -15,15 +14,15 @@ world.loadTexture("/textures/matcaps/2.png", (texture: THREE.Texture) => {
 world.loadGLTF("robot-shapr3d.glb", (gltf) => {
 	world.player = gltf.scene;
 });
+world.onReady = function () {
+	console.log(this.player);
+};
 
-const stats = new Stats();
-document.body.appendChild(stats.dom);
-
-function animate(time: number) {
-	stats.begin();
+function animate(/* time: number */) {
+	world.stats.begin();
 
 	let dt = world.clock.getDelta();
-	console.log(time);
+	// console.log(time);
 
 	if (world.player && world.keysPressed.size <= 1) {
 		world.player.position.add(world.vec3Dir.clone().multiplyScalar(2 * dt));
@@ -32,7 +31,7 @@ function animate(time: number) {
 	camera.position.x = (world.player?.position?.x || 0) + 20;
 	camera.position.z = (world.player?.position?.z || 0) + 20;
 
-	stats.end();
+	world.stats.end();
 	renderer.render(scene, camera);
 }
 

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import Stats from "three/addons/libs/stats.module.js";
 import { WORLD_CAMERA_FOVE } from "./constants";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import gsap from "gsap";
@@ -24,6 +25,8 @@ function onReady(this: ReturnType<typeof createWorld>) {
 	onResize(world.renderer, world.camera);
 	onKeydown(world);
 	onKeyup(world);
+
+	if (world.onReady) world.onReady();
 }
 export function onResize(
 	renderer: THREE.WebGLRenderer,
@@ -156,6 +159,9 @@ export function initLoaders(
 		return material;
 	};
 }
+export function initStats(world: ReturnType<typeof createWorld>) {
+	document.body.appendChild(world.stats.dom);
+}
 
 // Create
 export function createRenderer(canvas: HTMLCanvasElement) {
@@ -235,6 +241,7 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xffffff) {
 	const camera = createCamera();
 	const scene = createScene(color);
 	const clock = new THREE.Clock();
+	const stats = new Stats();
 
 	createHelpers(scene, camera);
 	createControls(camera, renderer.domElement);
@@ -245,6 +252,7 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xffffff) {
 		camera,
 		scene,
 		clock,
+		stats,
 		textures: [] as THREE.Texture[],
 		materials: [] as THREE.MeshMatcapMaterial[],
 		// Player
@@ -271,13 +279,14 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xffffff) {
 			| ((matcap: THREE.Texture) => THREE.MeshMatcapMaterial)
 			| null,
 		animate: null as ((callback: (delta?: number) => void) => void) | null,
-		start: null as (() => void) | null,
+		onReady: null as (() => void) | null,
 	};
 
 	initLoaders(
 		world,
 		createLoaders(onLoadPlayer.bind(world), onReady.bind(world))
 	);
+	initStats(world);
 
 	return world;
 }
