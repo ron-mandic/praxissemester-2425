@@ -2,10 +2,35 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import Stats from "three/addons/libs/stats.module.js";
-import { WORLD_CAMERA_FOVE } from "./constants";
+import {
+	PLAYER_HEIGHT,
+	PLAYER_HEIGHT_OFFSET,
+	WORLD_CAMERA_FOVE,
+} from "./constants";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import gsap from "gsap";
-import { getAngle } from "./math";
+import { getAngle, ptToM } from "./math";
+// import { DRACOLoader } from "three/examples/jsm/Addons.js";
+
+// Getters
+export function getAllDescendants(object: THREE.Object3D): THREE.Object3D[] {
+	const descendants: THREE.Object3D[] = [];
+
+	object.traverse((child) => {
+		if (child instanceof THREE.Mesh) {
+			descendants.push(child);
+			return;
+		}
+
+		if (child instanceof THREE.Group) {
+			for (const c of child.children) {
+				if (c instanceof THREE.Mesh) descendants.push(c);
+			}
+		}
+	});
+
+	return descendants;
+}
 
 // Handlers
 function onLoadPlayer(this: ReturnType<typeof createWorld>) {
@@ -17,6 +42,7 @@ function onLoadPlayer(this: ReturnType<typeof createWorld>) {
 		}
 	});
 
+	player.position.setY(PLAYER_HEIGHT / 2 + PLAYER_HEIGHT_OFFSET);
 	this.scene.add(player);
 }
 function onReady(this: ReturnType<typeof createWorld>) {
@@ -32,16 +58,15 @@ export function onResize(
 	renderer: THREE.WebGLRenderer,
 	camera: THREE.OrthographicCamera
 ) {
-	window.addEventListener("resize", function () {
+	window.addEventListener("resize", () => {
 		const aspect = window.innerWidth / window.innerHeight;
 		camera.top = WORLD_CAMERA_FOVE;
 		camera.bottom = -WORLD_CAMERA_FOVE;
 		camera.left = -WORLD_CAMERA_FOVE * aspect;
 		camera.right = WORLD_CAMERA_FOVE * aspect;
-		camera.lookAt(0, 0, 0);
+
 		camera.updateProjectionMatrix();
 		renderer.setSize(window.innerWidth, window.innerHeight);
-		renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 	});
 }
 export function onKeydown(world: ReturnType<typeof createWorld>) {
@@ -140,6 +165,15 @@ export function initLoaders(
 		this.textures.push(texture);
 		return texture;
 	};
+	world.loadCubeTexture = function (
+		imgs: string[],
+		onLoad?: (cubeTexture: THREE.CubeTexture) => void
+	) {
+		const cubeTexture = this.loaders!.cubeTextureLoader.load(imgs);
+		if (onLoad) onLoad(cubeTexture);
+		this.texturesCube = cubeTexture;
+		return cubeTexture;
+	};
 	world.loadOBJ = function (
 		path: string,
 		onLoad: (data: THREE.Group) => void
@@ -148,7 +182,9 @@ export function initLoaders(
 		return world;
 	};
 	world.loadGLTF = function (path: string, onLoad: (data: GLTF) => void) {
-		this.loaders!.gltfLoader.load(path, onLoad);
+		this.loaders!.gltfLoader.load(path, onLoad, (_: ProgressEvent) => {
+			// console.log(~~((ev.loaded / ev.total) * 100) + "%");
+		});
 		return world;
 	};
 	world.createMaterial = function (matcap: THREE.Texture) {
@@ -162,10 +198,24 @@ export function initLoaders(
 export function initStats(world: ReturnType<typeof createWorld>) {
 	document.body.appendChild(world.stats.dom);
 }
+export function initScene(world: ReturnType<typeof createWorld>) {
+	const geometry = new THREE.BoxGeometry(...ptToM([216, 4.1, 216]), 4, 1, 4);
+	const objFloor = new THREE.Mesh(
+		geometry,
+		new THREE.MeshBasicMaterial({
+			color: 0xfafafa,
+		})
+	);
+
+	objFloor.position.set(0, -0.056944 / 2, 0);
+	world.scene.add(objFloor);
+}
 
 // Create
 export function createRenderer(canvas: HTMLCanvasElement) {
 	const renderer = new THREE.WebGLRenderer({
+		powerPreference: "high-performance",
+		precision: "highp",
 		antialias: true,
 		canvas,
 	});
@@ -214,7 +264,7 @@ export function createHelpers(
 	scene: THREE.Scene,
 	camera: THREE.OrthographicCamera
 ) {
-	const gridHelper = new THREE.GridHelper(3, 3, undefined, 0x666666);
+	const gridHelper = new THREE.GridHelper(3, 3, undefined, 0xcdcdcd);
 	scene.add(gridHelper);
 	const axesHelper = new THREE.AxesHelper(100);
 	scene.add(axesHelper);
@@ -229,14 +279,25 @@ export function createLoaders(onLoad: () => void, onReady?: () => void) {
 	});
 
 	const textureLoader = new THREE.TextureLoader(manager);
+	const cubeTextureLoader = new THREE.CubeTextureLoader(manager);
+	cubeTextureLoader.setPath("/textures/cube/");
 	const objLoader = new OBJLoader(manager);
+	// const dracoLoader = new DRACOLoader();
+	// dracoLoader.setDecoderPath("/models/gltf/");
 	const gltfLoader = new GLTFLoader(manager);
 	gltfLoader.setPath("/models/gltf/");
+	// gltfLoader.setDRACOLoader(dracoLoader);
 
-	return { textureLoader, objLoader, gltfLoader };
+	return {
+		textureLoader,
+		cubeTextureLoader,
+		objLoader,
+		gltfLoader,
+		// dracoLoader,
+	};
 }
 
-export function createWorld(canvas: HTMLCanvasElement, color = 0xffffff) {
+export function createWorld(canvas: HTMLCanvasElement, color = 0xfafafa) {
 	const renderer = createRenderer(canvas);
 	const camera = createCamera();
 	const scene = createScene(color);
@@ -254,9 +315,11 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xffffff) {
 		clock,
 		stats,
 		textures: [] as THREE.Texture[],
+		texturesCube: null as THREE.CubeTexture | null,
 		materials: [] as THREE.MeshMatcapMaterial[],
 		// Player
 		player: null as THREE.Group<THREE.Object3DEventMap> | null,
+		playerDescendants: [] as THREE.Object3D[],
 		vec3Dir: new THREE.Vector3(),
 		vec3DirLast: new THREE.Vector3(),
 		keyPressed: null as string | null,
@@ -268,6 +331,12 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xffffff) {
 					path: string,
 					onLoad?: (texture: THREE.Texture) => void
 			  ) => THREE.Texture)
+			| null,
+		loadCubeTexture: null as
+			| ((
+					imgs: string[],
+					onLoad: (data: THREE.CubeTexture) => void
+			  ) => THREE.CubeTexture)
 			| null,
 		loadOBJ: null as
 			| ((path: string, onLoad: (data: THREE.Group) => void) => void)
@@ -287,6 +356,7 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xffffff) {
 		createLoaders(onLoadPlayer.bind(world), onReady.bind(world))
 	);
 	initStats(world);
+	initScene(world);
 
 	return world;
 }
