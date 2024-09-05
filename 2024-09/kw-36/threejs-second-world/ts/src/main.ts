@@ -1,6 +1,6 @@
 import "./style.css";
 import * as THREE from "three";
-import { createExperience, initWorld } from "./ts/functions";
+import { createExperience, initDebug, initWorld } from "./ts/functions";
 import RAPIER from "@dimforge/rapier3d-compat";
 import { RAPIER_WORLD_BODIES } from "./ts/constants";
 await RAPIER.init();
@@ -29,6 +29,7 @@ experience.loadGLTF("robot-blender.glb", (gltf) => {
 
 experience.onReady = function () {
 	initWorld(this, RAPIER_WORLD_BODIES);
+	initDebug(this);
 	experience.renderer.setAnimationLoop(animate);
 };
 
@@ -47,6 +48,7 @@ function animate(/* time: number */) {
 	if (experience.spawnPlayerAt) experience.spawnPlayerAt();
 	if (experience.trackPlayer) experience.trackPlayer();
 
+	if (experience.debugRenderer) experience.debugRenderer.update();
 	renderer.render(scene, camera);
 	experience.stats.end();
 }

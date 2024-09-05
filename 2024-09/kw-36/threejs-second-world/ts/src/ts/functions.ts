@@ -21,6 +21,7 @@ import {
 	Quaternion,
 } from "@dimforge/rapier3d-compat";
 import { Group, Mesh, Object3DEventMap, Raycaster } from "three";
+import { RapierDebugRenderer } from "./classes";
 
 // Getters
 export function getAllDescendants(object: THREE.Object3D): THREE.Object3D[] {
@@ -199,6 +200,12 @@ export function onKeyup(world: ReturnType<typeof createExperience>) {
 }
 
 // Init
+export function initDebug(experience: ReturnType<typeof createExperience>) {
+	const { scene, world } = experience;
+	const debug = new RapierDebugRenderer(scene, world);
+	experience.debugRenderer = debug;
+}
+
 export function initWorld(
 	experience: ReturnType<typeof createExperience>,
 	data: RAPIER_WORLD_BODY[]
@@ -434,6 +441,7 @@ export function createExperience(
 		rapier,
 		world,
 		bodies: [] as [Mesh | Group<Object3DEventMap>, RigidBody][],
+		debugRenderer: null as RapierDebugRenderer | null,
 		// General
 		renderer,
 		camera,
