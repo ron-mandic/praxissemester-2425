@@ -5,12 +5,22 @@ import Stats from "three/addons/libs/stats.module.js";
 import {
 	PLAYER_HEIGHT,
 	PLAYER_HEIGHT_OFFSET,
+	RAPIER_WORLD_GRAVITY,
 	WORLD_CAMERA_FOVE,
 } from "./constants";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import gsap from "gsap";
 import { getAngle, ptToM } from "./math";
-// import { DRACOLoader } from "three/examples/jsm/Addons.js";
+import { RAPIER, RAPIER_WORLD_BODY } from "./types";
+import {
+	RigidBody,
+	RigidBodyDesc,
+	ColliderDesc,
+	Vector3,
+	World,
+	Quaternion,
+} from "@dimforge/rapier3d-compat";
+import { Group, Mesh, Object3DEventMap, Raycaster } from "three";
 
 // Getters
 export function getAllDescendants(object: THREE.Object3D): THREE.Object3D[] {
@@ -33,7 +43,7 @@ export function getAllDescendants(object: THREE.Object3D): THREE.Object3D[] {
 }
 
 // Handlers
-function onLoadPlayer(this: ReturnType<typeof createWorld>) {
+function onLoadPlayer(this: ReturnType<typeof createExperience>) {
 	const player = this.player!;
 
 	player.traverse((child) => {
@@ -45,14 +55,15 @@ function onLoadPlayer(this: ReturnType<typeof createWorld>) {
 	player.position.setY(PLAYER_HEIGHT / 2 + PLAYER_HEIGHT_OFFSET);
 	this.scene.add(player);
 }
-function onReady(this: ReturnType<typeof createWorld>) {
-	const world = this;
+function onReady(this: ReturnType<typeof createExperience>) {
+	const experience = this;
 
-	onResize(world.renderer, world.camera);
-	onKeydown(world);
-	onKeyup(world);
+	onResize(experience.renderer, experience.camera);
+	onKeydown(experience);
+	onKeyup(experience);
+	onClick(experience);
 
-	if (world.onReady) world.onReady();
+	if (experience.onReady) experience.onReady();
 }
 export function onResize(
 	renderer: THREE.WebGLRenderer,
@@ -69,78 +80,116 @@ export function onResize(
 		renderer.setSize(window.innerWidth, window.innerHeight);
 	});
 }
-export function onKeydown(world: ReturnType<typeof createWorld>) {
-	window.addEventListener("keydown", function (event) {
-		if (!world.player) return;
-		world.keyPressed = event.code;
-		if (!world.keysPressed.has(event.code) && world.keysPressed.size < 2) {
-			world.keysPressed.set(event.code, true);
+export function onClick(experience: ReturnType<typeof createExperience>) {
+	const { renderer, camera, bodies, mouse, raycaster } = experience;
+
+	renderer.domElement.addEventListener("click", (e) => {
+		mouse.set(
+			(e.clientX / renderer.domElement.clientWidth) * 2 - 1,
+			-(e.clientY / renderer.domElement.clientHeight) * 2 + 1
+		);
+		raycaster.setFromCamera(mouse, camera);
+		const intersects = raycaster.intersectObjects(
+			experience.playerDescendants,
+			true
+		);
+
+		if (intersects[0]?.object.name === "Robot") {
+			const playerBody = bodies[0][1];
+			playerBody.applyImpulse(
+				new Vector3(0, RAPIER_WORLD_GRAVITY, 0),
+				true
+			);
 		}
-		if (world.keysPressed.size === 2) return;
+	});
+}
+export function onKeydown(experience: ReturnType<typeof createExperience>) {
+	window.addEventListener("keydown", function (event) {
+		if (!experience.player) return;
+		experience.keyPressed = event.code;
+		if (
+			!experience.keysPressed.has(event.code) &&
+			experience.keysPressed.size < 2
+		) {
+			experience.keysPressed.set(event.code, true);
+		}
+		if (experience.keysPressed.size === 2) return;
 
 		switch (event.code) {
 			case "KeyW":
-				if (world.keysPressed.size === 2) return;
-				world.vec3Dir.set(-1, 0, 0);
+				if (experience.keysPressed.size === 2) return;
+				experience.vec3Dir.set(-1, 0, 0);
 				if (!event.repeat) {
-					gsap.to(world.player.rotation, {
-						y: `+=${getAngle(world.vec3Dir, world.vec3DirLast)}`,
+					gsap.to(experience.player.rotation, {
+						y: `+=${getAngle(
+							experience.vec3Dir,
+							experience.vec3DirLast
+						)}`,
 						duration: 0.5,
 						ease: "slow(0.7,0.7,false)",
 					});
 				}
-				world.vec3DirLast.copy(world.vec3Dir);
+				experience.vec3DirLast.copy(experience.vec3Dir);
 				break;
 			case "KeyA":
-				if (world.keysPressed.size === 2) return;
-				world.vec3Dir.set(0, 0, 1);
+				if (experience.keysPressed.size === 2) return;
+				experience.vec3Dir.set(0, 0, 1);
 				if (!event.repeat) {
-					gsap.to(world.player.rotation, {
-						y: `+=${getAngle(world.vec3Dir, world.vec3DirLast)}`,
+					gsap.to(experience.player.rotation, {
+						y: `+=${getAngle(
+							experience.vec3Dir,
+							experience.vec3DirLast
+						)}`,
 						duration: 0.5,
 						ease: "slow(0.7,0.7,false)",
 					});
 				}
-				world.vec3DirLast.copy(world.vec3Dir);
+				experience.vec3DirLast.copy(experience.vec3Dir);
 				break;
 			case "KeyS":
-				if (world.keysPressed.size === 2) return;
-				world.vec3Dir.set(1, 0, 0);
+				if (experience.keysPressed.size === 2) return;
+				experience.vec3Dir.set(1, 0, 0);
 				if (!event.repeat) {
-					gsap.to(world.player.rotation, {
-						y: `+=${getAngle(world.vec3Dir, world.vec3DirLast)}`,
+					gsap.to(experience.player.rotation, {
+						y: `+=${getAngle(
+							experience.vec3Dir,
+							experience.vec3DirLast
+						)}`,
 						duration: 0.5,
 						ease: "slow(0.7,0.7,false)",
 					});
 				}
-				world.vec3DirLast.copy(world.vec3Dir);
+				experience.vec3DirLast.copy(experience.vec3Dir);
 				break;
 			case "KeyD":
-				if (world.keysPressed.size === 2) return;
-				world.vec3Dir.set(0, 0, -1);
-				world.keyPressed = event.code;
+				if (experience.keysPressed.size === 2) return;
+				experience.vec3Dir.set(0, 0, -1);
+				experience.keyPressed = event.code;
 				if (
-					!world.keysPressed.has(event.code) &&
-					world.keysPressed.size < 2
+					!experience.keysPressed.has(event.code) &&
+					experience.keysPressed.size < 2
 				) {
-					world.keysPressed.set(event.code, true);
+					experience.keysPressed.set(event.code, true);
 				}
-				if (world.keysPressed.size === 2) return;
+				if (experience.keysPressed.size === 2) return;
 				if (!event.repeat) {
-					gsap.to(world.player.rotation, {
-						y: `+=${getAngle(world.vec3Dir, world.vec3DirLast)}`,
+					gsap.to(experience.player.rotation, {
+						y: `+=${getAngle(
+							experience.vec3Dir,
+							experience.vec3DirLast
+						)}`,
 						duration: 0.5,
 						ease: "slow(0.7,0.7,false)",
 					});
 				}
-				world.vec3DirLast.copy(world.vec3Dir);
+				experience.vec3DirLast.copy(experience.vec3Dir);
 				break;
 			default:
 				return;
 		}
 	});
 }
-export function onKeyup(world: ReturnType<typeof createWorld>) {
+export function onKeyup(world: ReturnType<typeof createExperience>) {
 	window.addEventListener("keyup", (event) => {
 		world.vec3Dir.set(0, 0, 0);
 		world.keyPressed = null;
@@ -150,8 +199,75 @@ export function onKeyup(world: ReturnType<typeof createWorld>) {
 }
 
 // Init
+export function initWorld(
+	experience: ReturnType<typeof createExperience>,
+	data: RAPIER_WORLD_BODY[]
+) {
+	const { world } = experience;
+	if (!world) throw new Error("World not found");
+
+	for (let obj of data) {
+		const {
+			type,
+			translation,
+			shape: s,
+			sizes,
+			mass,
+			restitution,
+			getObject,
+		} = obj;
+		const { x, y, z } = translation;
+
+		let body;
+		if (type === "fixed") {
+			body = world.createRigidBody(
+				// @ts-ignore
+				RigidBodyDesc[type]().setTranslation(x, y, z)
+			);
+		} else if (type === "dynamic") {
+			body = world.createRigidBody(
+				// @ts-ignore
+				RigidBodyDesc[type]().setTranslation(x, y, z).setCanSleep(false)
+			);
+		}
+
+		let shape;
+		if (s === "cuboid") {
+			let { hx, hy, hz } = sizes as {
+				hx: number;
+				hy: number;
+				hz: number;
+			};
+			// @ts-ignore
+			shape = ColliderDesc.cuboid(hx, hy, hz);
+		} else if (s === "cylinder") {
+			let { halfHeight, radius } = sizes as {
+				halfHeight: number;
+				radius: number;
+			};
+			// @ts-ignore
+			shape = ColliderDesc.cylinder(halfHeight, radius);
+		}
+
+		if (type === "dynamic") {
+			shape?.setMass(mass || 1);
+			shape?.setRestitution(restitution || 0);
+			// @ts-ignore
+			experience.bodies.push([
+				// @ts-ignore
+				experience.scene.children.find(getObject),
+				// @ts-ignore
+				body,
+			]);
+		}
+
+		// @ts-ignore
+		world.createCollider(shape, body);
+	}
+}
+
 export function initLoaders(
-	world: ReturnType<typeof createWorld>,
+	world: ReturnType<typeof createExperience>,
 	loaders: ReturnType<typeof createLoaders>
 ) {
 	world.loaders = loaders;
@@ -195,17 +311,15 @@ export function initLoaders(
 		return material;
 	};
 }
-export function initStats(world: ReturnType<typeof createWorld>) {
+export function initStats(world: ReturnType<typeof createExperience>) {
 	document.body.appendChild(world.stats.dom);
 }
-export function initScene(world: ReturnType<typeof createWorld>) {
+export function initScene(world: ReturnType<typeof createExperience>) {
 	const geometry = new THREE.BoxGeometry(...ptToM([216, 4.1, 216]), 4, 1, 4);
-	const objFloor = new THREE.Mesh(
-		geometry,
-		new THREE.MeshBasicMaterial({
-			color: 0xfafafa,
-		})
-	);
+	const material = new THREE.MeshBasicMaterial({
+		color: 0xffffff,
+	});
+	const objFloor = new THREE.Mesh(geometry, material);
 
 	objFloor.position.set(0, -0.056944 / 2, 0);
 	world.scene.add(objFloor);
@@ -297,17 +411,29 @@ export function createLoaders(onLoad: () => void, onReady?: () => void) {
 	};
 }
 
-export function createWorld(canvas: HTMLCanvasElement, color = 0xfafafa) {
+export function createExperience(
+	canvas: HTMLCanvasElement,
+	rapier: RAPIER,
+	color = 0xfafafa
+) {
 	const renderer = createRenderer(canvas);
 	const camera = createCamera();
 	const scene = createScene(color);
 	const clock = new THREE.Clock();
 	const stats = new Stats();
+	const world = new World(new Vector3(0.0, -RAPIER_WORLD_GRAVITY, 0.0));
+
+	const raycaster = new Raycaster();
+	const mouse = new THREE.Vector2();
 
 	createHelpers(scene, camera);
 	createControls(camera, renderer.domElement);
 
-	const world = {
+	const experience = {
+		// Rapier
+		rapier,
+		world,
+		bodies: [] as [Mesh | Group<Object3DEventMap>, RigidBody][],
 		// General
 		renderer,
 		camera,
@@ -317,8 +443,20 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xfafafa) {
 		textures: [] as THREE.Texture[],
 		texturesCube: null as THREE.CubeTexture | null,
 		materials: [] as THREE.MeshMatcapMaterial[],
+		// Interaction
+		raycaster,
+		mouse,
 		// Player
 		player: null as THREE.Group<THREE.Object3DEventMap> | null,
+		playerRAPIER: null as RigidBody | null,
+		playerRAPIERSpawnT: new Vector3(
+			0,
+			PLAYER_HEIGHT / 2 + PLAYER_HEIGHT_OFFSET * 0.5,
+			0
+		),
+		playerRAPIERSpawnR: new Quaternion(0, 0, 0, 1),
+		playerRAPIERSpawnLinvel: new Vector3(0, 0, 0),
+		playerRAPIERSpawnAngvel: new Vector3(0, 0, 0),
 		playerDescendants: [] as THREE.Object3D[],
 		vec3Dir: new THREE.Vector3(),
 		vec3DirLast: new THREE.Vector3(),
@@ -347,16 +485,51 @@ export function createWorld(canvas: HTMLCanvasElement, color = 0xfafafa) {
 		createMaterial: null as
 			| ((matcap: THREE.Texture) => THREE.MeshMatcapMaterial)
 			| null,
-		animate: null as ((callback: (delta?: number) => void) => void) | null,
+		update: null as (() => void) | null,
+		spawnPlayerAt: null as ((y?: number) => void) | null,
+		trackPlayer: null as (() => void) | null,
 		onReady: null as (() => void) | null,
 	};
 
 	initLoaders(
-		world,
-		createLoaders(onLoadPlayer.bind(world), onReady.bind(world))
+		experience,
+		createLoaders(onLoadPlayer.bind(experience), onReady.bind(experience))
 	);
-	initStats(world);
-	initScene(world);
+	initStats(experience);
+	initScene(experience);
 
-	return world;
+	experience.update = function () {
+		if (!this.bodies) return;
+
+		for (let i = 0, n = this.bodies.length; i < n; i++) {
+			let bodyTHREE = this.bodies[i][0];
+			let bodyRAPIER = this.bodies[i][1];
+
+			bodyTHREE.position.copy(bodyRAPIER.translation());
+			bodyTHREE.quaternion.copy(bodyRAPIER.rotation());
+		}
+	};
+
+	experience.spawnPlayerAt = function (y: number = -10) {
+		if (!this.playerRAPIER) {
+			this.bodies.find(([bodyTHREE, bodyRAPIER]) => {
+				if (bodyTHREE.children[0]?.name === "Robot") {
+					this.playerRAPIER = bodyRAPIER;
+				}
+			});
+		}
+		if (this.playerRAPIER!.translation().y > y) return;
+
+		this.playerRAPIER!.setTranslation(this.playerRAPIERSpawnT, false);
+		this.playerRAPIER!.setRotation(this.playerRAPIERSpawnR, true);
+		this.playerRAPIER!.setLinvel(this.playerRAPIERSpawnLinvel, true);
+		this.playerRAPIER!.setAngvel(this.playerRAPIERSpawnAngvel, true);
+	};
+
+	experience.trackPlayer = function () {
+		this.camera.position.x = (this.player?.position?.x || 0) + 20;
+		this.camera.position.z = (this.player?.position?.z || 0) + 20;
+	};
+
+	return experience;
 }
