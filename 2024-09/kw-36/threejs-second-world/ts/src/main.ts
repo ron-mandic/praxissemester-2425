@@ -34,10 +34,6 @@ experience.onReady = function () {
 	initWorld(this, RAPIER_WORLD_BODIES);
 	initDebug(this);
 
-	experience.player?.setRotationFromAxisAngle(
-		new THREE.Vector3(0, 1, 0),
-		Math.PI
-	);
 	experience.renderer.setAnimationLoop(animate);
 };
 

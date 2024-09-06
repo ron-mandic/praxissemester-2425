@@ -593,7 +593,7 @@ export function createExperience(
 
 		experience.player?.children[0].quaternion.rotateTowards(
 			experience.playerRotationQuaternion,
-			0.1125
+			delta * 5
 		);
 	};
 
