@@ -11,10 +11,13 @@ const { world, renderer, camera, scene } = experience!;
 let frameCount = 0;
 
 // @ts-expect-error Cannot invoke an object which is possibly 'null'.
-experience.loadTexture("/textures/matcaps/2.png", (texture: THREE.Texture) => {
-	if (experience && experience.createMaterial)
-		experience.createMaterial(texture);
-});
+experience.loadTexture(
+	"/textures/matcaps/495CA6_CCD2E6_A5B1D8_1E2852-256px.png",
+	(texture: THREE.Texture) => {
+		if (experience && experience.createMaterial)
+			experience.createMaterial(texture);
+	}
+);
 // @ts-expect-error Cannot invoke an object which is possibly 'null'.
 experience.loadGLTF("robot-blender.glb", (gltf) => {
 	experience.player = gltf.scene;
@@ -44,9 +47,11 @@ function animate(/* time: number */) {
 		world.step();
 	}
 
-	if (experience.update) experience.update();
+	if (experience.update) experience.update(dt);
 	if (experience.spawnPlayerAt) experience.spawnPlayerAt();
 	if (experience.trackPlayer) experience.trackPlayer();
+
+	console.log(dt * experience.playerSpeed);
 
 	if (experience.debugRenderer) experience.debugRenderer.update();
 	renderer.render(scene, camera);

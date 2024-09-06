@@ -13,4 +13,11 @@ body {
 
 body {
 	overflow: clip;
+	background-color: #ffffff;
+	/* background-image: linear-gradient(
+			to bottom,
+			rgba(255, 255, 255, 0.875),s
+			white
+		),
+		url("/images/paper.jpg"); */
 }

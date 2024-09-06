@@ -3,6 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import Stats from "three/addons/libs/stats.module.js";
 import {
+	KEYS,
 	PLAYER_HEIGHT,
 	PLAYER_HEIGHT_OFFSET,
 	RAPIER_WORLD_GRAVITY,
@@ -41,6 +42,113 @@ export function getAllDescendants(object: THREE.Object3D): THREE.Object3D[] {
 	});
 
 	return descendants;
+}
+
+// Setters
+function setVec3(vec3: Vector3, x: number, y: number, z: number) {
+	vec3.x = x;
+	vec3.y = y;
+	vec3.z = z;
+}
+function setPlayerDir(experience: ReturnType<typeof createExperience>) {
+	const ROOT_OF_TWO = Math.sqrt(2) / 2;
+	const keys = experience.keysPressed;
+	const vec3 = experience.playerDir;
+
+	// WASD Diagonals (normalised)
+	// Hint: The maximum size is already capped at 2
+	if (keys.has("KeyW") && keys.has("KeyA")) {
+		// Negative x, positive z
+		setVec3(vec3, -ROOT_OF_TWO, 0, ROOT_OF_TWO);
+		experience.playerDirNum = 1;
+		return;
+	}
+	if (keys.has("KeyS") && keys.has("KeyA")) {
+		// Positive x, positive z
+		setVec3(vec3, ROOT_OF_TWO, 0, ROOT_OF_TWO);
+		experience.playerDirNum = 3;
+		return;
+	}
+	if (keys.has("KeyS") && keys.has("KeyD")) {
+		// Positive x, negative z
+		setVec3(vec3, ROOT_OF_TWO, 0, -ROOT_OF_TWO);
+		experience.playerDirNum = 5;
+		return;
+	}
+	if (keys.has("KeyW") && keys.has("KeyD")) {
+		// Negative x, negative z
+		setVec3(vec3, -ROOT_OF_TWO, 0, -ROOT_OF_TWO);
+		experience.playerDirNum = 7;
+		return;
+	}
+
+	// WASD (Isometric Landscape)
+	if (keys.has("KeyW") && keys.size === 1) {
+		// Negative x
+		setVec3(vec3, -1, 0, 0);
+		experience.playerDirNum = 0;
+		return;
+	}
+	if (keys.has("KeyA") && keys.size === 1) {
+		// Positive z
+		setVec3(vec3, 0, 0, 1);
+		experience.playerDirNum = 2;
+		return;
+	}
+	if (keys.has("KeyS") && keys.size === 1) {
+		// Positive x
+		setVec3(vec3, 1, 0, 0);
+		experience.playerDirNum = 4;
+		return;
+	}
+	if (keys.has("KeyD") && keys.size === 1) {
+		// Negative z
+		setVec3(vec3, 0, 0, -1);
+		experience.playerDirNum = 6;
+		return;
+	}
+
+	// Only if invalid keys or no keys are pressed
+	setVec3(vec3, 0, 0, 0);
+}
+function resetPlayerDir(
+	experience: ReturnType<typeof createExperience>
+	/* releasedKey?: string */
+) {
+	const keys = experience.keysPressed;
+	const vec3 = experience.playerDir;
+	// console.log(releasedKey);
+	if (keys.size === 0) {
+		setVec3(vec3, 0, 0, 0);
+		experience.playerDirNum = null;
+		return;
+	}
+
+	// WASD (Isometric Landscape)
+	if (keys.has("KeyW") && keys.size === 1) {
+		// Negative x
+		setVec3(vec3, -1, 0, 0);
+		experience.playerDirNum = 0;
+		return;
+	}
+	if (keys.has("KeyA") && keys.size === 1) {
+		// Positive z
+		setVec3(vec3, 0, 0, 1);
+		experience.playerDirNum = 2;
+		return;
+	}
+	if (keys.has("KeyS") && keys.size === 1) {
+		// Positive x
+		setVec3(vec3, 1, 0, 0);
+		experience.playerDirNum = 4;
+		return;
+	}
+	if (keys.has("KeyD") && keys.size === 1) {
+		// Negative z
+		setVec3(vec3, 0, 0, -1);
+		experience.playerDirNum = 6;
+		return;
+	}
 }
 
 // Handlers
@@ -105,97 +213,26 @@ export function onClick(experience: ReturnType<typeof createExperience>) {
 	});
 }
 export function onKeydown(experience: ReturnType<typeof createExperience>) {
-	window.addEventListener("keydown", function (event) {
-		if (!experience.player) return;
-		experience.keyPressed = event.code;
-		if (
-			!experience.keysPressed.has(event.code) &&
-			experience.keysPressed.size < 2
-		) {
-			experience.keysPressed.set(event.code, true);
-		}
-		if (experience.keysPressed.size === 2) return;
+	const keys = experience.keysPressed;
 
-		switch (event.code) {
-			case "KeyW":
-				if (experience.keysPressed.size === 2) return;
-				experience.vec3Dir.set(-1, 0, 0);
-				if (!event.repeat) {
-					gsap.to(experience.player.rotation, {
-						y: `+=${getAngle(
-							experience.vec3Dir,
-							experience.vec3DirLast
-						)}`,
-						duration: 0.5,
-						ease: "slow(0.7,0.7,false)",
-					});
-				}
-				experience.vec3DirLast.copy(experience.vec3Dir);
-				break;
-			case "KeyA":
-				if (experience.keysPressed.size === 2) return;
-				experience.vec3Dir.set(0, 0, 1);
-				if (!event.repeat) {
-					gsap.to(experience.player.rotation, {
-						y: `+=${getAngle(
-							experience.vec3Dir,
-							experience.vec3DirLast
-						)}`,
-						duration: 0.5,
-						ease: "slow(0.7,0.7,false)",
-					});
-				}
-				experience.vec3DirLast.copy(experience.vec3Dir);
-				break;
-			case "KeyS":
-				if (experience.keysPressed.size === 2) return;
-				experience.vec3Dir.set(1, 0, 0);
-				if (!event.repeat) {
-					gsap.to(experience.player.rotation, {
-						y: `+=${getAngle(
-							experience.vec3Dir,
-							experience.vec3DirLast
-						)}`,
-						duration: 0.5,
-						ease: "slow(0.7,0.7,false)",
-					});
-				}
-				experience.vec3DirLast.copy(experience.vec3Dir);
-				break;
-			case "KeyD":
-				if (experience.keysPressed.size === 2) return;
-				experience.vec3Dir.set(0, 0, -1);
-				experience.keyPressed = event.code;
-				if (
-					!experience.keysPressed.has(event.code) &&
-					experience.keysPressed.size < 2
-				) {
-					experience.keysPressed.set(event.code, true);
-				}
-				if (experience.keysPressed.size === 2) return;
-				if (!event.repeat) {
-					gsap.to(experience.player.rotation, {
-						y: `+=${getAngle(
-							experience.vec3Dir,
-							experience.vec3DirLast
-						)}`,
-						duration: 0.5,
-						ease: "slow(0.7,0.7,false)",
-					});
-				}
-				experience.vec3DirLast.copy(experience.vec3Dir);
-				break;
-			default:
-				return;
-		}
+	window.addEventListener("keydown", function (event) {
+		if (keys.size > 2) return;
+		if (event.repeat) return;
+		if (!KEYS.some((key) => key === event.code)) return;
+
+		keys.set(event.code, true);
+		setPlayerDir(experience);
+		experience.playerSpeed = 0.28; // m/s
 	});
 }
-export function onKeyup(world: ReturnType<typeof createExperience>) {
+export function onKeyup(experience: ReturnType<typeof createExperience>) {
+	const keys = experience.keysPressed;
+
 	window.addEventListener("keyup", (event) => {
-		world.vec3Dir.set(0, 0, 0);
-		world.keyPressed = null;
-		if (world.keysPressed.has(event.code))
-			world.keysPressed.delete(event.code);
+		if (event.repeat) return;
+		keys.delete(event.code);
+		resetPlayerDir(experience);
+		if (keys.size === 0) experience.playerSpeed = 0;
 	});
 }
 
@@ -221,6 +258,8 @@ export function initWorld(
 			sizes,
 			mass,
 			restitution,
+			linearDamping,
+			friction,
 			getObject,
 		} = obj;
 		const { x, y, z } = translation;
@@ -258,7 +297,8 @@ export function initWorld(
 
 		if (type === "dynamic") {
 			shape?.setMass(mass || 1);
-			shape?.setRestitution(restitution || 0);
+			if (restitution) shape?.setRestitution(restitution);
+			if (friction) shape?.setFriction(friction);
 			// @ts-ignore
 			experience.bodies.push([
 				// @ts-ignore
@@ -339,11 +379,12 @@ export function createRenderer(canvas: HTMLCanvasElement) {
 		precision: "highp",
 		antialias: true,
 		canvas,
+		alpha: true,
 	});
 	renderer.setSize(window.innerWidth, window.innerHeight);
 	renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-	renderer.toneMapping = THREE.ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 2;
+	renderer.toneMapping = THREE.NoToneMapping;
+	renderer.toneMappingExposure = 1.0;
 
 	return renderer;
 }
@@ -362,9 +403,9 @@ export function createCamera() {
 
 	return camera;
 }
-export function createScene(color: number | string) {
+export function createScene(color?: number | string) {
 	const scene = new THREE.Scene();
-	scene.background = new THREE.Color(color);
+	if (color) scene.background = new THREE.Color(color);
 
 	return scene;
 }
@@ -421,7 +462,7 @@ export function createLoaders(onLoad: () => void, onReady?: () => void) {
 export function createExperience(
 	canvas: HTMLCanvasElement,
 	rapier: RAPIER,
-	color = 0xfafafa
+	color?: number
 ) {
 	const renderer = createRenderer(canvas);
 	const camera = createCamera();
@@ -466,9 +507,10 @@ export function createExperience(
 		playerRAPIERSpawnLinvel: new Vector3(0, 0, 0),
 		playerRAPIERSpawnAngvel: new Vector3(0, 0, 0),
 		playerDescendants: [] as THREE.Object3D[],
-		vec3Dir: new THREE.Vector3(),
-		vec3DirLast: new THREE.Vector3(),
-		keyPressed: null as string | null,
+		playerDir: new Vector3(0, 0, 0),
+		playerDirNum: null as number | null,
+		playerSpeed: 0,
+		playerInputVelocity: new THREE.Vector3(0, 0, 0),
 		keysPressed: new Map<string, boolean>(),
 		loaders: null as ReturnType<typeof createLoaders> | null,
 		// Loading mechanisms
@@ -493,7 +535,8 @@ export function createExperience(
 		createMaterial: null as
 			| ((matcap: THREE.Texture) => THREE.MeshMatcapMaterial)
 			| null,
-		update: null as (() => void) | null,
+		updatePlayer: null as ((delta: number) => void) | null,
+		update: null as ((delta: number) => void) | null,
 		spawnPlayerAt: null as ((y?: number) => void) | null,
 		trackPlayer: null as (() => void) | null,
 		onReady: null as (() => void) | null,
@@ -506,8 +549,23 @@ export function createExperience(
 	initStats(experience);
 	initScene(experience);
 
-	experience.update = function () {
+	experience.updatePlayer = function (delta: number) {
+		this.playerInputVelocity.set(0, 0, 0);
+		this.playerInputVelocity
+			.copy(this.playerDir)
+			.multiplyScalar(this.playerSpeed);
+
+		if (this.playerRAPIER)
+			this.playerRAPIER.applyImpulse(
+				new Vector3(...this.playerInputVelocity.toArray()),
+				true
+			);
+	};
+
+	experience.update = function (delta: number) {
 		if (!this.bodies) return;
+
+		if (this.updatePlayer) this.updatePlayer(delta * this.playerSpeed);
 
 		for (let i = 0, n = this.bodies.length; i < n; i++) {
 			let bodyTHREE = this.bodies[i][0];

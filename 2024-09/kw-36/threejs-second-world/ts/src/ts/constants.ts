@@ -7,6 +7,7 @@ export const PLAYER_HEIGHT_OFFSET = 0.5; // m (0.015)
 export const PLAYER_DEPTH = 0.32; // m
 export const PLAYER_WEIGHT = 3; // kg
 export const PLAYER_RESTITUTION = 1.1;
+export const PLAYER_FRICTION = 0.5;
 
 // const VELOCITY_MIN = 0.2; // m/s
 // const VELOCITY_MAX = 0.5; // m/s
@@ -44,12 +45,14 @@ export const RAPIER_WORLD_BODIES: RAPIER_WORLD_BODY[] = [
 			radius: PLAYER_WIDTH / 2,
 		},
 		mass: PLAYER_WEIGHT,
+		friction: PLAYER_FRICTION,
 		restitution: PLAYER_RESTITUTION,
 		getObject: (child) => child.children[0]?.name === "Robot",
 	},
 ];
 
 export const MATH_LERP_EPSILON = 0.001;
+
 export const WORLD_COORDINATE_CONVERSION = 1 / 72;
 export const WORLD_CAMERA_FOVE = 1.75;
 export const WORLD_CUBE_TEXTURE_IMAGES = [
@@ -59,4 +62,12 @@ export const WORLD_CUBE_TEXTURE_IMAGES = [
 	"ny.png",
 	"pz.png",
 	"nz.png",
+];
+
+export const KEYS = [
+	// WASD
+	"KeyW",
+	"KeyA",
+	"KeyS",
+	"KeyD",
 ];

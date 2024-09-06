@@ -22,6 +22,8 @@ export type RAPIER_WORLD_BODY = {
 		  };
 	mass?: number;
 	restitution?: number;
+	linearDamping?: number;
+	friction?: number;
 	getObject?: (
 		scene: Object3D
 	) => Object3D | Group<Object3DEventMap> | unknown;
