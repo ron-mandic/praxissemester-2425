@@ -33,6 +33,11 @@ experience.loadGLTF("robot-blender.glb", (gltf) => {
 experience.onReady = function () {
 	initWorld(this, RAPIER_WORLD_BODIES);
 	initDebug(this);
+
+	experience.player?.setRotationFromAxisAngle(
+		new THREE.Vector3(0, 1, 0),
+		Math.PI
+	);
 	experience.renderer.setAnimationLoop(animate);
 };
 
@@ -40,18 +45,18 @@ function animate(/* time: number */) {
 	experience.stats.begin();
 
 	frameCount += 1;
-	let dt = experience.clock.getDelta();
+	let delta = experience.clock.getDelta();
 
-	if (world) {
-		world.timestep = Math.min(dt, 0.1);
-		world.step();
-	}
+	world.timestep = Math.min(delta, 0.1);
+	world.step(experience.eventQueue);
 
-	if (experience.update) experience.update(dt);
+	experience.eventQueue.drainCollisionEvents((_, __, started) => {
+		if (experience.setGrounded) experience.setGrounded(started);
+	});
+
+	if (experience.update) experience.update(delta);
 	if (experience.spawnPlayerAt) experience.spawnPlayerAt();
 	if (experience.trackPlayer) experience.trackPlayer();
-
-	console.log(dt * experience.playerSpeed);
 
 	if (experience.debugRenderer) experience.debugRenderer.update();
 	renderer.render(scene, camera);

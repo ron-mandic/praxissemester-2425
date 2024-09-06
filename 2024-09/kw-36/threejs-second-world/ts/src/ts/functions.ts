@@ -11,7 +11,7 @@ import {
 } from "./constants";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import gsap from "gsap";
-import { getAngle, ptToM } from "./math";
+import { ptToM } from "./math";
 import { RAPIER, RAPIER_WORLD_BODY } from "./types";
 import {
 	RigidBody,
@@ -20,6 +20,8 @@ import {
 	Vector3,
 	World,
 	Quaternion,
+	EventQueue,
+	ActiveEvents,
 } from "@dimforge/rapier3d-compat";
 import { Group, Mesh, Object3DEventMap, Raycaster } from "three";
 import { RapierDebugRenderer } from "./classes";
@@ -42,6 +44,28 @@ export function getAllDescendants(object: THREE.Object3D): THREE.Object3D[] {
 	});
 
 	return descendants;
+}
+function getDirOffset(num: number) {
+	switch (num) {
+		case null:
+			return;
+		case 0:
+			return 0; // KeyW
+		case 1:
+			return Math.PI / 4; // KeyW + KeyA
+		case 2:
+			return Math.PI / 2; // KeyA
+		case 3:
+			return Math.PI / 4 + Math.PI / 2; // KeyS + KeyA
+		case 4:
+			return Math.PI; // KeyS
+		case 5:
+			return -Math.PI / 4 - Math.PI / 2; // KeyS + KeyD
+		case 6:
+			return -Math.PI / 2; // KeyD
+		case 7:
+			return -Math.PI / 4; // KeyW + KeyD
+	}
 }
 
 // Setters
@@ -118,11 +142,6 @@ function resetPlayerDir(
 	const keys = experience.keysPressed;
 	const vec3 = experience.playerDir;
 	// console.log(releasedKey);
-	if (keys.size === 0) {
-		setVec3(vec3, 0, 0, 0);
-		experience.playerDirNum = null;
-		return;
-	}
 
 	// WASD (Isometric Landscape)
 	if (keys.has("KeyW") && keys.size === 1) {
@@ -212,6 +231,7 @@ export function onClick(experience: ReturnType<typeof createExperience>) {
 		}
 	});
 }
+
 export function onKeydown(experience: ReturnType<typeof createExperience>) {
 	const keys = experience.keysPressed;
 
@@ -223,6 +243,14 @@ export function onKeydown(experience: ReturnType<typeof createExperience>) {
 		keys.set(event.code, true);
 		setPlayerDir(experience);
 		experience.playerSpeed = 0.28; // m/s
+
+		let offset = getDirOffset(experience.playerDirNum!);
+		if (offset === undefined) return;
+
+		experience.playerRotationQuaternion.setFromAxisAngle(
+			experience.playerRotationAxis,
+			offset
+		);
 	});
 }
 export function onKeyup(experience: ReturnType<typeof createExperience>) {
@@ -232,7 +260,10 @@ export function onKeyup(experience: ReturnType<typeof createExperience>) {
 		if (event.repeat) return;
 		keys.delete(event.code);
 		resetPlayerDir(experience);
-		if (keys.size === 0) experience.playerSpeed = 0;
+		if (keys.size === 0) {
+			experience.playerSpeed = 0;
+			experience.playerDirNum = null;
+		}
 	});
 }
 
@@ -299,6 +330,8 @@ export function initWorld(
 			shape?.setMass(mass || 1);
 			if (restitution) shape?.setRestitution(restitution);
 			if (friction) shape?.setFriction(friction);
+			shape?.setActiveEvents(ActiveEvents.COLLISION_EVENTS);
+
 			// @ts-ignore
 			experience.bodies.push([
 				// @ts-ignore
@@ -470,6 +503,7 @@ export function createExperience(
 	const clock = new THREE.Clock();
 	const stats = new Stats();
 	const world = new World(new Vector3(0.0, -RAPIER_WORLD_GRAVITY, 0.0));
+	const eventQueue = new EventQueue(true);
 
 	const raycaster = new Raycaster();
 	const mouse = new THREE.Vector2();
@@ -481,6 +515,7 @@ export function createExperience(
 		// Rapier
 		rapier,
 		world,
+		eventQueue,
 		bodies: [] as [Mesh | Group<Object3DEventMap>, RigidBody][],
 		debugRenderer: null as RapierDebugRenderer | null,
 		// General
@@ -511,6 +546,9 @@ export function createExperience(
 		playerDirNum: null as number | null,
 		playerSpeed: 0,
 		playerInputVelocity: new THREE.Vector3(0, 0, 0),
+		playerGrounded: false,
+		playerRotationAxis: new THREE.Vector3(0, 1, 0),
+		playerRotationQuaternion: new THREE.Quaternion(),
 		keysPressed: new Map<string, boolean>(),
 		loaders: null as ReturnType<typeof createLoaders> | null,
 		// Loading mechanisms
@@ -537,6 +575,7 @@ export function createExperience(
 			| null,
 		updatePlayer: null as ((delta: number) => void) | null,
 		update: null as ((delta: number) => void) | null,
+		setGrounded: null as ((grounded: boolean) => void) | null,
 		spawnPlayerAt: null as ((y?: number) => void) | null,
 		trackPlayer: null as (() => void) | null,
 		onReady: null as (() => void) | null,
@@ -550,22 +589,16 @@ export function createExperience(
 	initScene(experience);
 
 	experience.updatePlayer = function (delta: number) {
-		this.playerInputVelocity.set(0, 0, 0);
-		this.playerInputVelocity
-			.copy(this.playerDir)
-			.multiplyScalar(this.playerSpeed);
+		if (!this.playerGrounded) return;
 
-		if (this.playerRAPIER)
-			this.playerRAPIER.applyImpulse(
-				new Vector3(...this.playerInputVelocity.toArray()),
-				true
-			);
+		experience.player?.children[0].quaternion.rotateTowards(
+			experience.playerRotationQuaternion,
+			0.1125
+		);
 	};
 
 	experience.update = function (delta: number) {
 		if (!this.bodies) return;
-
-		if (this.updatePlayer) this.updatePlayer(delta * this.playerSpeed);
 
 		for (let i = 0, n = this.bodies.length; i < n; i++) {
 			let bodyTHREE = this.bodies[i][0];
@@ -574,6 +607,12 @@ export function createExperience(
 			bodyTHREE.position.copy(bodyRAPIER.translation());
 			bodyTHREE.quaternion.copy(bodyRAPIER.rotation());
 		}
+
+		if (this.updatePlayer) this.updatePlayer(delta);
+	};
+
+	experience.setGrounded = function (grounded: boolean) {
+		this.playerGrounded = grounded;
 	};
 
 	experience.spawnPlayerAt = function (y: number = -10) {
@@ -586,10 +625,13 @@ export function createExperience(
 		}
 		if (this.playerRAPIER!.translation().y > y) return;
 
-		this.playerRAPIER!.setTranslation(this.playerRAPIERSpawnT, false);
+		this.playerRAPIER!.setTranslation(this.playerRAPIERSpawnT, true);
 		this.playerRAPIER!.setRotation(this.playerRAPIERSpawnR, true);
 		this.playerRAPIER!.setLinvel(this.playerRAPIERSpawnLinvel, true);
 		this.playerRAPIER!.setAngvel(this.playerRAPIERSpawnAngvel, true);
+
+		this.playerDir = new Vector3(0, 0, 0);
+		this.playerDirNum = null;
 	};
 
 	experience.trackPlayer = function () {
