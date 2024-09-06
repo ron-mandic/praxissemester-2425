@@ -22,7 +22,6 @@ export type RAPIER_WORLD_BODY = {
 		  };
 	mass?: number;
 	restitution?: number;
-	linearDamping?: number;
 	friction?: number;
 	getObject?: (
 		scene: Object3D

@@ -8,6 +8,8 @@ export const PLAYER_DEPTH = 0.32; // m
 export const PLAYER_WEIGHT = 3; // kg
 export const PLAYER_RESTITUTION = 1.1;
 export const PLAYER_FRICTION = 0.5;
+export const PLAYER_SPEED = 0.45; // m/s
+export const PLAYER_SPEED_MAX = 1.75;
 
 // const VELOCITY_MIN = 0.2; // m/s
 // const VELOCITY_MAX = 0.5; // m/s
@@ -16,6 +18,7 @@ export const PLAYER_FRICTION = 0.5;
 // const ANGULAR_VELOCITY_MAX = 1.5; // rad/s
 
 export const RAPIER_WORLD_GRAVITY = 9.80665; // m/s^2
+export const RAPIER_WORLD_FRAME_RATE = 1 / 60; // s/frame
 export const RAPIER_WORLD_Y_OFFSET = 0.0155; // m
 export const RAPIER_WORLD_BODIES: RAPIER_WORLD_BODY[] = [
 	{

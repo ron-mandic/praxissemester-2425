@@ -6,6 +6,9 @@ import {
 	KEYS,
 	PLAYER_HEIGHT,
 	PLAYER_HEIGHT_OFFSET,
+	PLAYER_SPEED,
+	PLAYER_SPEED_MAX,
+	RAPIER_WORLD_FRAME_RATE,
 	RAPIER_WORLD_GRAVITY,
 	WORLD_CAMERA_FOVE,
 } from "./constants";
@@ -66,6 +69,15 @@ function getDirOffset(num: number) {
 		case 7:
 			return -Math.PI / 4; // KeyW + KeyD
 	}
+}
+function getRotationQuaternion(
+	experience: ReturnType<typeof createExperience>
+) {
+	let offset = getDirOffset(experience.playerDirNum!);
+	if (offset === undefined) return;
+
+	const quaternion = new THREE.Quaternion(0, 0, 0);
+	return quaternion.setFromAxisAngle(experience.playerRotationAxis, offset);
 }
 
 // Setters
@@ -134,6 +146,12 @@ function setPlayerDir(experience: ReturnType<typeof createExperience>) {
 
 	// Only if invalid keys or no keys are pressed
 	setVec3(vec3, 0, 0, 0);
+}
+function setRotationQuaternion(numDir: number, quaternion: THREE.Quaternion) {
+	let offset = getDirOffset(numDir);
+	if (offset === undefined) return;
+
+	quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), offset);
 }
 function resetPlayerDir(
 	experience: ReturnType<typeof createExperience>
@@ -242,14 +260,11 @@ export function onKeydown(experience: ReturnType<typeof createExperience>) {
 
 		keys.set(event.code, true);
 		setPlayerDir(experience);
-		experience.playerSpeed = 0.28; // m/s
+		experience.playerSpeed = PLAYER_SPEED; // m/s
 
-		let offset = getDirOffset(experience.playerDirNum!);
-		if (offset === undefined) return;
-
-		experience.playerRotationQuaternion.setFromAxisAngle(
-			experience.playerRotationAxis,
-			offset
+		setRotationQuaternion(
+			experience.playerDirNum!,
+			experience.playerRotationQuaternion
 		);
 	});
 }
@@ -260,9 +275,15 @@ export function onKeyup(experience: ReturnType<typeof createExperience>) {
 		if (event.repeat) return;
 		keys.delete(event.code);
 		resetPlayerDir(experience);
+
 		if (keys.size === 0) {
 			experience.playerSpeed = 0;
 			experience.playerDirNum = null;
+		} else {
+			setRotationQuaternion(
+				experience.playerDirNum!,
+				experience.playerRotationQuaternion
+			);
 		}
 	});
 }
@@ -289,7 +310,6 @@ export function initWorld(
 			sizes,
 			mass,
 			restitution,
-			linearDamping,
 			friction,
 			getObject,
 		} = obj;
@@ -545,11 +565,13 @@ export function createExperience(
 		playerDir: new Vector3(0, 0, 0),
 		playerDirNum: null as number | null,
 		playerSpeed: 0,
+		playerMaxSpeed: PLAYER_SPEED_MAX,
 		playerInputVelocity: new THREE.Vector3(0, 0, 0),
 		playerGrounded: false,
 		playerRotationAxis: new THREE.Vector3(0, 1, 0),
 		playerRotationQuaternion: new THREE.Quaternion(),
 		keysPressed: new Map<string, boolean>(),
+		triggerRotation: false,
 		loaders: null as ReturnType<typeof createLoaders> | null,
 		// Loading mechanisms
 		loadTexture: null as
@@ -591,10 +613,40 @@ export function createExperience(
 	experience.updatePlayer = function (delta: number) {
 		if (!this.playerGrounded) return;
 
-		experience.player?.children[0].quaternion.rotateTowards(
-			experience.playerRotationQuaternion,
-			delta * 5
+		let { x, y, z } = experience.playerDir;
+		let vecDirection = new THREE.Vector3(x, y, z);
+		vecDirection.multiplyScalar(
+			this.playerSpeed * (delta / RAPIER_WORLD_FRAME_RATE)
 		);
+
+		// Static
+		// this.player!.children[0].quaternion.copy(
+		// 	experience.playerRotationQuaternion
+		// );
+
+		// Animated
+		this.player!.children[0].quaternion.rotateTowards(
+			experience.playerRotationQuaternion,
+			delta * 10
+		);
+
+		this.playerRAPIER!.applyImpulse(
+			new Vector3(...vecDirection.toArray()),
+			true
+		);
+
+		let { x: velX, y: velY, z: velZ } = this.playerRAPIER!.linvel();
+		let currentVelocity = new THREE.Vector3(velX, velY, velZ);
+
+		if (currentVelocity.length() > PLAYER_SPEED_MAX) {
+			currentVelocity.setLength(PLAYER_SPEED_MAX);
+			this.playerRAPIER!.setLinvel(
+				new Vector3(...currentVelocity.toArray()),
+				true
+			);
+		}
+
+		console.log(Array.from(experience.keysPressed.keys()));
 	};
 
 	experience.update = function (delta: number) {
