@@ -10,7 +10,6 @@ import {
 	PLAYER_SPEED_MAX,
 	RAPIER_WORLD_FRAME_RATE,
 	RAPIER_WORLD_GRAVITY,
-	RAPIER_WORLD_SPRITES,
 	WORLD_CAMERA_FOVE,
 } from "./constants";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
@@ -389,7 +388,7 @@ export function initSprites(
 		});
 	};
 
-	let bodies = [];
+	// let bodies = [];
 
 	for (const sprite of data) {
 		const { mesh: _mesh, plane: _plane, bodies } = sprite;
@@ -432,7 +431,8 @@ export function initSprites(
 		show && scene.add(meshObj);
 
 		// Plane
-		const { path, width, height, offsetX, offsetY, offsetZ, scaleX } = _plane;
+		const { path, width, height, offsetX, offsetY, offsetZ, scaleX } =
+			_plane;
 		const plane = new THREE.PlaneGeometry(width, height);
 		const image = experience.sprites[path];
 
@@ -546,7 +546,7 @@ export function createCamera() {
 		0.001,
 		1000
 	);
-	camera.position.set(20, 20, 20);
+	camera.position.set(15, 15, 15);
 	camera.lookAt(0, 0, 0);
 
 	return camera;
@@ -572,14 +572,14 @@ export function createControls(
 	controls.update();
 }
 export function createHelpers(
-	scene: THREE.Scene,
-	camera: THREE.OrthographicCamera
+	scene: THREE.Scene
+	// camera: THREE.OrthographicCamera
 ) {
 	const gridHelper = new THREE.GridHelper(3, 3, undefined, 0xcdcdcd);
 	scene.add(gridHelper);
-	const axesHelper = new THREE.AxesHelper(100);
+	// const axesHelper = new THREE.AxesHelper(100);
 	// scene.add(axesHelper);
-	const cameraHelper = new THREE.CameraHelper(camera);
+	// const cameraHelper = new THREE.CameraHelper(camera);
 	// scene.add(cameraHelper);
 }
 export function createLoaders(onLoad: () => void, onReady?: () => void) {
@@ -624,7 +624,7 @@ export function createExperience(
 	const raycaster = new Raycaster();
 	const mouse = new THREE.Vector2();
 
-	createHelpers(scene, camera);
+	createHelpers(scene /* camera */);
 	createControls(camera, renderer.domElement);
 
 	const experience = {
@@ -802,12 +802,12 @@ export function createExperience(
 	experience.trackPlayer = function (delta: number) {
 		this.camera.position.x = lerp(
 			this.camera.position.x,
-			(this.player?.position?.x || 0) + 20,
+			(this.player?.position?.x || 0) + 15,
 			delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
 		);
 		this.camera.position.z = lerp(
 			this.camera.position.z,
-			(this.player?.position?.z || 0) + 20,
+			(this.player?.position?.z || 0) + 15,
 			delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
 		);
 	};
