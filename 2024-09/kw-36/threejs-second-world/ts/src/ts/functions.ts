@@ -10,11 +10,11 @@ import {
 	PLAYER_SPEED_MAX,
 	RAPIER_WORLD_FRAME_RATE,
 	RAPIER_WORLD_GRAVITY,
+	RAPIER_WORLD_SPRITES,
 	WORLD_CAMERA_FOVE,
 } from "./constants";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
-import gsap from "gsap";
-import { ptToM } from "./math";
+import { lerp, ptToM } from "./math";
 import { RAPIER, RAPIER_WORLD_BODY } from "./types";
 import {
 	RigidBody,
@@ -26,7 +26,13 @@ import {
 	EventQueue,
 	ActiveEvents,
 } from "@dimforge/rapier3d-compat";
-import { Group, Mesh, Object3DEventMap, Raycaster } from "three";
+import {
+	Group,
+	Mesh,
+	MeshBasicMaterial,
+	Object3DEventMap,
+	Raycaster,
+} from "three";
 import { RapierDebugRenderer } from "./classes";
 
 // Getters
@@ -69,15 +75,6 @@ function getDirOffset(num: number) {
 		case 7:
 			return -Math.PI / 4; // KeyW + KeyD
 	}
-}
-function getRotationQuaternion(
-	experience: ReturnType<typeof createExperience>
-) {
-	let offset = getDirOffset(experience.playerDirNum!);
-	if (offset === undefined) return;
-
-	const quaternion = new THREE.Quaternion(0, 0, 0);
-	return quaternion.setFromAxisAngle(experience.playerRotationAxis, offset);
 }
 
 // Setters
@@ -227,7 +224,7 @@ export function onResize(
 	});
 }
 export function onClick(experience: ReturnType<typeof createExperience>) {
-	const { renderer, camera, bodies, mouse, raycaster } = experience;
+	const { renderer, scene, camera, bodies, mouse, raycaster } = experience;
 
 	renderer.domElement.addEventListener("click", (e) => {
 		mouse.set(
@@ -236,7 +233,7 @@ export function onClick(experience: ReturnType<typeof createExperience>) {
 		);
 		raycaster.setFromCamera(mouse, camera);
 		const intersects = raycaster.intersectObjects(
-			experience.playerDescendants,
+			scene.children.filter((child) => child.name),
 			true
 		);
 
@@ -305,6 +302,7 @@ export function initWorld(
 	for (let obj of data) {
 		const {
 			type,
+			collisionGroups,
 			translation,
 			shape: s,
 			sizes,
@@ -336,14 +334,19 @@ export function initWorld(
 				hz: number;
 			};
 			// @ts-ignore
-			shape = ColliderDesc.cuboid(hx, hy, hz);
+			shape = ColliderDesc.cuboid(hx, hy, hz).setCollisionGroups(
+				collisionGroups
+			);
 		} else if (s === "cylinder") {
 			let { halfHeight, radius } = sizes as {
 				halfHeight: number;
 				radius: number;
 			};
 			// @ts-ignore
-			shape = ColliderDesc.cylinder(halfHeight, radius);
+			shape = ColliderDesc.cylinder(
+				halfHeight,
+				radius
+			).setCollisionGroups(collisionGroups);
 		}
 
 		if (type === "dynamic") {
@@ -366,22 +369,111 @@ export function initWorld(
 	}
 }
 
+export function initSprites(
+	experience: ReturnType<typeof createExperience>,
+	data: any[],
+	isTransparent = false
+) {
+	const { scene } = experience;
+	const materialObj = new MeshBasicMaterial({
+		color: 0x00ff00,
+		opacity: isTransparent ? 0 : 0.5,
+		transparent: true,
+	});
+	const getMaterialPlane = (image: THREE.Texture) => {
+		return new MeshBasicMaterial({
+			map: image,
+			color: 0xffffff,
+			transparent: true,
+			opacity: 1,
+		});
+	};
+
+	let bodies = [];
+
+	for (const sprite of data) {
+		const { mesh: _mesh, plane: _plane, bodies } = sprite;
+
+		// Bodies
+		for (const body of bodies) {
+			bodies.push(body);
+		}
+
+		// Mesh
+		const { o, x, y, z, type, show } = _mesh;
+		const vec3O = new THREE.Vector3(o.x, o.y || 0, o.z);
+		const vec3X = new THREE.Vector3(x, 0, 0);
+		const vec3Y = new THREE.Vector3(0, y, 0);
+		const vec3Z = new THREE.Vector3(0, 0, z);
+		const vec3M = vec3O
+			.clone()
+			.add(vec3X.clone().multiplyScalar(0.5))
+			.add(vec3Y.clone().multiplyScalar(0.5))
+			.add(vec3Z.clone().multiplyScalar(0.5));
+
+		const w = Math.abs(vec3X.x);
+		const h = Math.abs(vec3Y.y);
+		const d = Math.abs(vec3Z.z);
+
+		let geometryObj, meshObj;
+
+		switch (type) {
+			case "box":
+				geometryObj = new THREE.BoxGeometry(w, h, d);
+				break;
+			case "cylinder":
+				geometryObj = new THREE.CylinderGeometry(w / 2, w / 2, h, 32);
+				break;
+		}
+
+		meshObj = new Mesh(geometryObj, materialObj);
+		meshObj.position.set(...vec3M.toArray());
+		// TODO: Remove this after debugging
+		show && scene.add(meshObj);
+
+		// Plane
+		const { path, width, height, offsetX, offsetZ, scaleX } = _plane;
+		const plane = new THREE.PlaneGeometry(width, height);
+		const image = experience.sprites[path];
+
+		if (!image) throw new Error("Image not found");
+		const materialPlane = getMaterialPlane(image);
+		const meshPlane = new Mesh(plane, materialPlane);
+		meshPlane.position.set(
+			vec3O.x + offsetX,
+			vec3O.y + height / 2,
+			vec3O.z + offsetZ
+		);
+		meshPlane.rotation.y = Math.PI / 4;
+		meshPlane.scale.set(scaleX || 0.835, 1, 1);
+		meshPlane.name = "Sprite";
+		scene.add(meshPlane);
+	}
+
+	// TODO: Initiate world building
+	// initWorld(experience, bodies);
+}
+
+// export function initAssets(experience: ReturnType<typeof createExperience>, data: any) {
+
+// }
+
 export function initLoaders(
-	world: ReturnType<typeof createExperience>,
+	experience: ReturnType<typeof createExperience>,
 	loaders: ReturnType<typeof createLoaders>
 ) {
-	world.loaders = loaders;
-	world.loadTexture = function (
+	experience.loaders = loaders;
+	experience.loadTexture = function (
 		path: string,
-		onLoad?: (texture: THREE.Texture) => void
+		onLoad?: (texture: THREE.Texture, path?: string) => void
 	) {
 		const texture = this.loaders!.textureLoader.load(path);
 		texture.colorSpace = THREE.SRGBColorSpace;
-		if (onLoad) onLoad(texture);
+		if (onLoad) onLoad(texture, path);
 		this.textures.push(texture);
 		return texture;
 	};
-	world.loadCubeTexture = function (
+	experience.loadCubeTexture = function (
 		imgs: string[],
 		onLoad?: (cubeTexture: THREE.CubeTexture) => void
 	) {
@@ -390,20 +482,23 @@ export function initLoaders(
 		this.texturesCube = cubeTexture;
 		return cubeTexture;
 	};
-	world.loadOBJ = function (
+	experience.loadOBJ = function (
 		path: string,
 		onLoad: (data: THREE.Group) => void
 	) {
 		this.loaders!.objLoader.load(path, onLoad);
-		return world;
+		return experience;
 	};
-	world.loadGLTF = function (path: string, onLoad: (data: GLTF) => void) {
+	experience.loadGLTF = function (
+		path: string,
+		onLoad: (data: GLTF) => void
+	) {
 		this.loaders!.gltfLoader.load(path, onLoad, (_: ProgressEvent) => {
 			// console.log(~~((ev.loaded / ev.total) * 100) + "%");
 		});
-		return world;
+		return experience;
 	};
-	world.createMaterial = function (matcap: THREE.Texture) {
+	experience.createMaterial = function (matcap: THREE.Texture) {
 		const material = new THREE.MeshMatcapMaterial({
 			matcap,
 		});
@@ -417,7 +512,7 @@ export function initStats(world: ReturnType<typeof createExperience>) {
 export function initScene(world: ReturnType<typeof createExperience>) {
 	const geometry = new THREE.BoxGeometry(...ptToM([216, 4.1, 216]), 4, 1, 4);
 	const material = new THREE.MeshBasicMaterial({
-		color: 0xffffff,
+		color: 0xfbfbfb,
 	});
 	const objFloor = new THREE.Mesh(geometry, material);
 
@@ -473,6 +568,7 @@ export function createControls(
 	controls.enablePan = false;
 	controls.enableRotate = false;
 	controls.autoRotate = false;
+	controls.zoomSpeed = 1;
 	controls.update();
 }
 export function createHelpers(
@@ -482,9 +578,9 @@ export function createHelpers(
 	const gridHelper = new THREE.GridHelper(3, 3, undefined, 0xcdcdcd);
 	scene.add(gridHelper);
 	const axesHelper = new THREE.AxesHelper(100);
-	scene.add(axesHelper);
+	// scene.add(axesHelper);
 	const cameraHelper = new THREE.CameraHelper(camera);
-	scene.add(cameraHelper);
+	// scene.add(cameraHelper);
 }
 export function createLoaders(onLoad: () => void, onReady?: () => void) {
 	const manager = new THREE.LoadingManager(onLoad, (url, loaded, total) => {
@@ -554,9 +650,9 @@ export function createExperience(
 		player: null as THREE.Group<THREE.Object3DEventMap> | null,
 		playerRAPIER: null as RigidBody | null,
 		playerRAPIERSpawnT: new Vector3(
-			0,
-			PLAYER_HEIGHT / 2 + PLAYER_HEIGHT_OFFSET * 0.5,
-			0
+			0.5,
+			PLAYER_HEIGHT / 2 + PLAYER_HEIGHT_OFFSET,
+			-0.75
 		),
 		playerRAPIERSpawnR: new Quaternion(0, 0, 0, 1),
 		playerRAPIERSpawnLinvel: new Vector3(0, 0, 0),
@@ -573,11 +669,12 @@ export function createExperience(
 		keysPressed: new Map<string, boolean>(),
 		triggerRotation: false,
 		loaders: null as ReturnType<typeof createLoaders> | null,
+		sprites: {} as { [key: string]: THREE.Texture },
 		// Loading mechanisms
 		loadTexture: null as
 			| ((
 					path: string,
-					onLoad?: (texture: THREE.Texture) => void
+					onLoad?: (texture: THREE.Texture, path?: string) => void
 			  ) => THREE.Texture)
 			| null,
 		loadCubeTexture: null as
@@ -599,7 +696,7 @@ export function createExperience(
 		update: null as ((delta: number) => void) | null,
 		setGrounded: null as ((grounded: boolean) => void) | null,
 		spawnPlayerAt: null as ((y?: number) => void) | null,
-		trackPlayer: null as (() => void) | null,
+		trackPlayer: null as ((delta: number) => void) | null,
 		onReady: null as (() => void) | null,
 	};
 
@@ -607,12 +704,12 @@ export function createExperience(
 		experience,
 		createLoaders(onLoadPlayer.bind(experience), onReady.bind(experience))
 	);
+	// initAssets(experience, ASSETS);
 	initStats(experience);
 	initScene(experience);
+	initDebug(experience);
 
 	experience.updatePlayer = function (delta: number) {
-		if (!this.playerGrounded) return;
-
 		let { x, y, z } = experience.playerDir;
 		let vecDirection = new THREE.Vector3(x, y, z);
 		vecDirection.multiplyScalar(
@@ -627,8 +724,16 @@ export function createExperience(
 		// Animated
 		this.player!.children[0].quaternion.rotateTowards(
 			experience.playerRotationQuaternion,
-			delta * 10
+			delta * 8.75
 		);
+
+		if (!this.playerRAPIER) return;
+		// If player fell from platform or if no keys are pressed
+		if (
+			this.playerRAPIER!.translation().y < -0.05694 / 2 ||
+			this.playerDirNum === null
+		)
+			return;
 
 		this.playerRAPIER!.applyImpulse(
 			new Vector3(...vecDirection.toArray()),
@@ -640,17 +745,22 @@ export function createExperience(
 
 		if (currentVelocity.length() > PLAYER_SPEED_MAX) {
 			currentVelocity.setLength(PLAYER_SPEED_MAX);
-			this.playerRAPIER!.setLinvel(
+			this.playerRAPIER?.setLinvel(
 				new Vector3(...currentVelocity.toArray()),
 				true
 			);
 		}
-
-		console.log(Array.from(experience.keysPressed.keys()));
 	};
 
 	experience.update = function (delta: number) {
 		if (!this.bodies) return;
+
+		this.world.timestep = Math.min(delta, 0.1);
+		this.world.step(experience.eventQueue);
+		this.eventQueue.drainCollisionEvents((_, __, started) => {
+			if (experience.setGrounded) experience.setGrounded(started);
+			console.log(_, __);
+		});
 
 		for (let i = 0, n = this.bodies.length; i < n; i++) {
 			let bodyTHREE = this.bodies[i][0];
@@ -661,6 +771,9 @@ export function createExperience(
 		}
 
 		if (this.updatePlayer) this.updatePlayer(delta);
+		if (this.trackPlayer) this.trackPlayer(delta);
+		if (this.spawnPlayerAt) this.spawnPlayerAt();
+		// if (this.debugRenderer) this.debugRenderer.update();
 	};
 
 	experience.setGrounded = function (grounded: boolean) {
@@ -686,9 +799,17 @@ export function createExperience(
 		this.playerDirNum = null;
 	};
 
-	experience.trackPlayer = function () {
-		this.camera.position.x = (this.player?.position?.x || 0) + 20;
-		this.camera.position.z = (this.player?.position?.z || 0) + 20;
+	experience.trackPlayer = function (delta: number) {
+		this.camera.position.x = lerp(
+			this.camera.position.x,
+			(this.player?.position?.x || 0) + 20,
+			delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
+		);
+		this.camera.position.z = lerp(
+			this.camera.position.z,
+			(this.player?.position?.z || 0) + 20,
+			delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
+		);
 	};
 
 	return experience;

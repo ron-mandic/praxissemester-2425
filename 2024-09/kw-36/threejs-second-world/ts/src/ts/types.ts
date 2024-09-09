@@ -3,6 +3,7 @@ import { Group, Object3D, Object3DEventMap } from "three";
 export type RAPIER = typeof import("@dimforge/rapier3d-compat").default;
 export type RAPIER_WORLD_BODY = {
 	type: "dynamic" | "fixed";
+	collisionGroups: number;
 	name?: string;
 	translation: {
 		x: number;
