@@ -432,7 +432,7 @@ export function initSprites(
 		show && scene.add(meshObj);
 
 		// Plane
-		const { path, width, height, offsetX, offsetZ, scaleX } = _plane;
+		const { path, width, height, offsetX, offsetY, offsetZ, scaleX } = _plane;
 		const plane = new THREE.PlaneGeometry(width, height);
 		const image = experience.sprites[path];
 
@@ -441,7 +441,7 @@ export function initSprites(
 		const meshPlane = new Mesh(plane, materialPlane);
 		meshPlane.position.set(
 			vec3O.x + offsetX,
-			vec3O.y + height / 2,
+			vec3O.y + height / 2 + (offsetY || 0),
 			vec3O.z + offsetZ
 		);
 		meshPlane.rotation.y = Math.PI / 4;

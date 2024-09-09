@@ -27,6 +27,8 @@ export const SPRITES = [
 	"/images/png/sprite-shelf-full.png",
 	"/images/png/sprite-shelf-empty.png",
 	"/images/png/sprite-stairs-left-person-mug.png",
+	"/images/png/sprite-mug.png",
+	"/images/png/sprite-swing.png",
 ];
 export const RAPIER_WORLD_GRAVITY = 9.80665; // m/s^2
 export const RAPIER_WORLD_FRAME_RATE = 1 / 60; // s/frame
@@ -273,6 +275,49 @@ export const RAPIER_WORLD_SPRITES: any[] = [
 			height: 206.6 / 72,
 			offsetX: 17 / 72, // 18
 			offsetZ: -17 / 72, // -20
+		},
+		bodies: [],
+	},
+	{
+		mesh: {
+			o: {
+				x: 57 / 72,
+				z: 100.1 / 72,
+			},
+			x: -5.4 / 72,
+			y: 8.9 / 72,
+			z: -5.4 / 72,
+			type: "cylinder",
+		},
+		plane: {
+			path: "/images/png/sprite-mug.png",
+			width: 10.1 / 72,
+			height: 11.7 / 72,
+			offsetX: 0 / 72,
+			offsetZ: -0.75 / 72,
+		},
+		bodies: [],
+	},
+	{
+		mesh: {
+			o: {
+				x: 108.75 / 72,
+				y: -7.7 / 72,
+				z: 5 / 72,
+			},
+			x: -12 / 72,
+			y: -122.4 / 72,
+			z: -24.6 / 72,
+			type: "box",
+			// show: true,
+		},
+		plane: {
+			path: "/images/png/sprite-swing.png",
+			width: 31.1 / 72,
+			height: 158.1 / 72,
+			offsetX: -14 / 72,
+			offsetY: -150.75 / 72,
+			offsetZ: -18 / 72,
 		},
 		bodies: [],
 	},
