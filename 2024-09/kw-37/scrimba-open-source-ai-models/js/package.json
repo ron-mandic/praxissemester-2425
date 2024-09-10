@@ -1,0 +1,21 @@
+{
+	"name": "scrimba-open-source-ai-models",
+	"version": "1.0.0",
+	"main": "server.js",
+	"scripts": {
+		"serve:node": "node --env-file=.env server.mjs",
+		"serve:nodemon": "nodemon --env-file=.env server.mjs",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node server.js"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"dependencies": {
+		"@huggingface/hub": "^0.15.2",
+		"@huggingface/inference": "^2.8.0",
+		"nodemon": "^3.1.4",
+		"vite-plugin-top-level-await": "^1.4.4"
+	}
+}
