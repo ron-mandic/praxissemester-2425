@@ -1,27 +1,17 @@
 <script>
+	import { imgToBlob } from '$lib/ts/functions';
 	import FileDrop from '$lib/components/FileDrop.svelte';
 	import DeleteButton from '../../lib/components/DeleteButton.svelte';
 
 	let prompt = $state('');
 	let hasRequested = $state(false);
 	let response = $state(null);
-	let canvas = $state(null);
+	let refCanvas = $state(null);
 	let refImage = $state(null);
 	let image = $state(null);
 
-	function imgToBlob(image) {
-		canvas.width = image.width;
-		canvas.height = image.height;
-		let ctx = canvas.getContext('2d');
-		ctx.drawImage(image, 0, 0, image.width, image.height);
-
-		return new Promise((resolve) => {
-			canvas.toBlob((blob) => resolve(blob), 'image/jpeg');
-		});
-	}
-
 	async function sendRequest() {
-		let blob = await imgToBlob(refImage);
+		let blob = await imgToBlob(refCanvas, refImage);
 		const formData = new FormData();
 		formData.append('prompt', prompt);
 		formData.append('blob', blob);
@@ -38,7 +28,7 @@
 
 <div>
 	<h1>Image</h1>
-	<canvas bind:this={canvas} style="display: none;" width="240" height="160"></canvas>
+	<canvas bind:this={refCanvas} style="display: none;" width="240" height="160"></canvas>
 	<input
 		type="text"
 		bind:value={prompt}
