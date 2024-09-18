@@ -52,7 +52,7 @@
 <article>
 	<a href="/test-7"><h2>Function calling</h2></a>
 	<p>
-		Wir können nicht nur kontextbezogene Informationen abfragen, sondern auch Funktionen aufrufenl
+		Wir können nicht nur kontextbezogene Informationen abfragen, sondern auch Funktionen aufrufen
 		lassen, die die LLM für uns bestimmt hat. So können auf Anforderungen des Users reagieren.
 	</p>
 </article>
