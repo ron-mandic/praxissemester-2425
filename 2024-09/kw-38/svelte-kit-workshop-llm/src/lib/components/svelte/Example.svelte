@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
-	import * as Card from '$lib/components/ui/card/index.js';
-	import * as Select from '$lib/components/ui/select/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import * as Select from '$lib/components/ui/select/index.js';
 	import type { Selected } from 'bits-ui';
 
 	// node_modules\bits-ui\dist\internal\types.d.ts
@@ -25,7 +25,7 @@
 		const formData = new FormData();
 		formData.append('name', data.name);
 		formData.append('framework', data.framework);
-        
+
 		console.log($state.snapshot(data));
 		console.log(...formData);
 	}

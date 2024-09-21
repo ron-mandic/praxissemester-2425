@@ -1,0 +1,55 @@
+<script lang="ts">
+	import type { Page } from '@sveltejs/kit';
+	import type { Readable } from 'svelte/store';
+	import BookOpen from 'lucide-svelte/icons/book-open';
+	import BookOpenText from 'lucide-svelte/icons/book-open-text';
+
+	const { version, page, links } = $props<{
+		page: Readable<Page<Record<string, string>, string | null>>;
+		links: { innerText: string; href: string }[];
+	}>();
+
+	console.log($page);
+</script>
+
+{#if version === 'v1'}
+	<nav class="grid items-start gap-1 p-3 font-medium">
+		{#each links as { innerText, href }, i}
+			<a
+				{href}
+				class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {$page
+					.route.id === href
+					? 'bg-muted text-foreground'
+					: 'text-muted-foreground'}"
+			>
+				{#if $page.route.id === href}
+					<BookOpenText class="h-5 w-5" />
+				{:else}
+					<BookOpen class="h-5 w-5" />
+				{/if}
+				<span>{innerText}</span>
+			</a>
+		{/each}
+	</nav>
+{/if}
+
+{#if version === 'v2'}
+	<nav class="mt-2 grid gap-1 text-lg font-medium">
+		{#each links as { innerText, href }, i}
+			<a
+				{href}
+				class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground {$page
+					.route.id === href
+					? 'bg-muted text-foreground'
+					: 'text-muted-foreground'}"
+			>
+				{#if $page.route.id === href}
+					<BookOpenText class="h-5 w-5" />
+				{:else}
+					<BookOpen class="h-5 w-5" />
+				{/if}
+				<span>{innerText}</span>
+			</a>
+		{/each}
+	</nav>
+{/if}

@@ -76,5 +76,288 @@
 	}
 	body {
 		@apply bg-background text-foreground;
+		transition:
+			background-color 0.2s,
+			color 0.2s;
+		font-feature-settings:
+			'rlig' 1,
+			'calt' 1;
+	}
+}
+
+@layer base {
+	// Geist Mono
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 100;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-Thin.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 200;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-UltraLight.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 300;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-Light.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 400;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-Regular.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 500;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-Medium.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 600;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-Semibold.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 700;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-Bold.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 800;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-Black.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Mono';
+		font-style: normal;
+		font-weight: 900;
+		font-display: swap;
+		src: url(/fonts/woff2/GeistMono-UltraBlack.woff2) format('woff2');
+	}
+
+	// Geist Sans
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 100;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-Thin.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 200;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-UltraLight.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 300;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-Light.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 400;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-Regular.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 500;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-Medium.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 600;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-SemiBold.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 700;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-Bold.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 800;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-Black.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Geist Sans';
+		font-style: normal;
+		font-weight: 900;
+		font-display: swap;
+		src: url(/fonts/woff2/Geist-UltraBlack.woff2) format('woff2');
+	}
+
+	// Jetbrains Mono
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 100;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-Thin.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 100;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-ThinItalic.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 200;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-ExtraLight.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 200;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-ExtraLightItalic.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 300;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-Light.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 300;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-LightItalic.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 400;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-Regular.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 400;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-Italic.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 500;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-Medium.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 500;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-MediumItalic.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 600;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-SemiBold.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 600;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-SemiBoldItalic.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 700;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-Bold.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 700;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-BoldItalic.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: normal;
+		font-weight: 800;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-ExtraBold.woff2) format('woff2');
+	}
+
+	@font-face {
+		font-family: 'Jetbrains Mono';
+		font-style: italic;
+		font-weight: 800;
+		font-display: swap;
+		src: url(/fonts/woff2/JetbrainsMono-ExtraBoldItalic.woff2) format('woff2');
 	}
 }
