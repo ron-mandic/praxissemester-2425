@@ -1,0 +1,9 @@
+{
+	"[svelte]": {
+		"editor.defaultFormatter": "svelte.svelte-vscode"
+	},
+	// https://byby.dev/at-rule-tailwind
+	"scss.lint.unknownAtRules": "ignore",
+	// https://stackoverflow.com/a/62801203
+	"files.associations": { "*.scss": "postcss" }
+}
