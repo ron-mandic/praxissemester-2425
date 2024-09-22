@@ -8,8 +8,6 @@
 		page: Readable<Page<Record<string, string>, string | null>>;
 		links: { innerText: string; href: string }[];
 	}>();
-
-	console.log($page);
 </script>
 
 {#if version === 'v1'}
@@ -17,7 +15,7 @@
 		{#each links as { innerText, href }, i}
 			<a
 				{href}
-				class="flex items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {$page
+				class="flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {$page
 					.route.id === href
 					? 'bg-muted text-foreground'
 					: 'text-muted-foreground'}"
@@ -38,7 +36,7 @@
 		{#each links as { innerText, href }, i}
 			<a
 				{href}
-				class="mx-[-0.65rem] flex items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground {$page
+				class="mx-[-0.65rem] flex select-none items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground {$page
 					.route.id === href
 					? 'bg-muted text-foreground'
 					: 'text-muted-foreground'}"

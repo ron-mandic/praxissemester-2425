@@ -18,6 +18,9 @@ def preprocess(str: str) -> str:
     strEnd1 = regEnd1.sub(' ', strEnd0)
     return strEnd1
 
+def sanitize(list_str):
+    return [re.split(r'[\s\n]+', str.lower().strip()) for str in list_str]
+
 def split_into_ngrams(list_words, n) -> list:
     return [list_words[i:i+n] for i in range(len(list_words)-n+1)]
 

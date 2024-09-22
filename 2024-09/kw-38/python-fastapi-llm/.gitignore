@@ -1,0 +1,18 @@
+# Ignoriere die virtuelle Umgebung
+.venv/
+
+# Bytecode-Dateien
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs und temporäre Dateien
+*.log
+*.tmp
+
+# Betriebssystemspezifische Dateien (optional)
+.DS_Store
+Thumbs.db
+
+# Python virtualenv spezifische Datei
+pyvenv.cfg

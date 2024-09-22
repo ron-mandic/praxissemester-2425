@@ -1,5 +1,6 @@
 import { fontFamily } from 'tailwindcss/defaultTheme';
 import type { Config } from 'tailwindcss';
+import plugin from 'tailwindcss/plugin';
 
 const config: Config = {
 	darkMode: ['class'],
@@ -59,7 +60,16 @@ const config: Config = {
 				mono: ['JetBrains Mono', ...fontFamily.mono]
 			}
 		}
-	}
+	},
+	plugins: [
+		plugin(function ({ addUtilities }) {
+			addUtilities({
+				'.debug': {
+					outline: '1px solid red'
+				}
+			});
+		})
+	]
 };
 
 export default config;

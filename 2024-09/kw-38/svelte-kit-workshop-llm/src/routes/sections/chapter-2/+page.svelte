@@ -1,2 +1,4 @@
-<p>Chapter 2</p>
-<hr />
+<script lang="ts">
+</script>
+
+<section class="h-full w-full"></section>
