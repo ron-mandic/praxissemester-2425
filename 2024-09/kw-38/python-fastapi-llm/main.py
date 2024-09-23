@@ -10,13 +10,17 @@ from lib.classes import Unigram
 
 app = FastAPI()
 
-listA, listB = load_data(PATH)
+data, listA, listB = load_data(PATH)
 list_list_words = sanitize(listA)
 list_list_words_with_token = sanitize(listB)
 
 model_unigram = Unigram(list_list_words)
 # model_bigram = Bigram()
 # model_ngram = Ngram()
+
+@app.get("/")
+def index():
+    return {"data": listA}
 
 @app.get("/chapter-1")
 def index(num_samples: Optional[int] = None):

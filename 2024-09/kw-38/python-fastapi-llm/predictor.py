@@ -8,4 +8,4 @@ def load_data(path: str):
     data = load(path)
     list_str = [preprocess(str["row"]["text"]) for str in data["rows"] if str["row"]["text"]]
     list_str_with_token = [str.replace("\n", f" {END_TOKEN} ") for str in list_str]
-    return list_str, list_str_with_token
+    return data, list_str, list_str_with_token

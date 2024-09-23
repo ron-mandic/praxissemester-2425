@@ -1,0 +1,104 @@
+<script lang="ts">
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Separator } from '$lib/components/ui/separator/index.js';
+	import * as Card from '$lib/components/ui/card/index.js';
+	import * as HoverCard from '$lib/components/ui/hover-card';
+	import * as Table from '$lib/components/ui/table';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+	import LLMNext from '$lib/components/svelte/LLMNext.svelte';
+
+	import Info from 'lucide-svelte/icons/info';
+	import Reset from 'lucide-svelte/icons/rotate-ccw';
+	import { Badge } from '@/ui/badge';
+	import { ScrollArea } from '@/ui/scroll-area';
+	import { Input } from '@/ui/input';
+	import { formatSearch } from '$lib/ts/functions';
+	import ExternalLink from 'lucide-svelte/icons/external-link';
+
+	const { data } = $props();
+</script>
+
+<section class="h-full w-full">
+	<h2 class="mb-6 text-4xl font-bold">Einleitung</h2>
+
+	<p class="mb-6">
+		Im ersten Kapitel des KI-Workshops zu Large Language Models (LLMs) schauen wir uns gemeinsam an,
+		woher wir unseren Datensatz für den Kurs bekommen und wie wir die Daten entsprechend analysieren
+		können, um Vorhersagen zu treffen.
+	</p>
+
+	<p class="mb-8">
+		Wenn es darum geht, Daten für KI-Projekte zu sammeln und zu nutzen, ist Hugging Face eine
+		wertvolle Ressource. Zwar ist die Plattform vor allem für ihre vortrainierten Sprachmodelle
+		bekannt, aber sie bietet noch viel mehr - insbesondere eine riesige Sammlung an öffentlich
+		zugänglichen Datensätzen, die für verschiedenste Aufgaben genutzt werden können. In unserem
+		Workshop werden wir Hugging Face verwenden, um Datensätze für unsere eigenen Modelle zu finden
+		und herunterzuladen.
+	</p>
+
+	<Card.Root
+		class="border-1 font-regular mt-6 w-full border border-yellow-700/40 bg-yellow-100/40 text-yellow-700"
+	>
+		<Card.Header class="gap-2 p-2">
+			<div class="relative grid h-[315px] w-full place-items-center rounded-md bg-yellow-400">
+				<img
+					src="/png/hugging-face.png"
+					alt="Hugging Face"
+					class="absolute scale-50 select-none rounded-md"
+				/>
+			</div>
+			<div class="px-6 pb-6 pt-2">
+				<Card.Description>
+					<p class="mb-3 text-balance">
+						Hugging Face bietet hochwertige, vielfältige und kuratierte Datensätze, die es uns
+						ermöglichen, schnell die benötigten Ressourcen für unsere N-Gramm-Modelle,
+						Unigramm-Analysen und andere Sprachaufgaben zu finden. Dadurch sparen wir Zeit, da wir
+						nicht stundenlang im Internet nach geeigneten Textdaten suchen müssen, und können
+						unabhängig von vorgefertigten Modellen arbeiten.
+					</p>
+
+					<Separator class="my-6 bg-yellow-700/20" />
+
+					<a
+						class="inline-block items-center gap-2 text-yellow-700 hover:text-yellow-900"
+						href="https://huggingface.co/"
+						target="_blank"
+						rel="noopener noreferrer"
+						>Hugging Face <ExternalLink class="-mt-1 inline-block h-4 w-4" /></a
+					>
+				</Card.Description>
+			</div>
+		</Card.Header>
+	</Card.Root>
+
+	<Card.Root
+		class="border-1 font-regular mt-6 w-full border border-orange-700/40 bg-orange-100/40 text-orange-700"
+	>
+		<Card.Header class="gap-2 p-2">
+			<img src="/jpg/ed-sheeran.jpg" alt="Ed Sheeran" class="w-full select-none rounded-md" />
+			<div class="px-6 pb-6 pt-2">
+				<Card.Description>
+					<p class="mb-3 text-balance">
+						In diesem Workshop arbeiten wir mit 100 Songtexten von Ed Sheeran, um die Funktionsweise
+						einfacher Sprachmodelle zu verstehen. Dabei werden wir untersuchen, wie Modelle
+						Vorhersagen treffen und versuchen, den Stil des Künstlers zu imitieren. Anhand dieses
+						kreativen Datensatzes kannst du praktisch erleben, wie solche Modelle strukturiert sind
+						und welche Muster in der Textgenerierung eine Rolle spielen.
+					</p>
+
+					<Separator class="my-6 bg-orange-700/20" />
+
+					<a
+						class="inline-block items-center gap-2 text-orange-700 hover:text-orange-900"
+						href="https://huggingface.co/datasets/huggingartists/ed-sheeran"
+						target="_blank"
+						rel="noopener noreferrer"
+						>huggingartists / ed-sheeran <ExternalLink class="-mt-1 inline-block h-4 w-4" /></a
+					>
+				</Card.Description>
+			</div>
+		</Card.Header>
+	</Card.Root>
+
+	<LLMNext url={data.url} next="Daten" />
+</section>

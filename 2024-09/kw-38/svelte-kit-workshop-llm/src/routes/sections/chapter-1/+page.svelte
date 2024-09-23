@@ -5,6 +5,7 @@
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import * as Table from '$lib/components/ui/table';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import LLMNext from '@/svelte/LLMNext.svelte';
 
 	import Info from 'lucide-svelte/icons/info';
 	import Reset from 'lucide-svelte/icons/rotate-ccw';
@@ -12,200 +13,92 @@
 	import { ScrollArea } from '@/ui/scroll-area';
 	import { Input } from '@/ui/input';
 	import { formatSearch } from '$lib/ts/functions';
+	import ExternalLink from 'lucide-svelte/icons/external-link';
 
-	let text = $state('');
-	let searchValue = $state('');
-	let inputs = $state([] as { word: string; abs: number; rel: number }[]);
-	let hasBeenReset = $state(false);
-	let hasBeenClicked = $state(false);
-
-	async function handleClick() {
-		if (!hasBeenClicked) hasBeenClicked = true;
-
-		const response = await fetch('/api/chapter-1?num_samples=1');
-		const data = await response.json();
-
-		const [key, abs, rel] = data.data[0];
-
-		text = key;
-		inputs.push({ word: key, abs, rel });
-	}
-
-	function filterBy(arr: typeof inputs, value: string) {
-		if (!value) return arr;
-
-		const filteredInputs = arr.filter(({ word }) => word.includes(value));
-		return filteredInputs;
-	}
-
-	function handleReset() {
-		hasBeenClicked = false;
-		hasBeenReset = true;
-		text = '';
-		inputs = [];
-		setTimeout(() => {
-			hasBeenReset = false;
-		}, 1000);
-	}
+	export let data;
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 text-2xl font-bold">Unigramm</h2>
+	<h2 class="mb-6 text-4xl font-bold">Einleitung</h2>
 
-	<Card.Root class="w-full">
-		<Card.Header class="gap-2">
-			<Card.Title>Ed Sheeran</Card.Title>
-			<Card.Description>
-				<p class="mb-3 mt-2">
-					Ein <HoverCard.Root>
-						<HoverCard.Trigger class="hover:animate-pulse">Unigramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger>
-						<HoverCard.Content class="w-72">
-							<div class="flex flex-col items-start gap-2 text-sm">
-								<p>
-									Stelle dir ein Wörterbuch vor, in dem jedes Wort mit einer bestimmten
-									Wahrscheinlichkeit vorkommt. Ein Unigramm-Modell wählt auf der Grundlage dieser
-									Wahrscheinlichkeiten zufällig Wörter aus.
-								</p>
-								<div class="w-full">
-									<Table.Root>
-										<Table.Caption class="mb-4">Ohne Zeilenumbrüche</Table.Caption>
-										<Table.Header>
-											<Table.Row>
-												<Table.Head class="w-16">Wort</Table.Head>
-												<Table.Head class="text-right">Anzahl</Table.Head>
-												<Table.Head class="text-right">%</Table.Head>
-											</Table.Row>
-										</Table.Header>
-										<Table.Body>
-											<Table.Row>
-												<Table.Cell><Badge variant="secondary">i</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">1836</Table.Cell>
-												<Table.Cell class="text-right font-mono"
-													>{(0.0413 * 100).toFixed(3)}</Table.Cell
-												>
-											</Table.Row>
-											<Table.Row>
-												<Table.Cell><Badge variant="secondary">you</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">1576</Table.Cell>
-												<Table.Cell class="text-right font-mono"
-													>{(0.03545 * 100).toFixed(3)}</Table.Cell
-												>
-											</Table.Row>
-											<Table.Row>
-												<Table.Cell><Badge variant="secondary">the</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">1404</Table.Cell>
-												<Table.Cell class="text-right font-mono"
-													>{(0.03158 * 100).toFixed(3)}</Table.Cell
-												>
-											</Table.Row>
-											<Table.Row>
-												<Table.Cell>...</Table.Cell>
-												<Table.Cell class="text-right font-mono">...</Table.Cell>
-												<Table.Cell class="text-right font-mono">...</Table.Cell>
-											</Table.Row>
-											<Table.Row>
-												<Table.Cell><Badge variant="secondary">un</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">4</Table.Cell>
-												<Table.Cell class="text-right font-mono"
-													>{(8.9975e-5 * 100).toFixed(3)}</Table.Cell
-												>
-											</Table.Row>
-										</Table.Body>
-									</Table.Root>
-								</div>
-								<p>
-									Um das zu veranschaulichen, klicke auf den Button unten, um zu sehen, welches Wort
-									das Modell aus dem Wörterbuch sampelt und wie wahrscheinlich es war, dass dieses
-									Wort gewählt wurde.
-								</p>
-							</div>
-						</HoverCard.Content>
-					</HoverCard.Root> ist das einfachste Sprachmodell, bei dem Wörter unabhängig voneinander betrachtet
-					werden. Das bedeutet, es gibt keinen Kontext, der uns sagt, welches Wort als nächstes kommen
-					sollte.
-				</p>
+	<p class="mb-6">
+		Im ersten Kapitel des KI-Workshops zu Large Language Models (LLMs) schauen wir uns gemeinsam an,
+		woher wir unseren Datensatz für den Kurs bekommen und wie wir die Daten entsprechend analysieren
+		können, um Vorhersagen zu treffen.
+	</p>
 
-				<p>
-					Dieses Modell hat 100 ausgewählte Songs von Ed Sheeran analysiert. Gib Schlüsselwörter auf
-					Englisch in Kleinschreibweise und ohne Sonderzeichen ein, wie sie in Ed Sheerans
-					Songtexten vorkommen würden und generiere dann Vorhersagen mit dem Modell.
-				</p>
-			</Card.Description>
-		</Card.Header>
-		<Separator class="mb-6" />
-		<Card.Content>
-			<div class="mt-6 grid h-12 w-full place-items-center">
-				{#if text}
-					<span class="text-base">{text}</span>
-				{:else}
-					<span class="text-sm text-muted-foreground select-none"
-						>Drücke den Button, um ein Wort zu generieren</span
+	<p class="mb-8">
+		Wenn es darum geht, Daten für KI-Projekte zu sammeln und zu nutzen, ist Hugging Face eine
+		wertvolle Ressource. Zwar ist die Plattform vor allem für ihre vortrainierten Sprachmodelle
+		bekannt, aber sie bietet noch viel mehr - insbesondere eine riesige Sammlung an öffentlich
+		zugänglichen Datensätzen, die für verschiedenste Aufgaben genutzt werden können. In unserem
+		Workshop werden wir Hugging Face verwenden, um Datensätze für unsere eigenen Modelle zu finden
+		und herunterzuladen.
+	</p>
+
+	<Card.Root
+		class="border-1 font-regular mt-6 w-full border border-yellow-700/40 bg-yellow-100/40 text-yellow-700"
+	>
+		<Card.Header class="gap-2 p-2">
+			<div class="relative grid h-[315px] w-full place-items-center rounded-md bg-yellow-400">
+				<img
+					src="/png/hugging-face.png"
+					alt="Hugging Face"
+					class="absolute scale-50 select-none rounded-md"
+				/>
+			</div>
+			<div class="px-6 pb-6 pt-2">
+				<Card.Description>
+					<p class="mb-3 text-balance">
+						Hugging Face bietet hochwertige, vielfältige und kuratierte Datensätze, die es uns
+						ermöglichen, schnell die benötigten Ressourcen für unsere N-Gramm-Modelle,
+						Unigramm-Analysen und andere Sprachaufgaben zu finden. Dadurch sparen wir Zeit, da wir
+						nicht stundenlang im Internet nach geeigneten Textdaten suchen müssen, und können
+						unabhängig von vorgefertigten Modellen arbeiten.
+					</p>
+
+					<Separator class="my-6 bg-yellow-700/20" />
+
+					<a
+						class="inline-block items-center gap-2 text-yellow-700 hover:text-yellow-900"
+						href="https://huggingface.co/"
+						target="_blank"
+						rel="noopener noreferrer"
+						>Hugging Face <ExternalLink class="-mt-1 inline-block h-4 w-4" /></a
 					>
-				{/if}
+				</Card.Description>
 			</div>
-			<ScrollArea class="mt-6 h-72 max-h-72 w-full rounded-md bg-muted/30 px-4 py-0">
-				{#each inputs as { word, rel }, i}
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Badge
-								variant="outline"
-								class="animate-bounceIn -mb-2 mr-2 mt-4 inline-block text-base">{word}</Badge
-							>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-				{/each}
-			</ScrollArea>
-		</Card.Content>
-		<Card.Footer class="flex justify-between">
-			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
-				<Button onclick={handleReset} variant="outline"
-					>Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
-				>
-			</div>
-			<Button class="ease-out active:translate-y-0.5" onclick={handleClick}>
-				{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}
-			</Button>
-		</Card.Footer>
+		</Card.Header>
 	</Card.Root>
 
-	<div class="relative mb-4 mt-10">
-		<Input
-			bind:value={searchValue}
-			class="mb-2 w-1/2"
-			placeholder="Nach Wörtern suchen"
-			type="search"
-		/>
-		<ScrollArea class="relative h-[330px] w-full rounded-md border px-4 pt-4">
-			<Table.Root>
-				<Table.Caption>
-					{#if !inputs.length}Noch keine Historie verfügbar{/if}
-				</Table.Caption>
-				<Table.Header class="sticky top-0">
-					<Table.Row>
-						<Table.Head class="w-48">Wort</Table.Head>
-						<Table.Head class="text-right">Anzahl</Table.Head>
-						<Table.Head class="text-right">Wahrscheinlichkeit</Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body
-					>{#if inputs.length}
-						{#each filterBy(inputs, searchValue) as { word, abs, rel }, i}
-							<Table.Row>
-								<Table.Cell>
-									<Badge class="text-sm" variant="secondary"
-										>{@html formatSearch(word, searchValue)}</Badge
-									>
-								</Table.Cell>
-								<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
-								<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
-							</Table.Row>
-						{/each}
-					{/if}
-				</Table.Body>
-			</Table.Root>
-		</ScrollArea>
-	</div>
+	<Card.Root
+		class="border-1 font-regular mt-6 w-full border border-orange-700/40 bg-orange-100/40 text-orange-700"
+	>
+		<Card.Header class="gap-2 p-2">
+			<img src="/jpg/ed-sheeran.jpg" alt="Ed Sheeran" class="w-full select-none rounded-md" />
+			<div class="px-6 pb-6 pt-2">
+				<Card.Description>
+					<p class="mb-3 text-balance">
+						In diesem Workshop arbeiten wir mit 100 Songtexten von Ed Sheeran, um die Funktionsweise
+						einfacher Sprachmodelle zu verstehen. Dabei werden wir untersuchen, wie Modelle
+						Vorhersagen treffen und versuchen, den Stil des Künstlers zu imitieren. Anhand dieses
+						kreativen Datensatzes kannst du praktisch erleben, wie solche Modelle strukturiert sind
+						und welche Muster in der Textgenerierung eine Rolle spielen.
+					</p>
+
+					<Separator class="my-6 bg-orange-700/20" />
+
+					<a
+						class="inline-block items-center gap-2 text-orange-700 hover:text-orange-900"
+						href="https://huggingface.co/datasets/huggingartists/ed-sheeran"
+						target="_blank"
+						rel="noopener noreferrer"
+						>huggingartists / ed-sheeran <ExternalLink class="-mt-1 inline-block h-4 w-4" /></a
+					>
+				</Card.Description>
+			</div>
+		</Card.Header>
+	</Card.Root>
+
+	<LLMNext url={data.url} prev="Daten" next="Unigramm" />
 </section>

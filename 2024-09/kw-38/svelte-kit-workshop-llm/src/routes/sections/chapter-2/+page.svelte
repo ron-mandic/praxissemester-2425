@@ -5,15 +5,16 @@
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import * as Table from '$lib/components/ui/table';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import LLMNext from '@/svelte/LLMNext.svelte';
 
 	import Info from 'lucide-svelte/icons/info';
 	import Reset from 'lucide-svelte/icons/rotate-ccw';
 	import { Badge } from '@/ui/badge';
 	import { ScrollArea } from '@/ui/scroll-area';
 	import { Input } from '@/ui/input';
-	import { Label } from '@/ui/label';
 	import { formatSearch } from '$lib/ts/functions';
-	import ExternalLink from 'lucide-svelte/icons/external-link';
+
+	const { data } = $props();
 
 	let text = $state('');
 	let searchValue = $state('');
@@ -52,7 +53,7 @@
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 text-2xl font-bold">Bigramm</h2>
+	<h2 class="mb-6 text-4xl font-bold">Unigramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
@@ -61,45 +62,45 @@
 				<p class="mb-3 mt-2">
 					Ein <HoverCard.Root>
 						<HoverCard.Trigger class="hover:animate-pulse"
-							>Bigramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
+							>Unigramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
 						>
-						<HoverCard.Content class="w-80">
+						<HoverCard.Content class="w-72">
 							<div class="flex flex-col items-start gap-2 text-sm">
 								<p>
-									Stelle dir nun ein Wörterbuch vor, in welchem Wortpaare eingetragen sind. Die
-									Przentzahl davon gibt jetzt an, wie wahrscheinlich es ist, dass das zweite Wort
-									auf das erste folgt.
+									Stelle dir ein Wörterbuch vor, in dem jedes Wort mit einer bestimmten
+									Wahrscheinlichkeit vorkommt. Ein Unigramm-Modell wählt auf der Grundlage dieser
+									Wahrscheinlichkeiten zufällig Wörter aus.
 								</p>
 								<div class="w-full">
 									<Table.Root>
 										<Table.Caption class="mb-4">Ohne Zeilenumbrüche</Table.Caption>
 										<Table.Header>
 											<Table.Row>
-												<Table.Head class="w-16">Bigramm</Table.Head>
+												<Table.Head class="w-16">Wort</Table.Head>
 												<Table.Head class="text-right">Anzahl</Table.Head>
 												<Table.Head class="text-right">%</Table.Head>
 											</Table.Row>
 										</Table.Header>
 										<Table.Body>
 											<Table.Row>
-												<Table.Cell><Badge variant="secondary">i+dont</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">201</Table.Cell>
+												<Table.Cell><Badge variant="secondary">i</Badge></Table.Cell>
+												<Table.Cell class="text-right font-mono">1836</Table.Cell>
 												<Table.Cell class="text-right font-mono"
-													>{(0.00453 * 100).toFixed(3)}</Table.Cell
+													>{(0.0413 * 100).toFixed(3)}</Table.Cell
 												>
 											</Table.Row>
 											<Table.Row>
-												<Table.Cell><Badge variant="secondary">and+i</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">178</Table.Cell>
+												<Table.Cell><Badge variant="secondary">you</Badge></Table.Cell>
+												<Table.Cell class="text-right font-mono">1576</Table.Cell>
 												<Table.Cell class="text-right font-mono"
-													>{(0.00401 * 100).toFixed(3)}</Table.Cell
+													>{(0.03545 * 100).toFixed(3)}</Table.Cell
 												>
 											</Table.Row>
 											<Table.Row>
-												<Table.Cell><Badge variant="secondary">in+love</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">153</Table.Cell>
+												<Table.Cell><Badge variant="secondary">the</Badge></Table.Cell>
+												<Table.Cell class="text-right font-mono">1404</Table.Cell>
 												<Table.Cell class="text-right font-mono"
-													>{(0.00345 * 100).toFixed(3)}</Table.Cell
+													>{(0.03158 * 100).toFixed(3)}</Table.Cell
 												>
 											</Table.Row>
 											<Table.Row>
@@ -108,10 +109,10 @@
 												<Table.Cell class="text-right font-mono">...</Table.Cell>
 											</Table.Row>
 											<Table.Row>
-												<Table.Cell><Badge variant="secondary">today+hold</Badge></Table.Cell>
-												<Table.Cell class="text-right font-mono">1</Table.Cell>
+												<Table.Cell><Badge variant="secondary">un</Badge></Table.Cell>
+												<Table.Cell class="text-right font-mono">4</Table.Cell>
 												<Table.Cell class="text-right font-mono"
-													>{(2.2544e-5 * 100).toFixed(4)}</Table.Cell
+													>{(8.9975e-5 * 100).toFixed(3)}</Table.Cell
 												>
 											</Table.Row>
 										</Table.Body>
@@ -119,15 +120,14 @@
 								</div>
 								<p>
 									Um das zu veranschaulichen, klicke auf den Button unten, um zu sehen, welches Wort
-									das Modell aus dem gegebenen Kontext vorhersagt und mit welcher Wahrscheinlichkeit
-									dieses Wortpaar vorkommt.
+									das Modell aus dem Wörterbuch sampelt und wie wahrscheinlich es war, dass dieses
+									Wort gewählt wurde.
 								</p>
 							</div>
 						</HoverCard.Content>
-					</HoverCard.Root> ist das nächstgrößere Sprachmodell, bei dem die Wahrscheinlichkeit eines
-					Wortes basierend auf dem vorhergehenden Wort berechnet wird. Im Vergleich zum Unigramm, das
-					jedes Wort unabhängig von den vorherigen Wörtern betrachtet, sieht das Bigramm immer das letzte
-					Wort als Kontext an, was zu sinnvolleren Vorhersagen führt.
+					</HoverCard.Root> ist das einfachste Sprachmodell, bei dem Wörter unabhängig voneinander betrachtet
+					werden. Das bedeutet, es gibt keinen Kontext, der uns sagt, welches Wort als nächstes kommen
+					sollte.
 				</p>
 
 				<p>
@@ -139,58 +139,32 @@
 		</Card.Header>
 		<Separator class="mb-6" />
 		<Card.Content>
-			<Label for="text" class="mb-2 block">
-				<HoverCard.Root>
-					<HoverCard.Trigger class="hover:animate-pulse"
-						>Kontext <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
+			<div class="mt-6 grid h-12 w-full place-items-center">
+				{#if text}
+					<span class="text-base">{text}</span>
+				{:else}
+					<span class="select-none text-sm text-muted-foreground"
+						>Drücke den Button, um ein Wort zu generieren</span
 					>
-					<HoverCard.Content class="w-72">
-						<div class="flex flex-col items-start gap-2 text-sm">
-							<p>
-								Ein Kontextfenster bezieht sich auf die Menge an Informationen, die ein Sprachmodell
-								gleichzeitig betrachten kann, um Vorhersagen zu treffen oder eine Antwort zu
-								generieren.
-							</p>
-							<p>
-								Stell dir vor, du liest einen Text durch ein Schiebefenster. Du kannst immer nur
-								einen bestimmten Teil des Textes auf einmal sehen. Dieser sichtbare Teil ist dein
-								Kontextfenster. Wenn das Fenster zu klein ist, verlierst du den Überblick über den
-								Zusammenhang. Ein größeres Fenster hingegen ermöglicht es dir, mehr Informationen
-								gleichzeitig zu sehen und zu verstehen.
-							</p>
-							<Separator class="my-2" />
-							<a
-								class="flex items-center gap-2 text-muted-foreground"
-								href="https://blog.google/technology/ai/long-context-window-ai-models/"
-								target="_blank"
-								rel="noopener noreferrer"
-								>What is a long context window?<ExternalLink class="inline-block h-4 w-4" /></a
-							>
-						</div>
-					</HoverCard.Content>
-				</HoverCard.Root>
-			</Label>
-			<Input
-				bind:value={text}
-				id="text"
-				class="w-full"
-				type="text"
-				placeholder="i, shape, of, ..."
-				pattern="[\w]+"
-			/>
-			<ScrollArea class="mt-6 h-72 max-h-72 w-full rounded-md bg-muted/30 px-4 pt-4">
-				{#each inputs as { word, rel }, i}
-					<Tooltip.Root>
-						<Tooltip.Trigger>
-							<Badge variant="outline" class="animate-bounceIn mb-2 mr-2 inline-block text-base"
-								>{word}</Badge
-							>
-						</Tooltip.Trigger>
-						<Tooltip.Content>
-							<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
-						</Tooltip.Content>
-					</Tooltip.Root>
-				{/each}
+				{/if}
+			</div>
+			<ScrollArea class="mt-6 h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0">
+				<div
+					class="gap-x-2 inline-flex h-full w-full flex-wrap items-start justify-start gap-y-3 py-6"
+				>
+					{#each inputs as { word, rel }, i}
+						<Tooltip.Root>
+							<Tooltip.Trigger>
+								<Badge variant="outline" class="inline-block animate-bounceIn text-base"
+									>{word}</Badge
+								>
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+					{/each}
+				</div>
 			</ScrollArea>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
@@ -242,4 +216,6 @@
 			</Table.Root>
 		</ScrollArea>
 	</div>
+
+	<LLMNext url={data.url} prev="Unigramm" next="Bigramm" />
 </section>
