@@ -58,6 +58,46 @@ const config: Config = {
 			fontFamily: {
 				sans: ['Geist Sans', ...fontFamily.sans],
 				mono: ['JetBrains Mono', ...fontFamily.mono]
+			},
+			keyframes: {
+				bounceIn: {
+					'0%, 20%, 40%, 60%, 80%, 100%': {
+						'animation-timing-function': 'cubic-bezier(0.215, 0.61, 0.355, 1)'
+					},
+					'0%': {
+						opacity: '0',
+						transform: 'scale3d(0.3, 0.3, 0.3)'
+					},
+					'20%': {
+						transform: 'scale3d(1.1, 1.1, 1.1)'
+					},
+					'40%': {
+						transform: 'scale3d(0.9, 0.9, 0.9)'
+					},
+					'60%': {
+						opacity: '1',
+						transform: 'scale3d(1.03, 1.03, 1.03)'
+					},
+					'80%': {
+						transform: 'scale3d(0.97, 0.97, 0.97)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'scale3d(1, 1, 1)'
+					}
+				},
+				slideIn: {
+					'0%': {
+						transform: 'translateY(20%) scaleX(0.75)',
+					},
+					'100%': {
+						transform: 'translateY(0) scaleX(1)',
+					}
+				}
+			},
+			animation: {
+				bounceIn: 'bounceIn 1s both',
+				slideIn: 'slideIn 0.5s both'
 			}
 		}
 	},

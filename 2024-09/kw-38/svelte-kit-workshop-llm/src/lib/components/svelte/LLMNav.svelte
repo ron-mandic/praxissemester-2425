@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Page } from '@sveltejs/kit';
 	import type { Readable } from 'svelte/store';
-	import BookOpen from 'lucide-svelte/icons/book-open';
+	import Book from 'lucide-svelte/icons/book';
 	import BookOpenText from 'lucide-svelte/icons/book-open-text';
 
 	const { version, page, links } = $props<{
@@ -21,9 +21,9 @@
 					: 'text-muted-foreground'}"
 			>
 				{#if $page.route.id === href}
-					<BookOpenText class="h-5 w-5" />
+					<BookOpenText class="animate-slideIn h-5 w-5 ease-out" />
 				{:else}
-					<BookOpen class="h-5 w-5" />
+					<Book class="h-5 w-5" />
 				{/if}
 				<span>{innerText}</span>
 			</a>
@@ -44,7 +44,7 @@
 				{#if $page.route.id === href}
 					<BookOpenText class="h-5 w-5" />
 				{:else}
-					<BookOpen class="h-5 w-5" />
+					<Book class="h-5 w-5" />
 				{/if}
 				<span>{innerText}</span>
 			</a>

@@ -1,5 +1,9 @@
 export const LINKS = [
 	{
+		innerText: 'Daten',
+		href: '/sections/chapter-0'
+	},
+	{
 		innerText: 'Unigramm',
 		href: '/sections/chapter-1'
 	},

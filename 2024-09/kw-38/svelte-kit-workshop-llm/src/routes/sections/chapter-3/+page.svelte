@@ -13,7 +13,11 @@
 	import Info from 'lucide-svelte/icons/info';
 	import Reset from 'lucide-svelte/icons/rotate-ccw';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
+	import ChevronUp from 'lucide-svelte/icons/chevron-up';
+	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import { tick } from 'svelte';
+	import { Label } from '@/ui/label';
+	import { ScrollArea } from '@/ui/scroll-area';
 
 	let seed = $state(null as number | null);
 	let text = $state('' as string | number | string[] | null);
@@ -63,7 +67,7 @@
 
 		inputs.push({
 			id: Date.now(),
-			seed: (seed! > 0 ? seed : seed?.toFixed(4)) ?? 'N/A',
+			seed: (seed! > 0 ? seed : seed?.toFixed(3)) ?? 'N/A',
 			text: (text as string).trim() ?? ''
 		});
 	}
@@ -90,6 +94,14 @@
 		});
 	}
 
+	const increment = (e: MouseEvent) => {
+		seed = seed! + 1;
+	};
+
+	const decrement = (e: MouseEvent) => {
+		seed = seed! - 1;
+	};
+
 	function handleReset() {
 		hasBeenReset = true;
 		hasBeenClicked = false;
@@ -114,7 +126,7 @@
 				<div class="flex items-center gap-4">
 					<p class="text-sm text-muted-foreground">
 						<HoverCard.Root>
-							<HoverCard.Trigger>
+							<HoverCard.Trigger class="hover:animate-pulse">
 								<span class="inline-flex items-center justify-between gap-1"
 									>Seed <Info class="inline-block h-4 w-4" /></span
 								>
@@ -148,23 +160,41 @@
 							</HoverCard.Content>
 						</HoverCard.Root>
 					</p>
-					<Input
-						bind:value={seed}
-						class="max-w-32"
-						type="number"
-						placeholder="1234, ..."
-						min={0}
-						max={9999}
-						maxlength={4}
-						pattern="\d{4}"
-						oninput={handleInputOnInput}
-					/>
+					<div class="relative">
+						<Button
+							variant="outline"
+							class="absolute right-0.5 top-0.5 h-2 w-2 p-2"
+							onclick={increment}
+						>
+							<ChevronUp class="absolute h-4 w-4 text-foreground" />
+						</Button>
+						<Button
+							variant="outline"
+							class="absolute bottom-0.5 right-0.5 h-2 w-2 p-2"
+							onclick={decrement}
+						>
+							<ChevronDown class="absolute h-4 w-4 text-foreground" />
+						</Button>
+						<Input
+							bind:value={seed}
+							class="max-w-32"
+							type="number"
+							placeholder="1234, ..."
+							min={0}
+							max={9999}
+							maxlength={4}
+							pattern="\d{4}"
+							oninput={handleInputOnInput}
+						/>
+					</div>
 				</div>
 			</div>
 			<Card.Description>
 				<p class="mb-3 mt-2">
 					Ein <HoverCard.Root>
-						<HoverCard.Trigger>N-Gramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger>
+						<HoverCard.Trigger class="hover:animate-pulse"
+							>N-Gramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
+						>
 						<HoverCard.Content class="w-80">
 							<div class="flex flex-col items-start gap-2 text-sm">
 								<p class="text-balance">
@@ -226,7 +256,8 @@
 								>
 							</div>
 						</HoverCard.Content>
-					</HoverCard.Root> ist ein Grundkonzept der Sprachmodellierung und bezeichnet eine Sequenz von
+					</HoverCard.Root> ist ein Grundkonzept in der Modellierung von Sprache und bezeichnet dabei
+					eine Sequenz von
 					<code class="bg-muted px-1 font-mono">N</code>
 					Elementen, wobei <code class="bg-muted px-1 font-mono">N</code> für die Anzahl der Wörter oder
 					Zeichen steht.
@@ -241,9 +272,41 @@
 		</Card.Header>
 		<Separator class="mb-6" />
 		<Card.Content>
+			<Label for="textarea" class="mb-2 block">
+				<HoverCard.Root>
+					<HoverCard.Trigger class="hover:animate-pulse"
+						>Kontext <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
+					>
+					<HoverCard.Content class="w-72">
+						<div class="flex flex-col items-start gap-2 text-sm">
+							<p>
+								Ein Kontextfenster bezieht sich auf die Menge an Informationen, die ein Sprachmodell
+								gleichzeitig betrachten kann, um Vorhersagen zu treffen oder eine Antwort zu
+								generieren.
+							</p>
+							<p>
+								Stell dir vor, du liest einen Text durch ein Schiebefenster. Du kannst immer nur
+								einen bestimmten Teil des Textes auf einmal sehen. Dieser sichtbare Teil ist dein
+								Kontextfenster. Wenn das Fenster zu klein ist, verlierst du den Überblick über den
+								Zusammenhang. Ein größeres Fenster hingegen ermöglicht es dir, mehr Informationen
+								gleichzeitig zu sehen und zu verstehen.
+							</p>
+							<Separator class="my-2" />
+							<a
+								class="flex items-center gap-2 text-muted-foreground"
+								href="https://blog.google/technology/ai/long-context-window-ai-models/"
+								target="_blank"
+								rel="noopener noreferrer"
+								>What is a long context window?<ExternalLink class="inline-block h-4 w-4" /></a
+							>
+						</div>
+					</HoverCard.Content>
+				</HoverCard.Root>
+			</Label>
 			<Textarea
-				class="h-28 w-full resize-none"
 				bind:value={text}
+				class="h-28 w-full resize-none"
+				id="textarea"
 				maxlength={300}
 				placeholder="im in love ..."
 				onkeypress={handleTextareaOnInput}
@@ -252,7 +315,7 @@
 				<small class="font-mono text-xs">{(text as string).length || 0} / 300</small>
 				<small>{`${getModelName(text as string) ?? 'Unigramm (Kontext: 0 Wörter)'}`}</small>
 			</div>
-			<div class="mt-6 h-32 w-full overflow-y-auto rounded-md bg-muted/50"></div>
+			<div class="mt-6 h-32 w-full overflow-y-auto rounded-md bg-muted/30"></div>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
@@ -260,34 +323,36 @@
 					>Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
 				>
 			</div>
-			<Button onclick={handleClick} disabled={!text}
+			<Button class="ease-out active:translate-y-0.5" onclick={handleClick} disabled={!text}
 				>{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}</Button
 			>
 		</Card.Footer>
 	</Card.Root>
 
-	<div class="my-12">
-		<Table.Root>
-			<Table.Caption>
-				{#if !inputs.length}Noch keine Historie verfügbar{/if}
-			</Table.Caption>
-			<Table.Header>
-				<Table.Row>
-					<Table.Head class="w-24">Seed</Table.Head>
-					<Table.Head>Input</Table.Head>
-				</Table.Row>
-			</Table.Header>
-			<Table.Body
-				>{#if inputs.length}
-					{#each inputs as { id, seed, text } (id)}
-						<Table.Row>
-							<Table.Cell>{seed}</Table.Cell>
-							<Table.Cell>{text}</Table.Cell>
-						</Table.Row>
-					{/each}
-				{/if}
-			</Table.Body>
-		</Table.Root>
+	<div class="relative my-10">
+		<ScrollArea class="h-[350px] w-full rounded-md border p-4">
+			<Table.Root>
+				<Table.Caption>
+					{#if !inputs.length}Noch keine Historie verfügbar{/if}
+				</Table.Caption>
+				<Table.Header>
+					<Table.Row>
+						<Table.Head class="w-24">Seed</Table.Head>
+						<Table.Head>Input</Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body
+					>{#if inputs.length}
+						{#each inputs as { id, seed, text } (id)}
+							<Table.Row>
+								<Table.Cell>{seed}</Table.Cell>
+								<Table.Cell>{text}</Table.Cell>
+							</Table.Row>
+						{/each}
+					{/if}
+				</Table.Body>
+			</Table.Root>
+		</ScrollArea>
 	</div>
 </section>
 

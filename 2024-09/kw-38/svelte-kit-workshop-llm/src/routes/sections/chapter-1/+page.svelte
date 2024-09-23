@@ -4,26 +4,38 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import * as Table from '$lib/components/ui/table';
+	import * as Tooltip from '$lib/components/ui/tooltip';
 
 	import Info from 'lucide-svelte/icons/info';
 	import Reset from 'lucide-svelte/icons/rotate-ccw';
 	import { Badge } from '@/ui/badge';
+	import { ScrollArea } from '@/ui/scroll-area';
+	import { Input } from '@/ui/input';
+	import { formatSearch } from '$lib/ts/functions';
 
-	let seed = $state(null as number | null);
 	let text = $state('');
+	let searchValue = $state('');
 	let inputs = $state([] as { word: string; abs: number; rel: number }[]);
 	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
 
 	async function handleClick() {
-		hasBeenClicked = true;
+		if (!hasBeenClicked) hasBeenClicked = true;
 
 		const response = await fetch('/api/chapter-1?num_samples=1');
 		const data = await response.json();
 
 		const [key, abs, rel] = data.data[0];
+
 		text = key;
 		inputs.push({ word: key, abs, rel });
+	}
+
+	function filterBy(arr: typeof inputs, value: string) {
+		if (!value) return arr;
+
+		const filteredInputs = arr.filter(({ word }) => word.includes(value));
+		return filteredInputs;
 	}
 
 	function handleReset() {
@@ -35,8 +47,6 @@
 			hasBeenReset = false;
 		}, 1000);
 	}
-
-	$inspect(seed).with(console.log);
 </script>
 
 <section class="h-full w-full">
@@ -48,57 +58,65 @@
 			<Card.Description>
 				<p class="mb-3 mt-2">
 					Ein <HoverCard.Root>
-						<HoverCard.Trigger>Unigramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger>
-						<HoverCard.Content class="w-80">
+						<HoverCard.Trigger class="hover:animate-pulse">Unigramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger>
+						<HoverCard.Content class="w-72">
 							<div class="flex flex-col items-start gap-2 text-sm">
-								<p class="text-balance">
-									Stellen Sie sich ein Wörterbuch vor, in dem jedes Wort mit einer bestimmten
+								<p>
+									Stelle dir ein Wörterbuch vor, in dem jedes Wort mit einer bestimmten
 									Wahrscheinlichkeit vorkommt. Ein Unigramm-Modell wählt auf der Grundlage dieser
-									Wahrscheinlichkeiten zufällig Wörter aus diesem Wörterbuch aus.
+									Wahrscheinlichkeiten zufällig Wörter aus.
 								</p>
 								<div class="w-full">
 									<Table.Root>
-										<Table.Caption class="mb-4">Hinweis: Ohne Zeilenumbrüche</Table.Caption>
+										<Table.Caption class="mb-4">Ohne Zeilenumbrüche</Table.Caption>
 										<Table.Header>
 											<Table.Row>
-												<Table.Head class="w-22">Wort</Table.Head>
-												<Table.Head>Anzahl</Table.Head>
+												<Table.Head class="w-16">Wort</Table.Head>
+												<Table.Head class="text-right">Anzahl</Table.Head>
 												<Table.Head class="text-right">%</Table.Head>
 											</Table.Row>
 										</Table.Header>
 										<Table.Body>
 											<Table.Row>
 												<Table.Cell><Badge variant="secondary">i</Badge></Table.Cell>
-												<Table.Cell>1836</Table.Cell>
-												<Table.Cell class="text-right">{(0.0413 * 100).toFixed(4)}%</Table.Cell>
+												<Table.Cell class="text-right font-mono">1836</Table.Cell>
+												<Table.Cell class="text-right font-mono"
+													>{(0.0413 * 100).toFixed(3)}</Table.Cell
+												>
 											</Table.Row>
 											<Table.Row>
 												<Table.Cell><Badge variant="secondary">you</Badge></Table.Cell>
-												<Table.Cell>1576</Table.Cell>
-												<Table.Cell class="text-right">{(0.03545 * 100).toFixed(4)}%</Table.Cell>
+												<Table.Cell class="text-right font-mono">1576</Table.Cell>
+												<Table.Cell class="text-right font-mono"
+													>{(0.03545 * 100).toFixed(3)}</Table.Cell
+												>
 											</Table.Row>
 											<Table.Row>
 												<Table.Cell><Badge variant="secondary">the</Badge></Table.Cell>
-												<Table.Cell>1404</Table.Cell>
-												<Table.Cell class="text-right">{(0.03158 * 100).toFixed(4)}%</Table.Cell>
+												<Table.Cell class="text-right font-mono">1404</Table.Cell>
+												<Table.Cell class="text-right font-mono"
+													>{(0.03158 * 100).toFixed(3)}</Table.Cell
+												>
 											</Table.Row>
 											<Table.Row>
 												<Table.Cell>...</Table.Cell>
-												<Table.Cell>...</Table.Cell>
-												<Table.Cell class="text-right">...</Table.Cell>
+												<Table.Cell class="text-right font-mono">...</Table.Cell>
+												<Table.Cell class="text-right font-mono">...</Table.Cell>
 											</Table.Row>
 											<Table.Row>
 												<Table.Cell><Badge variant="secondary">un</Badge></Table.Cell>
-												<Table.Cell>4</Table.Cell>
-												<Table.Cell class="text-right">{(8.9975e-5 * 100).toFixed(4)}%</Table.Cell>
+												<Table.Cell class="text-right font-mono">4</Table.Cell>
+												<Table.Cell class="text-right font-mono"
+													>{(8.9975e-5 * 100).toFixed(3)}</Table.Cell
+												>
 											</Table.Row>
 										</Table.Body>
 									</Table.Root>
 								</div>
 								<p>
 									Um das zu veranschaulichen, klicke auf den Button unten, um zu sehen, welches Wort
-									das Modell aus dem Wörterbuch sampelt und wie wahrscheinlich es ist, dass dieses
-									Wort gewählt wird.
+									das Modell aus dem Wörterbuch sampelt und wie wahrscheinlich es war, dass dieses
+									Wort gewählt wurde.
 								</p>
 							</div>
 						</HoverCard.Content>
@@ -116,11 +134,30 @@
 		</Card.Header>
 		<Separator class="mb-6" />
 		<Card.Content>
-			<div class="mt-6 grid h-32 w-full place-items-center overflow-y-auto rounded-md bg-muted/50">
-				{#if text && hasBeenClicked}
-					<span>{text}</span>
+			<div class="mt-6 grid h-12 w-full place-items-center">
+				{#if text}
+					<span class="text-base">{text}</span>
+				{:else}
+					<span class="text-sm text-muted-foreground select-none"
+						>Drücke den Button, um ein Wort zu generieren</span
+					>
 				{/if}
 			</div>
+			<ScrollArea class="mt-6 h-72 max-h-72 w-full rounded-md bg-muted/30 px-4 py-0">
+				{#each inputs as { word, rel }, i}
+					<Tooltip.Root>
+						<Tooltip.Trigger>
+							<Badge
+								variant="outline"
+								class="animate-bounceIn -mb-2 mr-2 mt-4 inline-block text-base">{word}</Badge
+							>
+						</Tooltip.Trigger>
+						<Tooltip.Content>
+							<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
+						</Tooltip.Content>
+					</Tooltip.Root>
+				{/each}
+			</ScrollArea>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
@@ -128,33 +165,47 @@
 					>Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
 				>
 			</div>
-			<Button onclick={handleClick}>{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}</Button>
+			<Button class="ease-out active:translate-y-0.5" onclick={handleClick}>
+				{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}
+			</Button>
 		</Card.Footer>
 	</Card.Root>
 
-	<div class="my-12">
-		<Table.Root>
-			<Table.Caption>
-				{#if !inputs.length}Noch keine Historie verfügbar{/if}
-			</Table.Caption>
-			<Table.Header>
-				<Table.Row>
-					<Table.Head class="w-48">Wort</Table.Head>
-					<Table.Head>Anzahl</Table.Head>
-					<Table.Head class="text-right">Wahrscheinlichkeit</Table.Head>
-				</Table.Row>
-			</Table.Header>
-			<Table.Body
-				>{#if inputs.length}
-					{#each inputs as { word, abs, rel }, i}
-						<Table.Row>
-							<Table.Cell><Badge variant="secondary">{word}</Badge></Table.Cell>
-							<Table.Cell>{abs}</Table.Cell>
-							<Table.Cell class="text-right">{(rel * 100).toFixed(4)}</Table.Cell>
-						</Table.Row>
-					{/each}
-				{/if}
-			</Table.Body>
-		</Table.Root>
+	<div class="relative mb-4 mt-10">
+		<Input
+			bind:value={searchValue}
+			class="mb-2 w-1/2"
+			placeholder="Nach Wörtern suchen"
+			type="search"
+		/>
+		<ScrollArea class="relative h-[330px] w-full rounded-md border px-4 pt-4">
+			<Table.Root>
+				<Table.Caption>
+					{#if !inputs.length}Noch keine Historie verfügbar{/if}
+				</Table.Caption>
+				<Table.Header class="sticky top-0">
+					<Table.Row>
+						<Table.Head class="w-48">Wort</Table.Head>
+						<Table.Head class="text-right">Anzahl</Table.Head>
+						<Table.Head class="text-right">Wahrscheinlichkeit</Table.Head>
+					</Table.Row>
+				</Table.Header>
+				<Table.Body
+					>{#if inputs.length}
+						{#each filterBy(inputs, searchValue) as { word, abs, rel }, i}
+							<Table.Row>
+								<Table.Cell>
+									<Badge class="text-sm" variant="secondary"
+										>{@html formatSearch(word, searchValue)}</Badge
+									>
+								</Table.Cell>
+								<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
+								<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+							</Table.Row>
+						{/each}
+					{/if}
+				</Table.Body>
+			</Table.Root>
+		</ScrollArea>
 	</div>
 </section>

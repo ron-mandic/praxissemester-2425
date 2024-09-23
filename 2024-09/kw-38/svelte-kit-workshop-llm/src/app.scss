@@ -74,19 +74,23 @@
 	* {
 		@apply border-border;
 		scrollbar-width: thin;
-		&::webkit-scrollbar {
-			width: 0.5rem;
-			height: 0.5rem;
-		}
+		scrollbar-color: var(--border) var(--background);
 	}
 	body {
-		@apply bg-background text-foreground;
+		@apply overflow-hidden bg-background text-foreground;
 		transition:
 			background-color 0.2s,
 			color 0.2s;
 		font-feature-settings:
 			'rlig' 1,
 			'calt' 1;
+	}
+	input[type='number']::-webkit-outer-spin-button,
+	input[type='number']::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		-moz-appearance: none;
+		appearance: none;
+		margin: 0;
 	}
 }
 
