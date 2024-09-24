@@ -50,6 +50,9 @@ const config: Config = {
 					foreground: 'hsl(var(--card-foreground) / <alpha-value>)'
 				}
 			},
+			backgroundImage: {
+				'llm-gradient': 'linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 60%)'
+			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
@@ -88,15 +91,26 @@ const config: Config = {
 				},
 				slideIn: {
 					'0%': {
-						transform: 'translateY(20%) scaleX(0.75)',
+						transform: 'translateY(20%) scaleX(0.75)'
 					},
 					'100%': {
-						transform: 'translateY(0) scaleX(1)',
+						transform: 'translateY(0) scaleX(1)'
+					}
+				},
+				bounce: {
+					'0%, 100%': {
+						transform: 'translateY(-5%)',
+						animationTimingFunction: 'cubic-bezier(0.8,0,1,1)'
+					},
+					'50%': {
+						transform: 'translateY(0)',
+						animationTimingFunction: 'cubic-bezier(0,0,0.2,1)'
 					}
 				}
 			},
 			animation: {
 				bounceIn: 'bounceIn 1s both',
+				bounce: 'bounce 1s infinite',
 				slideIn: 'slideIn 0.5s both'
 			}
 		}

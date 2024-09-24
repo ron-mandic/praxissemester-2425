@@ -11,12 +11,12 @@
 </script>
 
 <div
-	class={`flex flex-row items-center ${prev && next ? 'justify-between' : prev ? 'justify-start' : 'justify-end'}`}
+	class={`mt-24 flex flex-row items-center ${prev && next ? 'justify-between' : prev ? 'justify-start' : 'justify-end'}`}
 >
 	{#if prev}
 		<Button
 			variant="outline"
-			class="group flex translate-y-16 items-center justify-between gap-3 rounded-md px-5 py-6 transition-transform"
+			class="group flex items-center justify-between gap-3 rounded-md px-5 py-6 transition-transform focus-visible:px-5 focus-visible:py-6"
 			href={url.replace(/(\d+)$/, (match: string) => `${+match - 1}`)}
 		>
 			<ChevronLeft class="h-6 w-6 transform transition-transform group-hover:-translate-x-1" />
@@ -27,7 +27,7 @@
 	{#if next}
 		<Button
 			variant="outline"
-			class="group flex translate-y-16 items-center justify-between gap-3 rounded-md px-5 py-6 transition-transform"
+			class="group flex items-center justify-between gap-3 rounded-md px-5 py-6 transition-transform focus-visible:px-5 focus-visible:py-6"
 			href={url.replace(/(\d+)$/, (match: string) => `${+match + 1}`)}
 		>
 			<span class="font-semibold">{next}</span>

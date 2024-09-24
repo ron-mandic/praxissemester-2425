@@ -33,7 +33,7 @@
 
 		--ring: 240 10% 3.9%;
 
-		--radius: 0.5rem;
+		--radius: 0.875rem;
 	}
 
 	.dark {
@@ -66,7 +66,7 @@
 
 		--ring: 240 4.9% 83.9%;
 
-		--radius: 0.5rem;
+		--radius: 0.875rem;
 	}
 }
 
@@ -74,6 +74,21 @@
 	* {
 		@apply border-border;
 		scrollbar-width: normal;
+	}
+	pre,
+	code {
+		@apply whitespace-break-spaces;
+	}
+	a,
+	button,
+	input::placeholder,
+	thead,
+	caption {
+		@apply select-none;
+	}
+	a:focus-visible,
+	button:focus-visible {
+		@apply animate-bounce p-1 outline-foreground;
 	}
 	html {
 		&::-webkit-scrollbar {
@@ -102,6 +117,10 @@
 		-moz-appearance: none;
 		appearance: none;
 		margin: 0;
+	}
+
+	input[type='number'] {
+		-moz-appearance: textfield; /* Firefox */
 	}
 }
 

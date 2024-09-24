@@ -1,5 +1,9 @@
 function init() {
-    python -m venv .venv
+    python -m venv .venv && source .venv/Scripts/activate
+}
+
+function activate() {
+    source .venv/Scripts/activate
 }
 
 function install() {

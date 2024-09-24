@@ -10,7 +10,7 @@
 	import LLMNav from '$lib/components/svelte/LLMNav.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { ScrollArea } from '@/ui/scroll-area';
+	import { quartOut } from 'svelte/easing';
 
 	const { data, children } = $props();
 
@@ -26,8 +26,6 @@
 		version: 'v2',
 		...content
 	};
-
-	const refEl = $state(null) as null | HTMLDivElement;
 </script>
 
 <div class="grid h-full max-h-screen w-full max-[319px]:hidden md:grid-cols-[240px_1fr]">
@@ -65,10 +63,13 @@
 			</Sheet.Root>
 		</header>
 		<main
-			class="relative mx-auto flex h-full min-h-screen min-w-[319px] max-w-[540px] flex-1 flex-col gap-6 px-4 pb-32 pt-10 md:px-6 md:pt-20"
+			class="relative mx-auto flex h-full min-h-screen max-w-[540px] flex-1 flex-col gap-6 px-4 pb-32 pt-10 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:h-full after:w-full after:from-transparent after:to-white after:content-[''] md:px-6 md:pt-20"
 		>
 			{#key data.url}
-				<div in:fly={{ x: -25, duration: 300, delay: 300 }} out:fly={{ x: 25, duration: 300 }}>
+				<div
+					in:fly={{ x: 10, duration: 500, delay: 500, easing: quartOut }}
+					out:fly={{ x: -10, duration: 300 }}
+				>
 					{@render children()}
 				</div>
 			{/key}

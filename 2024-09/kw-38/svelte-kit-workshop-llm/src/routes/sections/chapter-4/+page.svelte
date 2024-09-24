@@ -125,7 +125,7 @@
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
 			<div class="flex items-center justify-between">
-				<Card.Title>Ed Sheeran</Card.Title>
+				<Card.Title>Kontext <span class="whitespace-nowrap">gefällig?</span></Card.Title>
 				<div class="flex items-center gap-4">
 					<p class="text-sm text-muted-foreground">
 						<HoverCard.Root>
@@ -165,24 +165,23 @@
 					</p>
 					<div class="relative">
 						<Button
-							variant="outline"
-							class="absolute right-0.5 top-0.5 h-2 w-2 p-2"
+							variant="secondary"
+							class="absolute right-[.25rem] top-[.25rem] h-1.5 w-1.5 rounded-sm p-2 transition-transform ease-out active:-translate-y-[.125rem]"
 							onclick={increment}
 						>
-							<ChevronUp class="absolute h-4 w-4 text-foreground" />
+							<ChevronUp class="absolute h-[.875rem] w-[.875rem] text-foreground" />
 						</Button>
 						<Button
-							variant="outline"
-							class="absolute bottom-0.5 right-0.5 h-2 w-2 p-2"
+							variant="secondary"
+							class="absolute bottom-[.25rem] right-[.25rem] h-1.5 w-1.5 rounded-[.75rem] p-2 transition-transform ease-out active:translate-y-[.125rem]"
 							onclick={decrement}
 						>
-							<ChevronDown class="absolute h-4 w-4 text-foreground" />
+							<ChevronDown class="absolute h-[.875rem] w-[.875rem] text-foreground" />
 						</Button>
 						<Input
 							bind:value={seed}
 							class="max-w-32"
 							type="number"
-							placeholder="1234, ..."
 							min={0}
 							max={9999}
 							maxlength={4}
@@ -194,16 +193,17 @@
 			</div>
 			<Card.Description>
 				<p class="mb-3 mt-2">
-					Ein <HoverCard.Root>
+					Sprachmodelle sagen das nächste Wort voraus, indem sie jedem möglichen nächsten Wort eine
+					Wahrscheinlichkeit zuordnen. Das <HoverCard.Root>
 						<HoverCard.Trigger class="hover:animate-pulse"
 							>N-Gramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
 						>
 						<HoverCard.Content class="w-80">
 							<div class="flex flex-col items-start gap-2 text-sm">
 								<p class="text-balance">
-									Ein N-Gramm ist das Ergebnis der Zerlegung eines Textes in Fragmente. Der Text
-									wird zerlegt und die aufeinanderfolgenden Fragmente werden als N-Gramm
-									zusammengefasst.
+									Ein N-Gramm ist das Ergebnis der Zerlegung eines Textes in einzelne Bausteine. Das
+									zusammengefasste N-Gramm besteht aus <code class="bg-muted px-1 font-mono">N</code
+									> einzelnen Wörtern oder auch kleineren Einheiten.
 								</p>
 								<p>
 									Zum Beispiel bildet der Satz <em>Die Sonne scheint</em> bei einem 2-Gramm
@@ -213,9 +213,9 @@
 									> als Paare. Der ganze Satz alleine würde ein 3-Gramm (Trigramm) bilden.
 								</p>
 								<p>
-									Wenn <code class="bg-muted px-1 font-mono">N</code> also die Anzahl der Wörter
+									Wenn <code class="bg-muted px-1 font-mono">N</code> also die Anzahl der Bausteine
 									ist, verwendet das Modell <code class="bg-muted px-1 font-mono">N-1</code> Wörter als
-									Kontext, um das nächste Wort vorhersagen zu können.
+									Kontext, um das nächste Wort vorhersagen zu können und das fertige N-Gramm zu bilden.
 								</p>
 
 								<div class="mt-3 grid w-full grid-cols-2 grid-rows-2 gap-x-2 gap-y-4">
@@ -259,18 +259,17 @@
 								>
 							</div>
 						</HoverCard.Content>
-					</HoverCard.Root> ist ein Grundkonzept in der Modellierung von Sprache und bezeichnet dabei
-					eine Sequenz von
-					<code class="bg-muted px-1 font-mono">N</code>
-					Elementen, wobei <code class="bg-muted px-1 font-mono">N</code> für die Anzahl der Wörter oder
-					Zeichen steht.
+					</HoverCard.Root> ist zwar immer noch nicht dasselbe wie große Sprachmodelle (LLMs), aber sie
+					sind überraschend einfach und bieten ein gutes Modell, um zu verstehen, wie kontextbasierte
+					Vorhersagen funktionieren.
 				</p>
 
-				<p>
-					Dieses N-Gramm-Modell hat 100 ausgewählte Songs von Ed Sheeran analysiert. Gib
-					Schlüsselwörter auf Englisch in Kleinschreibweise und ohne Sonderzeichen ein, wie sie in
-					Ed Sheerans Songtexten vorkommen würden und generiere dann Vorhersagen mit dem Modell.
+				<p class="mb-3">
+					Vollständige und fortgeschrittenere Sprachmodelle wie neuronale Sprachmodelle sind
+					wesentlich leistungsfähiger, da sie Kontext und Wortsequenzen berücksichtigen.
 				</p>
+
+				<p>...</p>
 			</Card.Description>
 		</Card.Header>
 		<Separator class="mb-6" />
@@ -314,7 +313,7 @@
 				placeholder="im in love ..."
 				onkeypress={handleTextareaOnInput}
 			/>
-			<div class="mt-1.5 flex items-center justify-between text-muted-foreground">
+			<div class="mt-1.5 flex select-none items-center justify-between text-muted-foreground">
 				<small class="font-mono text-xs">{(text as string).length || 0} / 300</small>
 				<small>{`${getModelName(text as string) ?? 'Unigramm (Kontext: 0 Wörter)'}`}</small>
 			</div>
@@ -322,12 +321,14 @@
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
-				<Button onclick={handleReset} variant="outline"
+				<Button class="px-5 py-6" onclick={handleReset} variant="outline"
 					>Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
 				>
 			</div>
-			<Button class="ease-out active:translate-y-0.5" onclick={handleClick} disabled={!text}
-				>{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}</Button
+			<Button
+				class="px-5 py-6 transition-transform ease-out active:translate-y-0.5"
+				onclick={handleClick}
+				disabled={!text}>{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}</Button
 			>
 		</Card.Footer>
 	</Card.Root>

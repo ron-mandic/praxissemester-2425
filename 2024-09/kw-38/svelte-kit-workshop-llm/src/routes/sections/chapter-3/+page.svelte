@@ -27,7 +27,7 @@
 	async function handleClick() {
 		if (!hasBeenClicked) hasBeenClicked = true;
 
-		const response = await fetch('/api/chapter-1?num_samples=1');
+		const response = await fetch('/api/unigram?num_samples=1');
 		const data = await response.json();
 
 		const [key, abs, rel] = data.data[0];
@@ -59,7 +59,7 @@
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
-			<Card.Title>Ed Sheeran</Card.Title>
+			<Card.Title>Gedächtniskünstler mit kurzem Gedächtnis</Card.Title>
 			<Card.Description>
 				<p class="mb-3 mt-2">
 					Ein <HoverCard.Root>
@@ -129,14 +129,14 @@
 						</HoverCard.Content>
 					</HoverCard.Root> ist das nächstgrößere Sprachmodell, bei dem die Wahrscheinlichkeit eines
 					Wortes basierend auf dem vorhergehenden Wort berechnet wird. Im Vergleich zum Unigramm, das
-					jedes Wort unabhängig von den vorherigen Wörtern betrachtet, sieht das Bigramm immer das letzte
-					Wort als Kontext an, was zu sinnvolleren Vorhersagen führt.
+					jedes Wort unabhängig von den vorherigen Wörtern betrachtet, sieht das Bigramm
+					<strong>immer das letzte Wort als Kontext</strong> an, was zu sinnvolleren Vorhersagen führt.
 				</p>
 
 				<p>
-					Dieses Modell hat 100 ausgewählte Songs von Ed Sheeran analysiert. Gib Schlüsselwörter auf
-					Englisch in Kleinschreibweise und ohne Sonderzeichen ein, wie sie in Ed Sheerans
-					Songtexten vorkommen würden und generiere dann Vorhersagen mit dem Modell.
+					Unten ist dasselbe Modell wie vorhin verknüpft, nur mit dem Unterschied, dass es für die
+					Vorhersage das letzte Wort als Kontext heranzieht. Das Modell beantwortet dir die Frage,
+					welches Wort am wahrscheinlichsten auf das letzte Wort folgt.
 				</p>
 			</Card.Description>
 		</Card.Header>
@@ -202,11 +202,11 @@
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
-				<Button onclick={handleReset} variant="outline"
+				<Button class="px-5 py-6" onclick={handleReset} variant="outline"
 					>Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
 				>
 			</div>
-			<Button class="ease-out active:translate-y-0.5" onclick={handleClick}>
+			<Button class="px-5 py-6 transition-transform ease-out active:translate-y-0.5" onclick={handleClick}>
 				{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}
 			</Button>
 		</Card.Footer>
@@ -218,6 +218,7 @@
 			class="mb-2 w-1/2"
 			placeholder="Nach Wörtern suchen"
 			type="search"
+			disabled={!hasBeenClicked}
 		/>
 		<ScrollArea class="relative h-[330px] w-full rounded-md border px-4 pt-4">
 			<Table.Root>

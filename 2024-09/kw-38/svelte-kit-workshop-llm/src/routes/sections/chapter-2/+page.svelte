@@ -13,6 +13,8 @@
 	import { ScrollArea } from '@/ui/scroll-area';
 	import { Input } from '@/ui/input';
 	import { formatSearch } from '$lib/ts/functions';
+	import { Toaster } from '@/ui/sonner/index.js';
+	import { toast } from 'svelte-sonner';
 
 	const { data } = $props();
 
@@ -22,10 +24,18 @@
 	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
 
+	$effect(() => {
+		if (inputs.length === 100) {
+			toast(
+				'Wow. Wenn das nicht der neuste Hit von Ed Sheeran wird, dann weiß ich auch nicht weiter.'
+			);
+		}
+	});
+
 	async function handleClick() {
 		if (!hasBeenClicked) hasBeenClicked = true;
 
-		const response = await fetch('/api/chapter-1?num_samples=1');
+		const response = await fetch('/api/unigram?num_samples=1');
 		const data = await response.json();
 
 		const [key, abs, rel] = data.data[0];
@@ -57,9 +67,9 @@
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
-			<Card.Title>Ed Sheeran</Card.Title>
+			<Card.Title>Wahrsager ohne Kontext</Card.Title>
 			<Card.Description>
-				<p class="mb-3 mt-2">
+				<p class="mb-3 mt-2 text-balance">
 					Ein <HoverCard.Root>
 						<HoverCard.Trigger class="hover:animate-pulse"
 							>Unigramm <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
@@ -119,21 +129,25 @@
 									</Table.Root>
 								</div>
 								<p>
-									Um das zu veranschaulichen, klicke auf den Button unten, um zu sehen, welches Wort
-									das Modell aus dem Wörterbuch sampelt und wie wahrscheinlich es war, dass dieses
-									Wort gewählt wurde.
+									In einem Unigramm-Modell basiert die Vorhersage eines Wortes nur auf dessen
+									eigener Wahrscheinlichkeit im Gesamtkorpus, ohne den Kontext aus dem Satz oder den
+									vorherigen Wörtern zu verwenden. Da Sprache normalerweise stark vom Kontext
+									abhängt, sind die Vorhersagen eines Unigramm-Modells mehr oder weniger zufällig.
 								</p>
 							</div>
 						</HoverCard.Content>
-					</HoverCard.Root> ist das einfachste Sprachmodell, bei dem Wörter unabhängig voneinander betrachtet
-					werden. Das bedeutet, es gibt keinen Kontext, der uns sagt, welches Wort als nächstes kommen
-					sollte.
+					</HoverCard.Root> vertritt die einfachste Form kleiner Sprachmodelle, auch SLMs genannt, bei
+					dem die Wörter unabhängig voneinander betrachtet werden.
+					<strong>Es berücksichtigt keinen Kontext</strong>. Es bildet nur die Wahrscheinlichkeiten
+					einzelner Wörter ab und ignoriert jegliche Abhängigkeiten zwischen Wörtern, was seine
+					Anwendungsmöglichkeiten stark einschränkt.
 				</p>
 
 				<p>
-					Dieses Modell hat 100 ausgewählte Songs von Ed Sheeran analysiert. Gib Schlüsselwörter auf
-					Englisch in Kleinschreibweise und ohne Sonderzeichen ein, wie sie in Ed Sheerans
-					Songtexten vorkommen würden und generiere dann Vorhersagen mit dem Modell.
+					Dieses Modell hat unsere 100 ausgewählten Songs von Ed Sheeran analysiert. Gib
+					Schlüsselwörter auf Englisch in Kleinschreibweise und ohne Sonderzeichen ein, wie sie in
+					Ed Sheerans Songtexten vorkommen würden und generiere dann kontextlose Vorhersagen mit dem
+					Modell.
 				</p>
 			</Card.Description>
 		</Card.Header>
@@ -141,7 +155,7 @@
 		<Card.Content>
 			<div class="mt-6 grid h-12 w-full place-items-center">
 				{#if text}
-					<span class="text-base">{text}</span>
+					<span class="select-none text-lg font-bold">{text}</span>
 				{:else}
 					<span class="select-none text-sm text-muted-foreground"
 						>Drücke den Button, um ein Wort zu generieren</span
@@ -150,7 +164,7 @@
 			</div>
 			<ScrollArea class="mt-6 h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0">
 				<div
-					class="gap-x-2 inline-flex h-full w-full flex-wrap items-start justify-start gap-y-3 py-6"
+					class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
 				>
 					{#each inputs as { word, rel }, i}
 						<Tooltip.Root>
@@ -166,14 +180,26 @@
 					{/each}
 				</div>
 			</ScrollArea>
+			<div class="mt-2 flex select-none items-center justify-between text-muted-foreground">
+				<small class="font-mono text-xs"
+					>{inputs.length
+						? inputs.length === 1
+							? '1 Wort'
+							: `${inputs.length} Wörter`
+						: 'Noch keine Wörter'}</small
+				>
+			</div>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
-				<Button onclick={handleReset} variant="outline"
+				<Button class="px-5 py-6" onclick={handleReset} variant="outline"
 					>Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
 				>
 			</div>
-			<Button class="ease-out active:translate-y-0.5" onclick={handleClick}>
+			<Button
+				class="px-5 py-6 transition-transform ease-out active:translate-y-0.5"
+				onclick={handleClick}
+			>
 				{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}
 			</Button>
 		</Card.Footer>
@@ -185,11 +211,14 @@
 			class="mb-2 w-1/2"
 			placeholder="Nach Wörtern suchen"
 			type="search"
+			disabled={!hasBeenClicked}
 		/>
 		<ScrollArea class="relative h-[330px] w-full rounded-md border px-4 pt-4">
 			<Table.Root>
 				<Table.Caption>
-					{#if !inputs.length}Noch keine Historie verfügbar{/if}
+					{#if !inputs.length}
+						Noch keine Historie verfügbar
+					{/if}
 				</Table.Caption>
 				<Table.Header class="sticky top-0">
 					<Table.Row>
@@ -208,7 +237,7 @@
 									>
 								</Table.Cell>
 								<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
-								<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+								<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)} %</Table.Cell>
 							</Table.Row>
 						{/each}
 					{/if}
@@ -219,3 +248,5 @@
 
 	<LLMNext url={data.url} prev="Unigramm" next="Bigramm" />
 </section>
+
+<Toaster position="bottom-right" />

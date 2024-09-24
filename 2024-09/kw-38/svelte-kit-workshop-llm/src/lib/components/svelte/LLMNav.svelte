@@ -15,15 +15,16 @@
 		{#each links as { innerText, href }, i}
 			<a
 				{href}
-				class="flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-all hover:text-primary {$page
+				id="{version}-{i}"
+				class="group flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-transform hover:text-primary {$page
 					.route.id === href
 					? 'bg-muted text-foreground'
 					: 'text-muted-foreground'}"
 			>
 				{#if $page.route.id === href}
-					<BookOpenText class="animate-slideIn h-5 w-5 ease-out" />
+					<BookOpenText class="h-5 w-5 animate-slideIn ease-out" />
 				{:else}
-					<Book class="h-5 w-5" />
+					<Book class="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
 				{/if}
 				<span>{innerText}</span>
 			</a>
@@ -36,15 +37,16 @@
 		{#each links as { innerText, href }, i}
 			<a
 				{href}
-				class="mx-[-0.65rem] flex select-none items-center gap-4 rounded-xl px-3 py-2 hover:text-foreground {$page
+				id="{version}-{i}"
+				class="group mx-[-0.65rem] flex select-none items-center gap-4 rounded-xl px-3 py-2 transition-transform hover:text-foreground {$page
 					.route.id === href
 					? 'bg-muted text-foreground'
 					: 'text-muted-foreground'}"
 			>
 				{#if $page.route.id === href}
-					<BookOpenText class="h-5 w-5" />
+					<BookOpenText class="h-5 w-5 animate-slideIn ease-out" />
 				{:else}
-					<Book class="h-5 w-5" />
+					<Book class="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
 				{/if}
 				<span>{innerText}</span>
 			</a>
