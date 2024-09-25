@@ -19,7 +19,7 @@
 			class="group flex items-center justify-between gap-3 rounded-md px-5 py-6 transition-transform focus-visible:px-5 focus-visible:py-6"
 			href={url.replace(/(\d+)$/, (match: string) => `${+match - 1}`)}
 		>
-			<ChevronLeft class="h-6 w-6 transform transition-transform group-hover:-translate-x-1" />
+			<ChevronLeft class="h-6 w-6 ease-in-out transition-transform group-hover:-translate-x-1" />
 			<span class="font-semibold">{prev}</span>
 		</Button>
 	{/if}
@@ -31,7 +31,7 @@
 			href={url.replace(/(\d+)$/, (match: string) => `${+match + 1}`)}
 		>
 			<span class="font-semibold">{next}</span>
-			<ChevronRight class="h-6 w-6 transform transition-transform group-hover:translate-x-1" />
+			<ChevronRight class="h-6 w-6 ease-in-out transition-transform group-hover:translate-x-1" />
 		</Button>
 	{/if}
 </div>

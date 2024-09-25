@@ -106,12 +106,33 @@ const config: Config = {
 						transform: 'translateY(0)',
 						animationTimingFunction: 'cubic-bezier(0,0,0.2,1)'
 					}
+				},
+				wobble: {
+					'0%, 100%': {
+						transform: 'translateX(0%)'
+					},
+					'15%': {
+						transform: 'translateX(-10%)'
+					},
+					'30%': {
+						transform: 'translateX(10%)'
+					},
+					'45%': {
+						transform: 'translateX(-5%)'
+					},
+					'60%': {
+						transform: 'translateX(2%)'
+					},
+					'75%': {
+						transform: 'translateX(0%)'
+					}
 				}
 			},
 			animation: {
 				bounceIn: 'bounceIn 1s both',
 				bounce: 'bounce 1s infinite',
-				slideIn: 'slideIn 0.5s both'
+				slideIn: 'slideIn 0.5s both',
+				wobble: 'wobble 1s both'
 			}
 		}
 	},

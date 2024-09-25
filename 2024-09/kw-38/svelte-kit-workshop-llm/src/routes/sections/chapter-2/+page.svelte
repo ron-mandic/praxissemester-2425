@@ -5,6 +5,7 @@
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import * as Table from '$lib/components/ui/table';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import LLMNext from '@/svelte/LLMNext.svelte';
 
 	import Info from 'lucide-svelte/icons/info';
@@ -20,6 +21,7 @@
 
 	let text = $state('');
 	let searchValue = $state('');
+	let selectedWord = $state('');
 	let inputs = $state([] as { word: string; abs: number; rel: number }[]);
 	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
@@ -36,12 +38,18 @@
 		if (!hasBeenClicked) hasBeenClicked = true;
 
 		const response = await fetch('/api/unigram?num_samples=1');
-		const data = await response.json();
+		const { data } = await response.json();
 
-		const [key, abs, rel] = data.data[0];
+		const [key, abs, rel] = data[0];
 
 		text = key;
 		inputs.push({ word: key, abs, rel });
+	}
+
+	function handleSelectedWord(e: any) {
+		const target = e.currentTarget as HTMLElement;
+		const { word } = target.dataset;
+		selectedWord = word as string;
 	}
 
 	function filterBy(arr: typeof inputs, value: string) {
@@ -56,14 +64,17 @@
 		hasBeenReset = true;
 		text = '';
 		inputs = [];
+		selectedWord = '';
 		setTimeout(() => {
 			hasBeenReset = false;
 		}, 1000);
 	}
+
+	$inspect(selectedWord).with(console.log);
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 text-4xl font-bold">Unigramm</h2>
+	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Unigramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
@@ -162,24 +173,74 @@
 					>
 				{/if}
 			</div>
-			<ScrollArea class="mt-6 h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0">
-				<div
-					class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
-				>
-					{#each inputs as { word, rel }, i}
-						<Tooltip.Root>
-							<Tooltip.Trigger>
-								<Badge variant="outline" class="inline-block animate-bounceIn text-base"
-									>{word}</Badge
+			<Tabs.Root value="0" class="mt-6 w-full">
+				<Tabs.List class="w-full">
+					<Tabs.Trigger class="w-full" value="0">Wörter</Tabs.Trigger>
+					<Tabs.Trigger class="w-full" value="1">Output</Tabs.Trigger>
+				</Tabs.List>
+				<Tabs.Content class="h-full w-full" value="0">
+					<ScrollArea class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0">
+						<div
+							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
+						>
+							{#each inputs as { word, rel }, i}
+								<Tooltip.Root>
+									<Tooltip.Trigger>
+										<Badge
+											variant="outline"
+											class="box-border inline-block animate-bounceIn text-base {selectedWord ===
+											word
+												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+												: 'text-foreground'}">{word}</Badge
+										>
+									</Tooltip.Trigger>
+									<Tooltip.Content>
+										<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
+									</Tooltip.Content>
+								</Tooltip.Root>
+							{/each}
+						</div>
+					</ScrollArea>
+				</Tabs.Content>
+				<Tabs.Content class="h-full w-full" value="1">
+					<ScrollArea
+						class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0"
+						orientation="both"
+					>
+						<div
+							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
+						>
+							{#if selectedWord}
+								<span class="w-full whitespace-nowrap"
+									>{@html inputs
+										.map(({ word }, i) => {
+											let w =
+												word === selectedWord
+													? `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${word}</mark>`
+													: word;
+
+											if (word === '[end]')
+												return word === selectedWord
+													? `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${word}</mark><br />`
+													: '<br />';
+											return w;
+										})
+										.join(' ')}</span
 								>
-							</Tooltip.Trigger>
-							<Tooltip.Content>
-								<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
-							</Tooltip.Content>
-						</Tooltip.Root>
-					{/each}
-				</div>
-			</ScrollArea>
+							{:else}
+								<span class="w-full whitespace-nowrap"
+									>{@html inputs
+										.map(({ word }, i) => {
+											if (word === '[end]') return `<br>`;
+											return word;
+										})
+										.join(' ')}</span
+								>
+							{/if}
+						</div>
+					</ScrollArea>
+				</Tabs.Content>
+			</Tabs.Root>
 			<div class="mt-2 flex select-none items-center justify-between text-muted-foreground">
 				<small class="font-mono text-xs"
 					>{inputs.length
@@ -209,7 +270,7 @@
 		<Input
 			bind:value={searchValue}
 			class="mb-2 w-1/2"
-			placeholder="Nach Wörtern suchen"
+			placeholder="Historie durchsuchen"
 			type="search"
 			disabled={!hasBeenClicked}
 		/>
@@ -230,10 +291,13 @@
 				<Table.Body
 					>{#if inputs.length}
 						{#each filterBy(inputs, searchValue) as { word, abs, rel }, i}
-							<Table.Row>
+							<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={word}>
 								<Table.Cell>
-									<Badge class="text-sm" variant="secondary"
-										>{@html formatSearch(word, searchValue)}</Badge
+									<Badge
+										class="box-border cursor-pointer text-sm transition-none {selectedWord === word
+											? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+											: 'text-foreground'}"
+										variant="secondary">{@html formatSearch(word, searchValue)}</Badge
 									>
 								</Table.Cell>
 								<Table.Cell class="text-right font-mono">{abs}</Table.Cell>

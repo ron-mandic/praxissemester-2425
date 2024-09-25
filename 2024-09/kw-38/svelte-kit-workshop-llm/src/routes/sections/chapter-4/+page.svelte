@@ -120,7 +120,7 @@
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 text-4xl font-bold">N-Gramm</h2>
+	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">N-Gramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
@@ -277,7 +277,7 @@
 			<Label for="textarea" class="mb-2 block">
 				<HoverCard.Root>
 					<HoverCard.Trigger class="hover:animate-pulse"
-						>Kontext <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
+						>Startkontext <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
 					>
 					<HoverCard.Content class="w-72">
 						<div class="flex flex-col items-start gap-2 text-sm">

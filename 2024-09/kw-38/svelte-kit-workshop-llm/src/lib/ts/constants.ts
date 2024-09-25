@@ -21,6 +21,8 @@ export const LINKS = [
 	}
 ];
 
+export const END_TOKEN = `[end]`;
+
 export const EXAMPLE_OBJ_SONG = {
 	text: 'Shape of You Lyrics\nThe club isnt the best place to find a lover\nSo the bar is where I ... Im in love with the shape of you405Embed'
 };

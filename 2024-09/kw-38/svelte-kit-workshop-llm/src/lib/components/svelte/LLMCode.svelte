@@ -5,7 +5,11 @@
 	import json from 'highlight.js/lib/languages/json';
 	import python from 'highlight.js/lib/languages/python';
 
-	const { innerText, language = 'javascript' } = $props<{ innerText: string; language?: string }>();
+	const { innerText, language = 'javascript' } = $props<{
+		innerText: string;
+		language?: string;
+		term?: string;
+	}>();
 
 	hljs.registerLanguage('javascript', javascript);
 	hljs.registerLanguage('json', json);

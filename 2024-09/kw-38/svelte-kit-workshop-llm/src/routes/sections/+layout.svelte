@@ -63,12 +63,12 @@
 			</Sheet.Root>
 		</header>
 		<main
-			class="relative mx-auto flex h-full min-h-screen max-w-[540px] flex-1 flex-col gap-6 px-4 pb-32 pt-10 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:h-full after:w-full after:from-transparent after:to-white after:content-[''] md:px-6 md:pt-20"
+			class="relative mx-auto flex h-full min-h-screen max-w-[540px] flex-1 flex-col gap-6 px-2 pb-32 pt-10 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:h-full after:w-full after:from-transparent after:to-white after:content-[''] md:px-6 md:pt-20"
 		>
 			{#key data.url}
 				<div
-					in:fly={{ x: 10, duration: 500, delay: 500, easing: quartOut }}
-					out:fly={{ x: -10, duration: 300 }}
+					in:fly={{ x: 10, duration: 500, delay: 500, opacity: 0, easing: quartOut }}
+					out:fly={{ x: -10, duration: 300, opacity: 0, easing: quartOut }}
 				>
 					{@render children()}
 				</div>

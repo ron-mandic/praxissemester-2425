@@ -8,9 +8,9 @@
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 text-4xl font-bold">Einleitung</h2>
+	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Einleitung</h2>
 
-	<p class="mb-6">
+	<p class="mb-6 px-2 md:px-0">
 		Im ersten Kapitel des KI-Workshops zu Large Language Models (LLMs) schauen wir uns gemeinsam an,
 		<strong
 			>woher wir unseren Datensatz für den Kurs bekommen und wie wir die Daten entsprechend
@@ -18,7 +18,7 @@
 		>, um Vorhersagen zu treffen.
 	</p>
 
-	<p class="mb-8">
+	<p class="mb-8 px-2 md:px-0">
 		Wenn es darum geht, Daten für KI-Projekte zu sammeln und zu nutzen, ist Hugging Face eine
 		wertvolle Ressource. Zwar ist die Plattform vor allem für ihre vortrainierten Sprachmodelle
 		bekannt, aber sie bietet noch viel mehr -
@@ -61,7 +61,7 @@
 		</Card.Header>
 	</Card.Root>
 
-	<p class="my-10">
+	<p class="my-10 px-2 md:px-0">
 		In unserem Workshop werden wir Hugging Face verwenden, um Datensätze für unsere eigenen Modelle
 		zu finden und herunterzuladen. Textdaten wie Songtexte, Bücher oder Nachrichtenartikel sind
 		hervorragend dafür geeignet, die Funktionsweise von Sprachmodellen zu verstehen und zu

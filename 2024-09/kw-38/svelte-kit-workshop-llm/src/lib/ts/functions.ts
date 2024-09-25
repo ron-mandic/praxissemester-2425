@@ -1,16 +1,23 @@
+import { END_TOKEN } from './constants';
+
 export function delay(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function preprocess({ text }: { text: string }) {
-	const title = text.match(/^(.*) Lyrics/)?.[1] || 'N/A';
-	const str = text
+export function preformat(str: string) {
+	return str
 		.replace(/^.* Lyrics\n/, '')
 		.replace(/\d+Embed$/, '')
 		.replace(/[,'’.!?;:()[\]{}…¨]+/g, '')
 		.replace(/[-—]+/g, ' ')
+		.replace(/\n/g, ` ${END_TOKEN} `)
 		.replace(/[\s]{2,}/g, ' ')
 		.toLowerCase();
+}
+
+export function preprocess({ text }: { text: string }) {
+	const title = text.match(/^(.*) Lyrics/)?.[1] || 'N/A';
+	const str = preformat(text);
 
 	const dict = {} as Record<string, number>;
 	const words = str.split(/[\s\n]/);
@@ -20,9 +27,13 @@ export function preprocess({ text }: { text: string }) {
 		else dict[word] = 1;
 	}
 
+	// Sort entries by frequency
+	const entries = Object.entries(dict).sort((a, b) => b[1] - a[1]);
+	const sortedDict = Object.fromEntries(entries);
+
 	return {
 		title: title ?? 'N/A',
-		dict,
+		dict: sortedDict,
 		words
 	};
 }

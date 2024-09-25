@@ -1,4 +1,4 @@
 PATH = "./data/songs.json"
 
-END_TOKEN = "</s>"
+END_TOKEN = "[end]"
 WITH_END_TOKEN = False

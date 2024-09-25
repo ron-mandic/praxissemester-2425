@@ -5,29 +5,22 @@
 	import LLMCode from '@/svelte/LLMCode.svelte';
 	import LLMLoader from '@/svelte/LLMLoader.svelte';
 	import LLMNext from '@/svelte/LLMNext.svelte';
-	import { formatSearch, preprocess } from '$lib/ts/functions';
+	import { formatSearch, preformat, preprocess } from '$lib/ts/functions';
 	import { EXAMPLE_OBJ_SONG } from '$lib/ts/constants';
 
 	import Info from 'lucide-svelte/icons/info';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
-	import ChevronsDownUp from 'lucide-svelte/icons/chevrons-down-up';
-	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
-	import { Skeleton } from '@/ui/skeleton/index.js';
 
-	import { fly, slide } from 'svelte/transition';
+	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { ScrollArea } from '@/ui/scroll-area/index.js';
 	import * as Table from '@/ui/table';
 	import { Input } from '@/ui/input';
-	import { Badge } from '@/ui/badge';
-	import { Button } from '@/ui/button';
 
 	const { data } = $props();
-	console.log(data);
 
-	let searchValue = $state('');
+	let searchValueTable = $state('');
 	let selectedRow = $state(null) as (typeof data.fastapi.rows)[0];
-	let enlarged = $state(false);
 
 	function filterBy(arr: { row_idx: number; row: { text: string } }[], value: number | string) {
 		let args = arr.map(({ row_idx, row }) => ({ row_idx, row, song: preprocess(row) }));
@@ -49,27 +42,26 @@
 			({ row_idx }: { row_idx: number; row: { text: string } }) => row_idx === parseInt(idx)
 		);
 		selectedRow = preprocess(row);
-		console.log(selectedRow.words.length, new Set(selectedRow.words).size);
 	}
 
 	$effect(() => {
-		if (searchValue === '') selectedRow = null;
+		if (searchValueTable === '') selectedRow = null;
 	});
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 text-4xl font-bold">Daten</h2>
+	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Daten</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
 			<Card.Title>Korpus</Card.Title>
 			<Card.Description>
 				<p class="mb-3 mt-2 text-balance">
-					Chatbots, die Textvervollständigung auf deinem Handy und Sprachassistenten wie Alexa
-					basieren alle auf Sprachmodellen. Je nach Anwendungsfall gibt es in dem Aufbau dieser
-					Modelle Unterschiede, aber grundsätzlich <strong
-						>verwandeln sie alle Sprache in Zahlen und dann wieder zurück in Sprache</strong
-					>.
+					Chatbots, Textvervollständigung und Sprachassistenten wie Alexa basieren alle auf
+					Sprachmodellen. Je nach Anwendungsfall gibt es Unterschiede in der Struktur dieser
+					Modelle, aber grundsätzlich <strong
+						>wandeln sie alle Sprache in Zahlen und dann wieder in Sprache um
+					</strong>.
 				</p>
 
 				<p class="mb-3 mt-2">
@@ -100,7 +92,7 @@
 
 	<Card.Root class="dark mt-6 w-full">
 		<Card.Header class="gap-2 p-1.5">
-			<ScrollArea class="relative mb-4 h-[525px] w-full rounded-md bg-muted/50">
+			<ScrollArea class="relative mb-4 h-[325px] w-full rounded-md bg-muted/50">
 				<div>
 					<div class="h-full w-full p-6">
 						<LLMCode
@@ -113,35 +105,41 @@
 				</div>
 			</ScrollArea>
 
-			<Card.Title class="pl-6">JSON-Ausgabe</Card.Title>
+			<Card.Title class="pl-6">Vorbearbeitung des Datensatzes</Card.Title>
 			<div class="px-6 pb-6 pt-2">
 				<Card.Description>
 					<p class="mb-3">
-						Nach dem Herunterladen der JSON-Datei wird die Struktur des Datensatzes sichtbar. Wie du
-						sehen kannst, sind die Songtexte nicht geeignet formatiert. Das Problem dabei ist, dass
-						unser Modell mit der jetzigen Formatierung Wortfolgen lernen würde, die für uns keinen
-						Sinn ergeben.
+						Man kann gut erkennen, dass die Songtexte nicht gerade bestens formatiert sind. Das
+						Problem dabei ist, dass unser Modell mit der jetzigen Formatierung Titel, Songtexte und
+						Sonderformatierung gleichzeitig lernen würde.
 					</p>
 
-					<ScrollArea class="relative my-8 w-full rounded-md bg-muted/50">
-						<div class="h-full w-full p-6">
-							<LLMCode innerText={EXAMPLE_OBJ_SONG} language="json" />
-						</div>
-					</ScrollArea>
+					<div class="relative my-6 h-full w-full rounded-md bg-muted/50 p-6">
+						<LLMCode innerText={EXAMPLE_OBJ_SONG} language="json" />
+					</div>
 
-					<p class="mb-3">
-						Dadurch, dass wir nur mit 100 Songs arbeiten, sind wir von den Daten her verhältnismäßig
-						eingeschränkt. Damit unser Modell die Songs trotzdem gut lernen kann, müssen wir die
-						Daten bereinigen. Hier lernt es die Wörter am besten, wenn sie kleingeschrieben und ohne
-						Sonderzeichen sind, damit wir sie nur noch an den Leerzeichen und Zeilenumbrüchen
-						trennen müssen - jene Sonderzeichen, die einen Songtext auch so charakteristisch machen.
+					<p class="text-balance">
+						Mit nur 100 Liedern haben wir auch eine relativ begrenzte Datenmenge. Um
+						sicherzustellen, dass unser Modell die Lieder trotzdem gut lernen kann, müssen wir die
+						Daten bereinigen. Das Modell lernt in unserem Fall am besten, wenn sie in
+						Kleinbuchstaben und ohne Sonderzeichen geschrieben sind.
 					</p>
 
-					<ScrollArea class="relative my-8 max-h-72 rounded-md bg-muted/50">
-						<div class="h-full w-full p-6">
-							<LLMCode innerText={preprocess(EXAMPLE_OBJ_SONG)} language="json" />
-						</div>
-					</ScrollArea>
+					<div class="relative my-6 h-full w-full rounded-md bg-muted/50 p-6">
+						<LLMCode
+							innerText={Object.assign({}, { text: preformat(EXAMPLE_OBJ_SONG.text) })}
+							language="json"
+						/>
+					</div>
+
+					<p class="text-balance">
+						Gleichzeitig behalten wir die Zeilenumbrüche bei, weil sie für die Liedstrophen
+						charakteristisch sind. Wir kennzeichnen sie dann mit einem separaten Symbol.
+					</p>
+
+					<div class="relative mb-8 mt-6 h-56 w-full overflow-clip rounded-md bg-muted/50 p-6">
+						<LLMCode innerText={preprocess(data.fastapi.rows[0].row)} language="json" />
+					</div>
 
 					<p class="mb-3">
 						Mit diesem Bereinigungsschritt stellen wir sicher, dass unser Modell mehr Beispiele von
@@ -206,7 +204,7 @@
 	<div class="w-full">
 		<div class="relative mb-4 mt-10">
 			<Input
-				bind:value={searchValue}
+				bind:value={searchValueTable}
 				class="mb-2 w-1/2"
 				placeholder="Nach Songtitel suchen"
 				type="search"
@@ -223,7 +221,7 @@
 					</Table.Header>
 					<Table.Body>
 						{#if data.fastapi.rows.length}
-							{#each filterBy(data.fastapi.rows, searchValue) as { row_idx, song }, i}
+							{#each filterBy(data.fastapi.rows, searchValueTable) as { row_idx, song }, i}
 								{@const className = data.fastapi.duplicates.includes(row_idx)
 									? 'text-muted-foreground/30 disabled cursor-not-allowed'
 									: 'text-foreground'}
@@ -235,7 +233,7 @@
 									<Table.Cell class="text-right font-mono">
 										{row_idx.toString().padStart(3, '0')}
 									</Table.Cell>
-									<Table.Cell>{@html formatSearch(song?.title, searchValue)}</Table.Cell>
+									<Table.Cell>{@html formatSearch(song?.title, searchValueTable)}</Table.Cell>
 									<Table.Cell class="text-right font-mono">{song.words.length}</Table.Cell>
 									<Table.Cell class="text-right font-mono">{new Set(song.words).size}</Table.Cell>
 								</Table.Row>
@@ -247,35 +245,37 @@
 		</div>
 	</div>
 
-	<Card.Root class="dark mt-10 w-full">
-		<Card.Header class="p-1.5">
-			<ScrollArea class="relative h-[525px] w-full rounded-md bg-muted/50 transition-all">
-				<div>
-					<div class="h-full w-full p-6">
-						{#if selectedRow !== null}
-							<div in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}>
-								<LLMCode innerText={selectedRow} language="json" />
-							</div>
-						{:else}
-							<LLMLoader />
-						{/if}
+	<div class="mt-10">
+		<Card.Root class="dark w-full">
+			<Card.Header class="p-1.5">
+				<ScrollArea class="relative h-[525px] w-full rounded-md bg-muted/50 transition-all">
+					<div>
+						<div class="h-full w-full p-6">
+							{#if selectedRow !== null}
+								<div in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}>
+									<LLMCode innerText={selectedRow} language="json" />
+								</div>
+							{:else}
+								<LLMLoader />
+							{/if}
+						</div>
 					</div>
-				</div>
-			</ScrollArea>
+				</ScrollArea>
 
-			<div class="grid h-16 w-full place-items-center">
-				{#if !selectedRow}
-					<span class="font-regular w-full text-center text-sm text-muted-foreground"
-						>Wähle einen Song oben aus der Liste aus</span
-					>
-				{:else}
-					<Card.Title>
-						<span>{selectedRow.title}</span>
-					</Card.Title>
-				{/if}
-			</div>
-		</Card.Header>
-	</Card.Root>
+				<div class="flex h-16 w-full items-center justify-center">
+					{#if !selectedRow}
+						<span class="font-regular text-sm text-muted-foreground"
+							>Wähle einen Song oben aus der Liste aus</span
+						>
+					{:else}
+						<Card.Title>
+							<span>{selectedRow.title}</span>
+						</Card.Title>
+					{/if}
+				</div>
+			</Card.Header>
+		</Card.Root>
+	</div>
 
 	<LLMNext url={data.url} prev="Einleitung" next="Unigramm" />
 </section>

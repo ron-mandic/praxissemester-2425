@@ -53,14 +53,17 @@ def ask_dict(dict_key_tuple: dict, str: str, separator = "+") -> list:
     
     return [(key, tuple[0], tuple[1], tuple[0]/total) for key, tuple in dict.items()]
 
+# classes
+
 def sample(tensor_probs, list_key_tuple):
     index = torch.multinomial(tensor_probs, num_samples=1, replacement=True).item()
     return list_key_tuple[index][0]
 
 def get_samples(tensor_probs, list_key_tuple, num_samples):
-    indexes = torch.multinomial(tensor_probs, num_samples=num_samples, replacement=True)
-    return [list_key_tuple[index.item()] for index in indexes]
+    # If num_samples is -1, return all samples (like a wildcard)
+    if num_samples == -1:
+        num_samples = len(list_key_tuple)
 
-def sample_with_generator(tensor_probs, list_key_tuple, generator):
-    index = torch.multinomial(tensor_probs, num_samples=1, replacement=True, generator=generator).item()
-    return list_key_tuple[index][0]
+    indexes = torch.multinomial(tensor_probs, num_samples=num_samples, replacement=True)
+
+    return [list_key_tuple[index.item()] for index in indexes]
