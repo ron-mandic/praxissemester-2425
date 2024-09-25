@@ -4,6 +4,7 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import * as Table from '$lib/components/ui/table';
+	import * as Tabs from '$lib/components/ui/tabs';
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import LLMNext from '@/svelte/LLMNext.svelte';
 
@@ -13,34 +14,41 @@
 	import { ScrollArea } from '@/ui/scroll-area';
 	import { Input } from '@/ui/input';
 	import { Label } from '@/ui/label';
-	import { formatSearch } from '$lib/ts/functions';
+	import { formatSearch, preformat } from '$lib/ts/functions';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
-	import ArrowRight from 'lucide-svelte/icons/arrow-right';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { Toaster } from '@/ui/sonner/index.js';
 	import { toast } from 'svelte-sonner';
-	import Sparkles from 'lucide-svelte/icons/sparkles';
+	import { text } from '@sveltejs/kit';
+	import { END_TOKEN, END_TOKEN_HTML } from '$lib/ts/constants.js';
 
 	const { data } = $props();
 
 	let contextValue = $state('');
 	let searchValueHistory = $state('');
 	let searchValueBigrams = $state('');
+	let selectedWord = $state('');
 	let scene = $state(0);
+	let outputStart = $state('');
 	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
 	let outputsBigrams = $state([] as { word: string; abs: number; rel: number }[]);
 	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
 	let hasWobble = $state(false);
 	let hasEnded = $state(false);
+	let isFetching = $state(false);
 
 	async function handleClick() {
-		if (!hasBeenClicked) hasBeenClicked = true;
-		const contexts = contextValue.trim().split(' ');
-		const context = contexts[contexts.length - 1] || contextValue.trim();
-		console.log(context);
+		const contexts = contextValue.trim().split(' '); // .map(preformat); this would yield no error making the whole lecture non-educational
+		if (!hasBeenClicked) {
+			hasBeenClicked = true;
+			outputStart = `<span class="italic inline-block ${contexts.length > 1 ? 'mr-1' : 'mr-0'}">${contexts.slice(0, contexts.length - 1).join(' ')} </span>`;
+		}
 
+		const context = contexts[contexts.length - 1] || contextValue.trim();
+
+		if (!isFetching) isFetching = true;
 		const [dataHistory, dataBigram] = await Promise.all([
 			fetch(`/api/bigram?context=${context}`).then((res) => res.json()),
 			fetch(`/api/bigram?context=${context}&num_samples=-1`).then((res) => res.json())
@@ -61,6 +69,7 @@
 		outputsHistory.push({ word: keyH, abs: absH, rel: relH });
 
 		outputsBigrams = dataBigram.data.map(([key, abs, _, rel]) => ({ word: key, abs, rel }));
+		isFetching = false;
 	}
 
 	function handleSetContext(event: MouseEvent) {
@@ -68,6 +77,18 @@
 		// const target = event.currentTarget as HTMLElement;
 		// const context = target.dataset.context;
 		// contextValue = context;
+	}
+
+	function handleSelectedWord(e: any) {
+		const target = e.currentTarget as HTMLElement;
+		const { word } = target.dataset;
+		// selectedWord = word as string;
+
+		if (selectedWord && selectedWord === word) {
+			selectedWord = '';
+		} else {
+			selectedWord = word as string;
+		}
 	}
 
 	function filterBy(arr: typeof outputsHistory, value: string) {
@@ -85,19 +106,70 @@
 		scene = 0;
 	};
 
+	function ngramToText(outputsHistory: { word: string; abs: number; rel: number }[]) {
+		const text = outputsHistory
+			.map(({ word: ngram }, i, arr) => {
+				const unigrams = ngram.split('+');
+
+				const regEndToken = new RegExp(`\\[end\\]`, 'g');
+
+				const context = !i
+					? unigrams.join(' ').replace(regEndToken, END_TOKEN_HTML).trim()
+					: unigrams[unigrams.length - 1];
+
+				if (context === END_TOKEN) return END_TOKEN_HTML;
+				return context;
+			})
+			.join(' ');
+		return text;
+	}
+
+	function textToColoredNgrams(text: string, selectedWord: string) {
+		const containsEndToken = selectedWord.includes('[end]');
+		const selectedUnigrams = selectedWord
+			.split('+')
+			.map((unigram) => unigram.replace(/\[end\]/g, END_TOKEN_HTML));
+		console.log(selectedUnigrams);
+
+		const regNormal = new RegExp(`${selectedUnigrams.join(' ')}`, 'g');
+		const coloredText = text.replace(regNormal, (match) =>
+			containsEndToken
+				? `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match.replace(END_TOKEN_HTML, '[end]<br/>')}</mark>`
+				: `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match}</mark>`
+		);
+
+		// const coloredText = text
+		// 	.replace(
+		// 		regNormal,
+		// 		(match) =>
+		// 			`<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match}</mark>`
+		// 	)
+		// 	.replace(regEndToken, (match) => {
+		// 		if (selectedUnigrams.includes(END_TOKEN_HTML)) {
+		// 			return `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${END_TOKEN}</mark><br />`;
+		// 		}
+		// 		return match;
+		// 	});
+
+		console.log(text);
+		// console.log(coloredText);
+
+		return coloredText;
+	}
+
 	function handleReset() {
 		hasBeenClicked = false;
 		hasBeenReset = true;
 		hasEnded = false;
 		contextValue = '';
+		outputStart = '';
 		outputsHistory = [];
 		outputsBigrams = [];
+		selectedWord = '';
 		setTimeout(() => {
 			hasBeenReset = false;
 		}, 1000);
 	}
-
-	$inspect(contextValue).with(console.log);
 </script>
 
 <section class="h-full w-full">
@@ -228,24 +300,58 @@
 				pattern="[\w\s]+"
 				disabled={hasBeenClicked || hasEnded}
 			/>
-			<ScrollArea class="mt-6 h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0">
-				<div
-					class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
-				>
-					{#each outputsHistory as { word, rel }, i}
-						<Tooltip.Root>
-							<Tooltip.Trigger>
-								<Badge variant="outline" class="inline-block animate-bounceIn text-base"
-									>{word}</Badge
+
+			<Tabs.Root value="0" class="mt-10 w-full">
+				<Tabs.List class="w-full">
+					<Tabs.Trigger class="w-full" value="0">Bigramme</Tabs.Trigger>
+					<Tabs.Trigger class="w-full" value="1">Output</Tabs.Trigger>
+				</Tabs.List>
+				<Tabs.Content class="h-full w-full" value="0">
+					<ScrollArea class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0">
+						<div
+							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
+						>
+							{#each outputsHistory as { word, rel }, i}
+								<Tooltip.Root>
+									<Tooltip.Trigger>
+										<Badge
+											variant="outline"
+											class="box-border inline-block animate-bounceIn text-base {selectedWord ===
+											word
+												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+												: 'text-foreground'}">{word}</Badge
+										>
+									</Tooltip.Trigger>
+									<Tooltip.Content>
+										<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
+									</Tooltip.Content>
+								</Tooltip.Root>
+							{/each}
+						</div>
+					</ScrollArea>
+				</Tabs.Content>
+				<Tabs.Content class="h-full w-full" value="1">
+					<ScrollArea
+						class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0"
+						orientation="both"
+					>
+						<div
+							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
+						>
+							{#if selectedWord}
+								<span class="w-full whitespace-nowrap"
+									>{@html outputStart +
+										textToColoredNgrams(ngramToText(outputsHistory), selectedWord)}</span
 								>
-							</Tooltip.Trigger>
-							<Tooltip.Content>
-								<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
-							</Tooltip.Content>
-						</Tooltip.Root>
-					{/each}
-				</div>
-			</ScrollArea>
+							{:else}
+								<span class="w-full whitespace-nowrap"
+									>{@html outputStart + ngramToText(outputsHistory)}</span
+								>
+							{/if}
+						</div>
+					</ScrollArea>
+				</Tabs.Content>
+			</Tabs.Root>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
@@ -256,7 +362,9 @@
 				>
 			</div>
 			<Button
-				class="px-5 py-6 transition-transform ease-out active:translate-y-0.5"
+				class="relative min-w-[158px] px-5 py-6 transition-transform ease-out active:translate-y-0.5 {isFetching
+					? 'pointer-events-none'
+					: 'pointer-events-auto'}"
 				disabled={!contextValue.trim() || hasWobble}
 				onclick={handleClick}
 			>
@@ -266,7 +374,7 @@
 	</Card.Root>
 
 	<div
-		class="relative mb-4 mt-10 w-[calc(100%+16px)] -translate-x-3 -translate-y-3 overflow-clip pl-3 pr-5 py-3"
+		class="relative mb-4 mt-10 w-[calc(100%+16px)] -translate-x-3 -translate-y-3 overflow-clip py-3 pl-3 pr-5"
 	>
 		<div
 			class="flex w-[calc(200%+8px+24px)] flex-row gap-x-4 {scene === -1
@@ -337,11 +445,15 @@
 						</Table.Header>
 						<Table.Body
 							>{#if outputsHistory.length}
-								{#each filterBy(outputsHistory, searchValueHistory) as { word, abs, rel }, i}
-									<Table.Row>
+								{#each filterBy(outputsHistory, searchValueHistory) as { word: ngram, abs, rel }, i}
+									<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={ngram}>
 										<Table.Cell>
-											<Badge class="text-sm" variant="secondary"
-												>{@html formatSearch(word, searchValueHistory)}</Badge
+											<Badge
+												class="box-border cursor-pointer text-sm transition-none {selectedWord ===
+												ngram
+													? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+													: 'text-foreground'}"
+												variant="secondary">{@html formatSearch(ngram, searchValueHistory)}</Badge
 											>
 										</Table.Cell>
 										<Table.Cell class="text-right font-mono">{abs}</Table.Cell>

@@ -22,12 +22,12 @@
 	let text = $state('');
 	let searchValue = $state('');
 	let selectedWord = $state('');
-	let inputs = $state([] as { word: string; abs: number; rel: number }[]);
+	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
 	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
 
 	$effect(() => {
-		if (inputs.length === 100) {
+		if (outputsHistory.length === 100) {
 			toast(
 				'Wow. Wenn das nicht der neuste Hit von Ed Sheeran wird, dann weiß ich auch nicht weiter.'
 			);
@@ -43,16 +43,22 @@
 		const [key, abs, rel] = data[0];
 
 		text = key;
-		inputs.push({ word: key, abs, rel });
+		outputsHistory.push({ word: key, abs, rel });
 	}
 
 	function handleSelectedWord(e: any) {
 		const target = e.currentTarget as HTMLElement;
 		const { word } = target.dataset;
-		selectedWord = word as string;
+		// selectedWord = word as string;
+
+		if (selectedWord && selectedWord === word) {
+			selectedWord = '';
+		} else {
+			selectedWord = word as string;
+		}
 	}
 
-	function filterBy(arr: typeof inputs, value: string) {
+	function filterBy(arr: typeof outputsHistory, value: string) {
 		if (!value) return arr;
 
 		const filteredInputs = arr.filter(({ word }) => word.includes(value));
@@ -63,7 +69,7 @@
 		hasBeenClicked = false;
 		hasBeenReset = true;
 		text = '';
-		inputs = [];
+		outputsHistory = [];
 		selectedWord = '';
 		setTimeout(() => {
 			hasBeenReset = false;
@@ -175,7 +181,7 @@
 			</div>
 			<Tabs.Root value="0" class="mt-6 w-full">
 				<Tabs.List class="w-full">
-					<Tabs.Trigger class="w-full" value="0">Wörter</Tabs.Trigger>
+					<Tabs.Trigger class="w-full" value="0">Unigramme</Tabs.Trigger>
 					<Tabs.Trigger class="w-full" value="1">Output</Tabs.Trigger>
 				</Tabs.List>
 				<Tabs.Content class="h-full w-full" value="0">
@@ -183,7 +189,7 @@
 						<div
 							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
 						>
-							{#each inputs as { word, rel }, i}
+							{#each outputsHistory as { word, rel }, i}
 								<Tooltip.Root>
 									<Tooltip.Trigger>
 										<Badge
@@ -212,8 +218,8 @@
 						>
 							{#if selectedWord}
 								<span class="w-full whitespace-nowrap"
-									>{@html inputs
-										.map(({ word }, i) => {
+									>{@html outputsHistory
+										.map(({ word }) => {
 											let w =
 												word === selectedWord
 													? `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${word}</mark>`
@@ -229,8 +235,8 @@
 								>
 							{:else}
 								<span class="w-full whitespace-nowrap"
-									>{@html inputs
-										.map(({ word }, i) => {
+									>{@html outputsHistory
+										.map(({ word }) => {
 											if (word === '[end]') return `<br>`;
 											return word;
 										})
@@ -243,10 +249,10 @@
 			</Tabs.Root>
 			<div class="mt-2 flex select-none items-center justify-between text-muted-foreground">
 				<small class="font-mono text-xs"
-					>{inputs.length
-						? inputs.length === 1
+					>{outputsHistory.length
+						? outputsHistory.length === 1
 							? '1 Wort'
-							: `${inputs.length} Wörter`
+							: `${outputsHistory.length} Wörter`
 						: 'Noch keine Wörter'}</small
 				>
 			</div>
@@ -277,7 +283,7 @@
 		<ScrollArea class="relative h-[330px] w-full rounded-md border px-4 pt-4">
 			<Table.Root>
 				<Table.Caption>
-					{#if !inputs.length}
+					{#if !outputsHistory.length}
 						Noch keine Historie verfügbar
 					{/if}
 				</Table.Caption>
@@ -289,8 +295,8 @@
 					</Table.Row>
 				</Table.Header>
 				<Table.Body
-					>{#if inputs.length}
-						{#each filterBy(inputs, searchValue) as { word, abs, rel }, i}
+					>{#if outputsHistory.length}
+						{#each filterBy(outputsHistory, searchValue) as { word, abs, rel }, i}
 							<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={word}>
 								<Table.Cell>
 									<Badge
