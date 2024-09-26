@@ -6,7 +6,7 @@
 	import LLMLoader from '@/svelte/LLMLoader.svelte';
 	import LLMNext from '@/svelte/LLMNext.svelte';
 	import { formatSearch, preformat, preprocess } from '$lib/ts/functions';
-	import { EXAMPLE_OBJ_SONG } from '$lib/ts/constants';
+	import { EXAMPLE_OBJ_SONG, EXAMPLE_OBJ_SONG_PREFORMATTED } from '$lib/ts/constants';
 
 	import Info from 'lucide-svelte/icons/info';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
@@ -18,6 +18,18 @@
 	import { Input } from '@/ui/input';
 
 	const { data } = $props();
+
+	// TODO: Check if this is necessary
+	$effect(() => {
+		return () => {
+			searchValueTable = '';
+			selectedRow = null;
+		};
+	});
+
+	$effect(() => {
+		if (searchValueTable === '') selectedRow = null;
+	});
 
 	let searchValueTable = $state('');
 	let selectedRow = $state(null) as (typeof data.fastapi.rows)[0];
@@ -43,10 +55,6 @@
 		);
 		selectedRow = preprocess(row);
 	}
-
-	$effect(() => {
-		if (searchValueTable === '') selectedRow = null;
-	});
 </script>
 
 <section class="h-full w-full">
@@ -59,16 +67,14 @@
 				<p class="mb-3 mt-2 text-balance">
 					Chatbots, Textvervollständigung und Sprachassistenten wie Alexa basieren alle auf
 					Sprachmodellen. Je nach Anwendungsfall gibt es Unterschiede in der Struktur dieser
-					Modelle, aber grundsätzlich <strong
-						>wandeln sie alle Sprache in Zahlen und dann wieder in Sprache um
-					</strong>.
+					Modelle, aber grundsätzlich wandeln sie alle Sprache in Zahlen und dann wieder in Sprache
+					um.
 				</p>
 
 				<p class="mb-3 mt-2">
 					Diese Modelle speichern Wahrscheinlichkeiten darüber, welche Wörter in Abhängigkeit von
 					den benachbarten Wörtern als nächstes kommen könnten. Sie berechnen diese
-					<strong>Wahrscheinlichkeiten auf der Grundlage von Wortfolgen</strong>, die im <HoverCard.Root
-					>
+					Wahrscheinlichkeiten auf der Grundlage von Wortfolgen, die im <HoverCard.Root>
 						<HoverCard.Trigger class="hover:animate-pulse"
 							>Korpus <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
 						>
@@ -96,9 +102,12 @@
 				<div>
 					<div class="h-full w-full p-6">
 						<LLMCode
-							innerText={data.fastapi.rows
-								.slice(0, 10)
-								.concat([{ row_idx: 10, row: { text: '...' }, truncated_cells: [] }])}
+							innerText={{
+								...data.fastapi,
+								rows: data.fastapi.rows
+									.slice(0, 10)
+									.concat([{ row_idx: 10, row: { text: '...' }, truncated_cells: [] }])
+							}}
 							language="json"
 						/>
 					</div>
@@ -126,10 +135,7 @@
 					</p>
 
 					<div class="relative my-6 h-full w-full rounded-md bg-muted/50 p-6">
-						<LLMCode
-							innerText={Object.assign({}, { text: preformat(EXAMPLE_OBJ_SONG.text) })}
-							language="json"
-						/>
+						<LLMCode innerText={Object.assign({}, EXAMPLE_OBJ_SONG_PREFORMATTED)} language="json" />
 					</div>
 
 					<p class="text-balance">
@@ -165,22 +171,22 @@
 						</Table.Header>
 						<Table.Body>
 							<Table.Row>
-								<Table.Cell class="text-right font-mono">049</Table.Cell>
+								<Table.Cell class="text-right font-mono">49</Table.Cell>
 								<Table.Cell>Shape of You</Table.Cell>
 								<Table.Cell>Duplikat</Table.Cell>
 							</Table.Row>
 							<Table.Row>
-								<Table.Cell class="text-right font-mono">050</Table.Cell>
+								<Table.Cell class="text-right font-mono">50</Table.Cell>
 								<Table.Cell>You Need Me, I Don’t Need You</Table.Cell>
 								<Table.Cell>Duplikat</Table.Cell>
 							</Table.Row>
 							<Table.Row>
-								<Table.Cell class="text-right font-mono">070</Table.Cell>
+								<Table.Cell class="text-right font-mono">70</Table.Cell>
 								<Table.Cell>Dive</Table.Cell>
 								<Table.Cell>Duplikat</Table.Cell>
 							</Table.Row>
 							<Table.Row>
-								<Table.Cell class="text-right font-mono">076</Table.Cell>
+								<Table.Cell class="text-right font-mono">76</Table.Cell>
 								<Table.Cell>Take Me Back to London</Table.Cell>
 								<Table.Cell>Nicht identisch</Table.Cell>
 							</Table.Row>
@@ -231,7 +237,7 @@
 									data-idx={row_idx}
 								>
 									<Table.Cell class="text-right font-mono">
-										{row_idx.toString().padStart(3, '0')}
+										{row_idx.toString().padStart(2, '0')}
 									</Table.Cell>
 									<Table.Cell>{@html formatSearch(song?.title, searchValueTable)}</Table.Cell>
 									<Table.Cell class="text-right font-mono">{song.words.length}</Table.Cell>

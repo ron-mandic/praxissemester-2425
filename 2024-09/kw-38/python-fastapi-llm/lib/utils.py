@@ -1,4 +1,5 @@
 import json, re
+from typing import Optional
 
 import torch
 
@@ -59,11 +60,17 @@ def sample(tensor_probs, list_key_tuple):
     index = torch.multinomial(tensor_probs, num_samples=1, replacement=True).item()
     return list_key_tuple[index][0]
 
-def get_samples(tensor_probs, list_key_tuple, num_samples):
-    # If num_samples is -1, return all samples (like a wildcard)
-    if num_samples == -1:
-        num_samples = len(list_key_tuple)
+def get_samples(tensor_probs, list_key_tuple, num_samples: int, seed: Optional[int] = None):
+    """Seed is optional such that this function can also be used by Unigram and Bigram"""
 
-    indexes = torch.multinomial(tensor_probs, num_samples=num_samples, replacement=True)
+    # Dynamically pack and unpack arguments
+    args = {
+        "input": tensor_probs,
+        "num_samples": num_samples,
+        "replacement": True
+    }
+    if seed is not None:
+        args["generator"] = torch.Generator().manual_seed(seed)
 
+    indexes = torch.multinomial(**args)
     return [list_key_tuple[index.item()] for index in indexes]

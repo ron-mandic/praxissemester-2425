@@ -6,7 +6,7 @@
 	import python from 'highlight.js/lib/languages/python';
 
 	const { innerText, language = 'javascript' } = $props<{
-		innerText: string;
+		innerText: any;
 		language?: string;
 		term?: string;
 	}>();

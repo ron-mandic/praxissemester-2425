@@ -16,12 +16,9 @@
 	import { Label } from '@/ui/label';
 	import { formatSearch } from '$lib/ts/functions';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
-	import ChevronRight from 'lucide-svelte/icons/chevron-right';
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { Toaster } from '@/ui/sonner/index.js';
 	import { toast } from 'svelte-sonner';
 	import { END_TOKEN, END_TOKEN_HTML } from '$lib/ts/constants.js';
-	import { Textarea } from '@/ui/textarea';
 
 	import ChevronUp from 'lucide-svelte/icons/chevron-up';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
@@ -30,26 +27,35 @@
 	const { data } = $props();
 	const MAX_CONTEXT_LENGTH = 4; // the maximum context length you can send to the server e.g. 4 for evaluating pentagrams
 
+	// TODO: Check if this is necessary
+	$effect(() => {
+		return handleReset;
+	});
+
 	let seed = $state(null as number | null);
 	let contextValue = $state('');
 	let contextWords = $state(0);
 	let searchValueHistory = $state('');
 	let searchValueNgrams = $state('');
 	let selectedWord = $state('');
-	let scene = $state(0);
+	let currentView = $state('3');
+	let currentModelName = $state('');
 	let outputStart = $state('');
-	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
+	let outputsHistory = $state(
+		[] as { word: string; seed?: string | number; abs: number; rel: number }[]
+	);
 	let outputsNgrams = $state([] as { word: string; abs: number; rel: number }[]);
-	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
+	let hasBeenReset = $state(false);
 	let hasWobble = $state(false);
 	let hasEnded = $state(false);
 	let isFetching = $state(false);
 
-	const getNewContext = (words: string[], context_length: number) => {
-		// e.g words = ['ich', 'bin', 'ein', 'test'] context_length = 4
-		// result -> 'bin+ein+test'
+	function handlePressEnter(event: KeyboardEvent) {
+		if (event.key === 'Enter') handleClick();
+	}
 
+	const getNewContext = (words: string[], context_length: number) => {
 		// e.g. words = ["im", "in", "love", "with", "your"] context_length = 4
 		if (words.length > context_length) {
 			return words.slice(words.length - context_length, words.length).join('+');
@@ -62,21 +68,21 @@
 		return newContext;
 	};
 
-	function getModelName(contextValue: string) {
-		if (!contextValue) return;
-		const context_length = contextValue.trim().split(/[\s\+]/g).length;
+	function getModelName(arg: string | number, withPrefix = true) {
+		if (!arg || (arg as number) <= 0) return;
+		const num = !Number.isNaN(arg) ? contextValue.trim().split(/[\s\+]/g).length : arg;
 
-		switch (context_length) {
+		switch (num) {
 			case 1:
-				return 'Bigramm (Kontext: 1 Wort)';
+				return withPrefix ? 'Bigramm (Kontext: 1 Wort)' : 'Bigramm';
 			case 2:
-				return 'Trigramm (Kontext: 2 Wörter)';
+				return withPrefix ? 'Trigramm (Kontext: 2 Wörter)' : 'Trigramm';
 			case 3:
-				return 'Tetragramm (Kontext: 3 Wörter)';
+				return withPrefix ? 'Tetragramm (Kontext: 3 Wörter)' : 'Tetragramm';
 			case 4:
-				return 'Pentagramm (Kontext: 4 Wörter)';
+				return withPrefix ? 'Pentagramm (Kontext: 4 Wörter)' : 'Pentagramm';
 			default:
-				return 'Multigramm (Kontext: N-1 Wörter)';
+				return withPrefix ? 'Multigramm (Kontext: N-1 Wörter)' : 'Multigramm';
 		}
 	}
 
@@ -91,39 +97,45 @@
 		seed = seed! + 1;
 	};
 	const decrementSeed = (e: MouseEvent) => {
-		seed = seed! - 1;
+		if (seed) seed = seed! - 1;
 	};
 
 	async function handleClick() {
-		// TODO: Check if duplicates are being creatd by the user
-		// const alreadyAdded = inputs.some((input) => input.seed === seed && input.text === text);
-		// if (alreadyAdded) {
-		// 	toast(
-		// 		'Deine jetzigen Werte tauchen schon in der Historie auf. Versuche es erneut mit anderen Werten'
-		// 	);
-		// 	return;
-		// }
-
 		const contexts = contextValue.trim().split(/[\s\+]/g); // .map(preformat); this would yield no error making the whole lecture non-educational
+
 		const context_length = Math.min(MAX_CONTEXT_LENGTH, contexts.length);
 		const context =
 			contexts.length <= MAX_CONTEXT_LENGTH
-				? contextValue.split(/[\s\+]/g).join('+')
+				? contextValue
+						.trim()
+						.split(/[\s\+]/g)
+						.join('+')
 				: getNewContext(contexts, context_length);
 
+		// Guard clauses
 		if (!hasBeenClicked) {
 			hasBeenClicked = true;
-			// outputStart = `<span class="italic inline-block ${contexts.length > 1 ? 'mr-1' : 'mr-0'}">${contexts.slice(0, contexts.length - context_length - 1).join(' ')} </span>`;
+			if (contexts.length > MAX_CONTEXT_LENGTH) {
+				// Retrieve the part that has not been used as context otherweis eit stays empty as stated above
+				outputStart = `<span class="italic inline-block ${contexts.length > 1 ? 'mr-1' : 'mr-0'}">${contexts.slice(0, contexts.length - context_length).join(' ')} </span>`;
+			}
+		}
+		if (!currentModelName) {
+			currentModelName = getModelName(context_length, false)!;
+			console.log(currentModelName);
+		}
+
+		let urlSample = `/api/ngram?context=${context.replace(/[\s\+]/g, '%2B')}&context_length=${context_length}`;
+		let urlSamples = `/api/ngram?context=${context.replace(/[\s\+]/g, '%2B')}&context_length=${context_length}&num_samples=-1`;
+		if (seed !== null) {
+			urlSample += `&seed=${seed}`;
+			urlSamples += `&seed=${seed}`;
 		}
 
 		if (!isFetching) isFetching = true;
 		const [dataHistory, dataBigram] = await Promise.all([
-			fetch(
-				`/api/ngram?context=${context.replace(/[\s\+]/g, '%2B')}&context_length=${context_length}`
-			).then((res) => res.json()),
-			fetch(
-				`/api/ngram?context=${context.replace(/[\s\+]/g, '%2B')}&context_length=${context_length}&num_samples=-1`
-			).then((res) => res.json())
+			fetch(urlSample).then((res) => res.json()),
+			fetch(urlSamples).then((res) => res.json())
 		]);
 
 		if (dataHistory.data === null || dataBigram.data === null) {
@@ -144,10 +156,17 @@
 
 		outputsHistory.push({
 			word: keyHWords.join('+'),
+			seed: seed ?? 'N/A',
 			abs: absH,
 			rel: relH
 		});
-		outputsNgrams = dataBigram.data.map(([key, abs, _, rel]) => ({ word: key, abs, rel }));
+
+		// No seed needed because the underlying API does output all results from its dictionary
+		outputsNgrams = dataBigram.data.map(([key, abs, _, rel]: [string, number, number, number]) => ({
+			word: key,
+			abs,
+			rel
+		}));
 		isFetching = false;
 	}
 
@@ -176,14 +195,6 @@
 		const filteredInputs = arr.filter(({ word }) => word.includes(value));
 		return filteredInputs;
 	}
-
-	const toRight = () => {
-		scene = -1;
-	};
-
-	const toLeft = () => {
-		scene = 0;
-	};
 
 	function ngramToText(outputsHistory: { word: string; abs: number; rel: number }[]) {
 		const text = outputsHistory
@@ -222,21 +233,28 @@
 
 	function handleReset() {
 		seed = null;
-		hasBeenClicked = false;
-		hasBeenReset = true;
-		hasEnded = false;
 		contextValue = '';
 		contextWords = 0;
+		searchValueHistory = '';
+		searchValueNgrams = '';
+		selectedWord = '';
+		// currentView = '3';
+		currentModelName = '';
 		outputStart = '';
 		outputsHistory = [];
 		outputsNgrams = [];
-		selectedWord = '';
+		hasBeenClicked = false;
+		hasBeenReset = true;
+		hasWobble = false;
+		hasEnded = false;
+		isFetching = false;
+
 		setTimeout(() => {
 			hasBeenReset = false;
 		}, 1000);
 	}
 
-	$inspect(outputsNgrams);
+	// TODO: Maybe pose questions like what happens at e.g. "im in love with your body" and seed = 9999
 </script>
 
 <section class="h-full w-full">
@@ -308,6 +326,7 @@
 							maxlength={4}
 							pattern="\d{4}"
 							oninput={handleInputSeed}
+							disabled={hasBeenClicked || hasEnded}
 						/>
 					</div>
 				</div>
@@ -428,6 +447,7 @@
 				pattern="[\w\s]+"
 				maxlength={75}
 				disabled={hasBeenClicked || hasEnded}
+				onkeypress={handlePressEnter}
 			/>
 			<div class="mt-1.5 flex select-none items-center justify-between text-muted-foreground">
 				<small class="font-mono text-xs">{(contextValue as string).length || 0} / 75</small>
@@ -435,7 +455,9 @@
 			</div>
 			<Tabs.Root value="0" class="mt-10 w-full">
 				<Tabs.List class="w-full">
-					<Tabs.Trigger class="w-full" value="0">N-Gramme</Tabs.Trigger>
+					<Tabs.Trigger class="w-full" value="0"
+						>{!currentModelName ? 'N-Gramme' : currentModelName + 'e'}</Tabs.Trigger
+					>
 					<Tabs.Trigger class="w-full" value="1">Output</Tabs.Trigger>
 				</Tabs.List>
 				<Tabs.Content class="h-full w-full" value="0">
@@ -490,8 +512,8 @@
 				<small class="font-mono text-xs"
 					>{outputsHistory.length
 						? outputsHistory.length === 1
-							? '1 N-Gramm'
-							: `${outputsHistory.length} N-Gramme`
+							? `1 ${!currentModelName ? 'N-Gramm' : currentModelName}`
+							: `${outputsHistory.length} ${!currentModelName ? 'N-Gramme' : currentModelName + 'e'}`
 						: 'Noch keine N-Gramme'}</small
 				>
 			</div>
@@ -516,165 +538,191 @@
 		</Card.Footer>
 	</Card.Root>
 
-	<div
-		class="relative mb-4 mt-10 w-[calc(100%+16px)] -translate-x-3 -translate-y-3 overflow-clip py-3 pl-3 pr-5"
-	>
-		<div
-			class="flex w-[calc(200%+8px+24px)] flex-row gap-x-4 {scene === -1
-				? '-translate-x-[calc(50%+4px)]'
-				: '-translate-x-0'} will-change duration-475 transition-transform ease-out"
-		>
-			<div class="left flex-1 flex-shrink-0">
-				<div class="mb-2 flex w-full items-center justify-between">
-					<Input
-						bind:value={searchValueHistory}
-						class="w-1/2"
-						placeholder="Historie durchsuchen"
-						type="search"
-						disabled={!hasBeenClicked || hasEnded}
-					/>
-					<Button
-						class="group px-3 py-2 transition-transform focus-visible:px-3 focus-visible:py-2"
-						variant="secondary"
-						onclick={toRight}
-					>
-						Alle N-Gramme
-						<ChevronRight
-							class="ml-2 h-4 w-4 transition-transform ease-in-out group-hover:translate-x-1"
-						/></Button
-					>
-				</div>
-				<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4">
-					<Table.Root>
-						<Table.Caption>
-							{#if !outputsHistory.length}Noch keine Historie verfügbar{/if}
-						</Table.Caption>
-						<Table.Header class="sticky top-0">
-							<Table.Row>
-								<Table.Head class="w-56">N-Gramm</Table.Head>
-								<Table.Head class="text-right">Anzahl</Table.Head>
-								<Table.Head class="text-right">
-									<HoverCard.Root>
-										<HoverCard.Trigger class="hover:animate-pulse"
-											>Bedingte Wkt. <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
-										>
-										<HoverCard.Content class="w-72">
-											<div class="flex flex-col items-start gap-2 text-sm">
-												<p>
-													Die bedingte Wahrscheinlichkeit ist die Wahrscheinlichkeit, dass ein
-													Ereignis eintritt, unter der Bedingung, dass ein anderes Ereignis bereits
-													eingetreten ist.
-												</p>
-												<p>
-													Am Beispiel der N-Gramme ist der gebenene Kontext, sofern dieser in dem
-													Wörterbuch vorhanden ist, immer das letzte Wort, welches das nächste
-													bedingt. Diese Zahl orientiert sich nicht mehr an den Häufigkeiten des
-													einzelnen Wortes, sondern sie gibt an, wie wahrscheinlich es ist, dass das
-													nächste Wort auf das gegebene folgt.
-												</p>
-												<Separator class="my-2" />
-												<a
-													class="flex items-center gap-2 text-muted-foreground"
-													href="https://de.wikipedia.org/wiki/Bedingte_Wahrscheinlichkeit"
-													target="_blank"
-													rel="noopener noreferrer"
-													>Bedingte Wahrscheinlichkeit<ExternalLink
-														class="inline-block h-4 w-4"
-													/></a
-												>
-											</div>
-										</HoverCard.Content>
-									</HoverCard.Root>
-								</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body
-							>{#if outputsHistory.length}
-								{#each filterBy(outputsHistory, searchValueHistory) as { word: ngram, abs, rel }, i}
-									<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={ngram}>
-										<Table.Cell>
-											<Badge
-												class="box-border cursor-pointer text-sm transition-none {selectedWord ===
-												ngram
-													? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
-													: 'text-foreground'}"
-												variant="secondary">{@html formatSearch(ngram, searchValueHistory)}</Badge
-											>
-										</Table.Cell>
-										<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
-										<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
-									</Table.Row>
-								{/each}
-							{/if}
-						</Table.Body>
-					</Table.Root>
-				</ScrollArea>
+	<div class="mt-10 w-full">
+		{#if currentView === '3'}
+			<div class="mb-2 flex w-full items-center justify-between">
+				<Input
+					bind:value={searchValueHistory}
+					class="w-1/2"
+					placeholder="Historie durchsuchen"
+					type="search"
+					disabled={!hasBeenClicked || hasEnded}
+				/>
 			</div>
-			<div class="right flex-1">
-				<div class="mb-2 flex w-full items-center justify-between">
-					<Button
-						class="group px-3 py-2 pl-0 transition-transform focus-visible:px-3 focus-visible:py-2 focus-visible:pl-0"
-						variant="secondary"
-						onclick={toLeft}
-						><ChevronLeft
-							class="ml-2 h-4 w-4 transition-transform ease-in-out group-hover:-translate-x-1"
-						/>Historie</Button
-					>
-					<Input
-						bind:value={searchValueNgrams}
-						class="w-1/2"
-						placeholder="Nach Bigrammen suchen"
-						type="search"
-						disabled={!hasBeenClicked}
-					/>
-				</div>
-				<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4">
-					<Table.Root>
-						<Table.Caption>
-							{#if !outputsNgrams.length}Noch keine N-Gramme verfügbar{/if}
-						</Table.Caption>
-						<Table.Header class="sticky top-0">
-							<Table.Row>
-								<Table.Head class="w-48">N-Gramm</Table.Head>
-								<Table.Head class="text-right">Anzahl</Table.Head>
-								<Table.Head class="text-right">Wahrscheinlichkeit</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body
-							>{#if outputsNgrams.length}
-								{#each filterBy(outputsNgrams, searchValueNgrams) as { word, abs, rel }, i}
-									{@const words = word.split('+')}
-									<Table.Row>
-										<Table.Cell>
-											<Tooltip.Root>
-												<Tooltip.Trigger>
-													<Badge
-														onclick={handleSetContext}
-														class="cursor-pointer text-sm hover:animate-pulse"
-														variant="secondary"
-														data-context={words[words.length - 1] ?? 'N/A'}
-														>{@html formatSearch(word, searchValueNgrams)}</Badge
-													>
-												</Tooltip.Trigger>
-												<Tooltip.Content>
-													<p class="flex items-center justify-between gap-x-1">
-														<span>{words[0]} bedingt {words[words.length - 1]}</span>
-														<!-- <Sparkles class="h-4 w-4 text-muted-foreground" /> -->
-													</p>
-												</Tooltip.Content>
-											</Tooltip.Root>
-										</Table.Cell>
-										<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
-										<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
-									</Table.Row>
-								{/each}
-							{/if}
-						</Table.Body>
-					</Table.Root>
-				</ScrollArea>
+		{:else if currentView === '4'}
+			<div class="mb-2 flex w-full items-center justify-between">
+				<Input
+					bind:value={searchValueNgrams}
+					class="w-1/2"
+					placeholder="Nach Bigrammen suchen"
+					type="search"
+					disabled={!hasBeenClicked}
+				/>
 			</div>
-		</div>
+		{/if}
 	</div>
+
+	<Tabs.Root class="w-full" bind:value={currentView}>
+		<Tabs.List class="w-full">
+			<Tabs.Trigger class="w-full" value="3">Historie</Tabs.Trigger>
+			<Tabs.Trigger class="w-full" value="4"
+				>Alle {!currentModelName ? 'N-Gramme' : currentModelName + 'e'}</Tabs.Trigger
+			>
+		</Tabs.List>
+		<Tabs.Content class="h-full w-full" value="3">
+			<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4" orientation="both">
+				<Table.Root>
+					<Table.Caption>
+						{#if !outputsHistory.length}Noch keine Historie verfügbar{/if}
+					</Table.Caption>
+					<Table.Header class="sticky top-0">
+						<Table.Row>
+							<Table.Head>{!currentModelName ? 'N-Gramm' : currentModelName}</Table.Head>
+							<Table.Head class="whitespace-nowrap text-right">Seed</Table.Head>
+							<Table.Head class="whitespace-nowrap text-right">Anzahl</Table.Head>
+							<Table.Head class="whitespace-nowrap text-right">
+								<HoverCard.Root>
+									<HoverCard.Trigger class="hover:animate-pulse"
+										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
+									>
+									<HoverCard.Content class="w-72">
+										<div class="flex flex-col items-start gap-2 text-sm">
+											<p>
+												Die bedingte Wahrscheinlichkeit ist die Wahrscheinlichkeit, dass ein
+												Ereignis eintritt, unter der Bedingung, dass ein anderes Ereignis bereits
+												eingetreten ist.
+											</p>
+											<p>
+												Am Beispiel der N-Gramme sind der gebenene Kontext, sofern dieser in dem
+												Wörterbuch vorhanden ist, immer die letzten Wörter, die vom Kontextfenster
+												angegeben sind. Deren Wahrscheinlichkeit orientiert sich nicht mehr an den
+												Häufigkeiten der einzelnen Wörter, sondern sie gibt an, wie wahrscheinlich
+												es ist, dass diese Wortfolge in exakter Reihenfolge auftritt.
+											</p>
+											<Separator class="my-2" />
+											<a
+												class="flex items-center gap-2 text-muted-foreground"
+												href="https://de.wikipedia.org/wiki/Bedingte_Wahrscheinlichkeit"
+												target="_blank"
+												rel="noopener noreferrer"
+												>Bedingte Wahrscheinlichkeit<ExternalLink class="inline-block h-4 w-4" /></a
+											>
+										</div>
+									</HoverCard.Content>
+								</HoverCard.Root>
+							</Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body
+						>{#if outputsHistory.length}
+							{#each filterBy(outputsHistory, searchValueHistory) as { word: ngram, seed, abs, rel }, i}
+								<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={ngram}>
+									<Table.Cell>
+										<Badge
+											class="box-border cursor-pointer whitespace-nowrap text-sm transition-none {selectedWord ===
+											ngram
+												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+												: 'text-foreground'}"
+											variant="secondary"
+										>
+											{@html formatSearch(ngram, searchValueHistory)}
+										</Badge>
+									</Table.Cell>
+									<Table.Cell class="text-right font-mono">{seed}</Table.Cell>
+									<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
+									<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+								</Table.Row>
+							{/each}
+						{/if}
+					</Table.Body>
+				</Table.Root>
+			</ScrollArea>
+		</Tabs.Content>
+		<Tabs.Content class="h-full w-full" value="4">
+			<ScrollArea
+				class="relative h-[450px] min-w-full rounded-md border px-4 pt-4"
+				orientation="both"
+			>
+				<Table.Root>
+					<Table.Caption>
+						{#if !outputsNgrams.length}Noch keine N-Gramme verfügbar{/if}
+					</Table.Caption>
+					<Table.Header class="sticky top-0">
+						<Table.Row class="max-w-96 overflow-x-auto">
+							<Table.Head class="w-52"
+								>{!currentModelName ? 'N-Gramm' : currentModelName}</Table.Head
+							>
+							<Table.Head class="whitespace-nowrap text-right">Anzahl</Table.Head>
+							<Table.Head class="whitespace-nowrap text-right">
+								<HoverCard.Root>
+									<HoverCard.Trigger class="hover:animate-pulse"
+										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
+									>
+									<HoverCard.Content class="w-72">
+										<div class="flex flex-col items-start gap-2 text-sm">
+											<p>
+												Die bedingte Wahrscheinlichkeit ist die Wahrscheinlichkeit, dass ein
+												Ereignis eintritt, unter der Bedingung, dass ein anderes Ereignis bereits
+												eingetreten ist.
+											</p>
+											<p>
+												Am Beispiel der N-Gramme sind der gebenene Kontext, sofern dieser in dem
+												Wörterbuch vorhanden ist, immer die letzten Wörter, die vom Kontextfenster
+												angegeben sind. Deren Wahrscheinlichkeit orientiert sich nicht mehr an den
+												Häufigkeiten der einzelnen Wörter, sondern sie gibt an, wie wahrscheinlich
+												es ist, dass diese Wortfolge in exakter Reihenfolge auftritt.
+											</p>
+											<Separator class="my-2" />
+											<a
+												class="flex items-center gap-2 text-muted-foreground"
+												href="https://de.wikipedia.org/wiki/Bedingte_Wahrscheinlichkeit"
+												target="_blank"
+												rel="noopener noreferrer"
+												>Bedingte Wahrscheinlichkeit<ExternalLink class="inline-block h-4 w-4" /></a
+											>
+										</div>
+									</HoverCard.Content>
+								</HoverCard.Root>
+							</Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body
+						>{#if outputsNgrams.length}
+							{#each filterBy(outputsNgrams, searchValueNgrams) as { word: ngram, abs, rel }, i}
+								{@const words = ngram.split('+')}
+								<Table.Row class="max-w-96 overflow-x-auto">
+									<Table.Cell>
+										<Tooltip.Root>
+											<Tooltip.Trigger>
+												<Badge
+													onclick={handleSetContext}
+													class="cursor-pointer whitespace-nowrap text-sm hover:animate-pulse"
+													variant="secondary"
+													data-context={words[words.length - 1] ?? 'N/A'}
+													>{@html formatSearch(ngram, searchValueNgrams)}</Badge
+												>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												<p class="flex items-center justify-between gap-x-1">
+													<span
+														>{words[0]} bedingt durch {words.length > 2 ? '...' : ''}
+														{words[words.length - 1]}</span
+													>
+													<!-- <Sparkles class="h-4 w-4 text-muted-foreground" /> -->
+												</p>
+											</Tooltip.Content>
+										</Tooltip.Root>
+									</Table.Cell>
+									<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
+									<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+								</Table.Row>
+							{/each}
+						{/if}
+					</Table.Body>
+				</Table.Root>
+			</ScrollArea>
+		</Tabs.Content>
+	</Tabs.Root>
 
 	<LLMNext url={data.url} prev="Bigramm" next="N-Gramm" />
 </section>

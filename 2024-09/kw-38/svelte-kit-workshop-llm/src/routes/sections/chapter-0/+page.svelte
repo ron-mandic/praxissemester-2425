@@ -12,22 +12,19 @@
 
 	<p class="mb-6 px-2 md:px-0">
 		Im ersten Kapitel des KI-Workshops zu Large Language Models (LLMs) schauen wir uns gemeinsam an,
-		<strong
-			>woher wir unseren Datensatz für den Kurs bekommen und wie wir die Daten entsprechend
-			analysieren können</strong
-		>, um Vorhersagen zu treffen.
+		woher wir unseren Datensatz für den Kurs bekommen und wie wir die Daten entsprechend analysieren
+		können, um Vorhersagen zu treffen.
 	</p>
 
 	<p class="mb-8 px-2 md:px-0">
 		Wenn es darum geht, Daten für KI-Projekte zu sammeln und zu nutzen, ist Hugging Face eine
 		wertvolle Ressource. Zwar ist die Plattform vor allem für ihre vortrainierten Sprachmodelle
-		bekannt, aber sie bietet noch viel mehr -
-		<strong>insbesondere eine riesige Sammlung an öffentlich zugänglichen Datensätzen</strong>, die
-		für verschiedenste Aufgaben genutzt werden können.
+		bekannt, aber sie bietet noch viel mehr - insbesondere eine riesige Sammlung an öffentlich
+		zugänglichen Datensätzen, die für verschiedenste Aufgaben genutzt werden können.
 	</p>
 
 	<Card.Root
-		class="border-1 font-regular mt-6 w-full border border-yellow-700/40 bg-yellow-100/40 text-yellow-700"
+		class="border-1 font-regular mt-6 w-full border border-yellow-700/40 bg-yellow-100/20 text-yellow-700"
 	>
 		<Card.Header class="gap-2 p-1.5">
 			<div class="relative grid h-[315px] w-full place-items-center rounded-md bg-yellow-400">
@@ -40,8 +37,8 @@
 			<div class="px-6 pb-6 pt-2">
 				<Card.Description>
 					<p class="mb-3 text-balance">
-						Hugging Face bietet <strong>hochwertige, vielfältige und kuratierte Datensätze</strong>,
-						die es uns ermöglichen, schnell die benötigten Ressourcen für unsere Unigramm-Analysen,
+						Hugging Face bietet hochwertige, vielfältige und kuratierte Datensätze, die es uns
+						ermöglichen, schnell die benötigten Ressourcen für unsere Unigramm-Analysen,
 						N-Gramm-Modelle und andere Sprachaufgaben zu finden. Dadurch sparen wir Zeit, da wir
 						nicht stundenlang im Internet nach geeigneten Textdaten suchen müssen, und können
 						unabhängig von vorgefertigten Modellen arbeiten.
@@ -69,7 +66,7 @@
 	</p>
 
 	<Card.Root
-		class="border-1 font-regular mt-6 w-full border border-orange-700/40 bg-orange-100/40 text-orange-700"
+		class="border-1 font-regular mt-6 w-full border border-orange-700/40 bg-orange-100/20 text-orange-700"
 	>
 		<Card.Header class="gap-2 p-1.5">
 			<img src="/jpg/ed-sheeran.jpg" alt="Ed Sheeran" class="w-full select-none rounded-md" />
@@ -77,11 +74,10 @@
 				<Card.Description>
 					<p class="mb-3 text-balance">
 						In diesem Workshop arbeiten wir mit 100 Songtexten von Ed Sheeran, um die Funktionsweise
-						einfacher Sprachmodelle zu verstehen. <strong
-							>Dabei werden wir untersuchen, wie Modelle Vorhersagen treffen und versuchen, den Stil
-							des Künstlers zu imitieren</strong
-						>. Anhand dieses kreativen Datensatzes kannst du praktisch erleben, wie solche Modelle
-						strukturiert sind und welche Muster in der Textgenerierung eine Rolle spielen.
+						einfacher Sprachmodelle zu verstehen. Dabei werden wir untersuchen, wie Modelle
+						Vorhersagen treffen und versuchen, den Stil des Künstlers zu imitieren. Anhand dieses
+						kreativen Datensatzes kannst du praktisch erleben, wie solche Modelle strukturiert sind
+						und welche Muster in der Textgenerierung eine Rolle spielen.
 					</p>
 
 					<Separator class="my-6 bg-orange-700/20" />

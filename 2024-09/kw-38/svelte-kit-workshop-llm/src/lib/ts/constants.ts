@@ -28,6 +28,10 @@ export const EXAMPLE_OBJ_SONG = {
 	text: 'Shape of You Lyrics\nThe club isnt the best place to find a lover\nSo the bar is where I ... Im in love with the shape of you405Embed'
 };
 
+export const EXAMPLE_OBJ_SONG_PREFORMATTED = {
+	text: 'the club isnt the best place to find a lover [end] so the bar is where i ... im in love with the shape of you'
+};
+
 export const EXAMPLE_STR_FUNCTION = `
 def preprocess(text: str) -> str:
     # Remove the first part with the title (e.g. "Song Title Lyrics")

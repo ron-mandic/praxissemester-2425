@@ -1,3 +1,4 @@
+from typing import Optional
 import torch
 from lib.utils import ask_dict, get_dict, sample, get_samples
 
@@ -48,32 +49,42 @@ class Ngram():
         for i in range(0, max_context_length):
             self.dict[i] = get_dict(list_list_words, i + 1)
     
-    def registerGenerator(self, seed):
+    def register_generator(self, seed):
         if seed not in self.generators:
             generator = torch.Generator().manual_seed(seed)
             self.generators[seed] = generator
         else:
-            print(f"Ngram.registerGenerator: Seed {seed} already registered")
+            print(f"Ngram.register_generator: Seed {seed} already registered")
     
-    def predict(self, context: str, ngram_length: int):
-        list_key_tuple_answers = ask_dict(self.dict[ngram_length], context)
+    def predict(self, context: str, context_length: int, seed: Optional[int] = None):
+        list_key_tuple_answers = ask_dict(self.dict[context_length], context)
         if len(list_key_tuple_answers) == 0:
             return None
 
         tensor = torch.tensor([rel for (_, _, _, rel) in list_key_tuple_answers], dtype=torch.float32)
-        index = torch.multinomial(tensor, num_samples=1, replacement=True).item()
+
+        # Dynamically pack and unpack arguments
+        args = {
+            "input": tensor,
+            "num_samples": 1,
+            "replacement": True
+        }
+        if seed is not None:
+            args["generator"] = torch.Generator().manual_seed(seed)
+        
+        index = torch.multinomial(**args).item()
         return list_key_tuple_answers[index]
     
-    def get_predictions(self, context: str, ngram_length, num_samples = 10):
-        list_key_tuple_answers = ask_dict(self.dict[ngram_length], context)
+    def get_predictions(self, context: str, context_length: int, num_samples = 10, seed: Optional[int] = None):
+        list_key_tuple_answers = ask_dict(self.dict[context_length], context)
         if len(list_key_tuple_answers) == 0:
             return None
 
         tensor = torch.tensor([rel for (_, _, _, rel) in list_key_tuple_answers], dtype=torch.float32)
-        return get_samples(tensor, list_key_tuple_answers, num_samples)
+        return get_samples(tensor, list_key_tuple_answers, num_samples, seed)
     
-    def get_all_predictions(self, context: str, ngram_length):
-        list_key_tuple_answers = ask_dict(self.dict[ngram_length], context)
+    def get_all_predictions(self, context: str, context_length: int):
+        list_key_tuple_answers = ask_dict(self.dict[context_length], context)
         if len(list_key_tuple_answers) == 0:
             return None
 

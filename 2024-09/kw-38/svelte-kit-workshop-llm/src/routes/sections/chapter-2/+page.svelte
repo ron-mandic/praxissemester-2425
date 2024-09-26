@@ -23,8 +23,13 @@
 	let searchValue = $state('');
 	let selectedWord = $state('');
 	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
-	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
+	let hasBeenReset = $state(false);
+
+	// TODO: Check if this is necessary
+	$effect(() => {
+		return handleReset;
+	})
 
 	$effect(() => {
 		if (outputsHistory.length === 100) {
@@ -66,11 +71,13 @@
 	}
 
 	function handleReset() {
+		text = '';
+		searchValue = '';
+		selectedWord = '';
+		outputsHistory = [];
 		hasBeenClicked = false;
 		hasBeenReset = true;
-		text = '';
-		outputsHistory = [];
-		selectedWord = '';
+
 		setTimeout(() => {
 			hasBeenReset = false;
 		}, 1000);
@@ -154,10 +161,9 @@
 							</div>
 						</HoverCard.Content>
 					</HoverCard.Root> vertritt die einfachste Form kleiner Sprachmodelle, auch SLMs genannt, bei
-					dem die Wörter unabhängig voneinander betrachtet werden.
-					<strong>Es berücksichtigt keinen Kontext</strong>. Es bildet nur die Wahrscheinlichkeiten
-					einzelner Wörter ab und ignoriert jegliche Abhängigkeiten zwischen Wörtern, was seine
-					Anwendungsmöglichkeiten stark einschränkt.
+					dem die Wörter unabhängig voneinander betrachtet werden. Es berücksichtigt keinen Kontext.
+					Es bildet nur die Wahrscheinlichkeiten einzelner Wörter ab und ignoriert jegliche Abhängigkeiten
+					zwischen Wörtern, was seine Anwendungsmöglichkeiten stark einschränkt.
 				</p>
 
 				<p>
@@ -193,8 +199,10 @@
 								<Tooltip.Root>
 									<Tooltip.Trigger>
 										<Badge
+											onclick={handleSelectedWord}
+											data-word={word}
 											variant="outline"
-											class="box-border inline-block animate-bounceIn text-base {selectedWord ===
+											class="box-border inline-block animate-bounceIn cursor-pointer text-base {selectedWord ===
 											word
 												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
 												: 'text-foreground'}">{word}</Badge
@@ -289,7 +297,7 @@
 				</Table.Caption>
 				<Table.Header class="sticky top-0">
 					<Table.Row>
-						<Table.Head class="w-48">Wort</Table.Head>
+						<Table.Head class="w-52">Wort</Table.Head>
 						<Table.Head class="text-right">Anzahl</Table.Head>
 						<Table.Head class="text-right">Wahrscheinlichkeit</Table.Head>
 					</Table.Row>

@@ -44,7 +44,11 @@ def index(context: str, num_samples: Optional[int] = 1):
     return {"data": model_bigram.get_predictions(context, num_samples)}
 
 @app.get("/ngram")
-def index(context: str, context_length: int, num_samples: Optional[int] = 1):
+def index(context: str, context_length: int, num_samples: Optional[int] = 1, seed: Optional[int] = None):
+    # seed Hint: Could resolve in massive memory usage with almost 10.000 possible instances
+    # if seed is not None:
+    #     model_ngram.register_generator(seed)
+    
     # context
     if context is None:
         raise HTTPException(status_code=Status.HTTP_400_BAD_REQUEST, detail="/ngram: Context is required")
@@ -59,8 +63,8 @@ def index(context: str, context_length: int, num_samples: Optional[int] = 1):
 
     # num_samples
     if num_samples is None or num_samples == 1:
-        return {"data": model_ngram.predict(context, context_length)}
+        return {"data": model_ngram.predict(context, context_length, seed)}
     elif num_samples == -1:
         return {"data": model_ngram.get_all_predictions(context, context_length)} 
 
-    return {"data": model_ngram.get_predictions(context, context_length, num_samples)}
+    return {"data": model_ngram.get_predictions(context, context_length, num_samples, seed)}

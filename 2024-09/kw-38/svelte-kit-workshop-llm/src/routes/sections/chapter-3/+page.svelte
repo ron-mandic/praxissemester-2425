@@ -16,8 +16,6 @@
 	import { Label } from '@/ui/label';
 	import { formatSearch } from '$lib/ts/functions';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
-	import ChevronRight from 'lucide-svelte/icons/chevron-right';
-	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { Toaster } from '@/ui/sonner/index.js';
 	import { toast } from 'svelte-sonner';
 	import { END_TOKEN, END_TOKEN_HTML } from '$lib/ts/constants.js';
@@ -28,22 +26,31 @@
 	let searchValueHistory = $state('');
 	let searchValueBigrams = $state('');
 	let selectedWord = $state('');
-	let scene = $state(0);
+	let currentView = $state('3');
 	let outputStart = $state('');
 	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
 	let outputsBigrams = $state([] as { word: string; abs: number; rel: number }[]);
-	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
+	let hasBeenReset = $state(false);
 	let hasWobble = $state(false);
 	let hasEnded = $state(false);
 	let isFetching = $state(false);
+
+	// TODO: Check if this is necessary
+	$effect(() => {
+		return handleReset;
+	});
+
+	function handlePressEnter(event: KeyboardEvent) {
+		if (event.key === 'Enter') handleClick();
+	}
 
 	function getContextWindow(searchValue: string) {
 		if (!searchValue) return 'Kein Kontext';
 
 		const words = searchValue.trim().split(' ');
 		const context = words[words.length - 1] || words[0];
-		return context + " (Kontext)";
+		return context + ' (Kontext)';
 	}
 
 	async function handleClick() {
@@ -75,7 +82,9 @@
 		contextValue = newContext;
 		outputsHistory.push({ word: keyH, abs: absH, rel: relH });
 
-		outputsBigrams = dataBigram.data.map(([key, abs, _, rel]) => ({ word: key, abs, rel }));
+		outputsBigrams = dataBigram.data.map(
+			([key, abs, _, rel]: [string, number, number, number]) => ({ word: key, abs, rel })
+		);
 		isFetching = false;
 	}
 
@@ -105,14 +114,6 @@
 		return filteredInputs;
 	}
 
-	const toRight = () => {
-		scene = -1;
-	};
-
-	const toLeft = () => {
-		scene = 0;
-	};
-
 	function ngramToText(outputsHistory: { word: string; abs: number; rel: number }[]) {
 		const text = outputsHistory
 			.map(({ word: ngram }, i, arr) => {
@@ -136,7 +137,6 @@
 		const selectedUnigrams = selectedWord
 			.split('+')
 			.map((unigram) => unigram.replace(/\[end\]/g, END_TOKEN_HTML));
-		console.log(selectedUnigrams);
 
 		const regNormal = new RegExp(`${selectedUnigrams.join(' ')}`, 'g');
 		const coloredText = text.replace(regNormal, (match) =>
@@ -149,14 +149,20 @@
 	}
 
 	function handleReset() {
-		hasBeenClicked = false;
-		hasBeenReset = true;
-		hasEnded = false;
 		contextValue = '';
+		searchValueHistory = '';
+		searchValueBigrams = '';
+		selectedWord = '';
+		// currentView = '3';
 		outputStart = '';
 		outputsHistory = [];
 		outputsBigrams = [];
-		selectedWord = '';
+		hasBeenClicked = false;
+		hasBeenReset = true;
+		hasWobble = false;
+		hasEnded = false;
+		isFetching = false;
+
 		setTimeout(() => {
 			hasBeenReset = false;
 		}, 1000);
@@ -238,8 +244,8 @@
 						</HoverCard.Content>
 					</HoverCard.Root> ist das nächstgrößere Sprachmodell, bei dem die Wahrscheinlichkeit eines
 					Wortes basierend auf dem vorhergehenden Wort berechnet wird. Im Vergleich zum Unigramm, das
-					jedes Wort unabhängig von den vorherigen Wörtern betrachtet, sieht das Bigramm
-					<strong>immer das letzte Wort als Kontext</strong> an, was zu sinnvolleren Vorhersagen führt.
+					jedes Wort unabhängig von den vorherigen Wörtern betrachtet, sieht das Bigramm immer das letzte
+					Wort als Kontext an, was zu sinnvolleren Vorhersagen führt.
 				</p>
 
 				<p>
@@ -291,6 +297,7 @@
 				pattern="[\w\s]+"
 				maxlength={75}
 				disabled={hasBeenClicked || hasEnded}
+				onkeypress={handlePressEnter}
 			/>
 			<div class="mt-1.5 flex select-none items-center justify-between text-muted-foreground">
 				<small class="font-mono text-xs">{(contextValue as string).length || 0} / 75</small>
@@ -379,165 +386,177 @@
 		</Card.Footer>
 	</Card.Root>
 
-	<div
-		class="relative mb-4 mt-10 w-[calc(100%+16px)] -translate-x-3 -translate-y-3 overflow-clip py-3 pl-3 pr-5"
-	>
-		<div
-			class="flex w-[calc(200%+8px+24px)] flex-row gap-x-4 {scene === -1
-				? '-translate-x-[calc(50%+4px)]'
-				: '-translate-x-0'} will-change duration-475 transition-transform ease-out"
-		>
-			<div class="left flex-1 flex-shrink-0">
-				<div class="mb-2 flex w-full items-center justify-between">
-					<Input
-						bind:value={searchValueHistory}
-						class="w-1/2"
-						placeholder="Historie durchsuchen"
-						type="search"
-						disabled={!hasBeenClicked || hasEnded}
-					/>
-					<Button
-						class="group px-3 py-2 transition-transform focus-visible:px-3 focus-visible:py-2"
-						variant="secondary"
-						onclick={toRight}
-					>
-						Alle Bigramme
-						<ChevronRight
-							class="ml-2 h-4 w-4 transition-transform ease-in-out group-hover:translate-x-1"
-						/></Button
-					>
-				</div>
-				<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4">
-					<Table.Root>
-						<Table.Caption>
-							{#if !outputsHistory.length}Noch keine Historie verfügbar{/if}
-						</Table.Caption>
-						<Table.Header class="sticky top-0">
-							<Table.Row>
-								<Table.Head class="w-56">Bigramm</Table.Head>
-								<Table.Head class="text-right">Anzahl</Table.Head>
-								<Table.Head class="text-right">
-									<HoverCard.Root>
-										<HoverCard.Trigger class="hover:animate-pulse"
-											>Bedingte Wkt. <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
-										>
-										<HoverCard.Content class="w-72">
-											<div class="flex flex-col items-start gap-2 text-sm">
-												<p>
-													Die bedingte Wahrscheinlichkeit ist die Wahrscheinlichkeit, dass ein
-													Ereignis eintritt, unter der Bedingung, dass ein anderes Ereignis bereits
-													eingetreten ist.
-												</p>
-												<p>
-													Am Beispiel der Bigramme ist der gebenene Kontext, sofern dieser in dem
-													Wörterbuch vorhanden ist, immer das letzte Wort, welches das nächste
-													bedingt. Diese Zahl orientiert sich nicht mehr an den Häufigkeiten des
-													einzelnen Wortes, sondern sie gibt an, wie wahrscheinlich es ist, dass das
-													nächste Wort auf das gegebene folgt.
-												</p>
-												<Separator class="my-2" />
-												<a
-													class="flex items-center gap-2 text-muted-foreground"
-													href="https://de.wikipedia.org/wiki/Bedingte_Wahrscheinlichkeit"
-													target="_blank"
-													rel="noopener noreferrer"
-													>Bedingte Wahrscheinlichkeit<ExternalLink
-														class="inline-block h-4 w-4"
-													/></a
-												>
-											</div>
-										</HoverCard.Content>
-									</HoverCard.Root>
-								</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body
-							>{#if outputsHistory.length}
-								{#each filterBy(outputsHistory, searchValueHistory) as { word: ngram, abs, rel }, i}
-									<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={ngram}>
-										<Table.Cell>
-											<Badge
-												class="box-border cursor-pointer text-sm transition-none {selectedWord ===
-												ngram
-													? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
-													: 'text-foreground'}"
-												variant="secondary">{@html formatSearch(ngram, searchValueHistory)}</Badge
-											>
-										</Table.Cell>
-										<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
-										<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
-									</Table.Row>
-								{/each}
-							{/if}
-						</Table.Body>
-					</Table.Root>
-				</ScrollArea>
+	<div class="mt-10 w-full">
+		{#if currentView === '3'}
+			<div class="mb-2 flex w-full items-center justify-between">
+				<Input
+					bind:value={searchValueHistory}
+					class="w-1/2"
+					placeholder="Historie durchsuchen"
+					type="search"
+					disabled={!hasBeenClicked || hasEnded}
+				/>
 			</div>
-			<div class="right flex-1">
-				<div class="mb-2 flex w-full items-center justify-between">
-					<Button
-						class="group px-3 py-2 pl-0 transition-transform focus-visible:px-3 focus-visible:py-2 focus-visible:pl-0"
-						variant="secondary"
-						onclick={toLeft}
-						><ChevronLeft
-							class="ml-2 h-4 w-4 transition-transform ease-in-out group-hover:-translate-x-1"
-						/>Historie</Button
-					>
-					<Input
-						bind:value={searchValueBigrams}
-						class="w-1/2"
-						placeholder="Nach Bigrammen suchen"
-						type="search"
-						disabled={!hasBeenClicked}
-					/>
-				</div>
-				<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4">
-					<Table.Root>
-						<Table.Caption>
-							{#if !outputsBigrams.length}Noch keine Bigramme verfügbar{/if}
-						</Table.Caption>
-						<Table.Header class="sticky top-0">
-							<Table.Row>
-								<Table.Head class="w-48">Bigramm</Table.Head>
-								<Table.Head class="text-right">Anzahl</Table.Head>
-								<Table.Head class="text-right">Wahrscheinlichkeit</Table.Head>
-							</Table.Row>
-						</Table.Header>
-						<Table.Body
-							>{#if outputsBigrams.length}
-								{#each filterBy(outputsBigrams, searchValueBigrams) as { word, abs, rel }, i}
-									{@const words = word.split('+')}
-									<Table.Row>
-										<Table.Cell>
-											<Tooltip.Root>
-												<Tooltip.Trigger>
-													<Badge
-														onclick={handleSetContext}
-														class="cursor-pointer text-sm hover:animate-pulse"
-														variant="secondary"
-														data-context={words[words.length - 1] ?? 'N/A'}
-														>{@html formatSearch(word, searchValueBigrams)}</Badge
-													>
-												</Tooltip.Trigger>
-												<Tooltip.Content>
-													<p class="flex items-center justify-between gap-x-1">
-														<span>{words[0]} bedingt {words[words.length - 1]}</span>
-														<!-- <Sparkles class="h-4 w-4 text-muted-foreground" /> -->
-													</p>
-												</Tooltip.Content>
-											</Tooltip.Root>
-										</Table.Cell>
-										<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
-										<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
-									</Table.Row>
-								{/each}
-							{/if}
-						</Table.Body>
-					</Table.Root>
-				</ScrollArea>
+		{:else if currentView === '4'}
+			<div class="mb-2 flex w-full items-center justify-between">
+				<Input
+					bind:value={searchValueBigrams}
+					class="w-1/2"
+					placeholder="Nach Bigrammen suchen"
+					type="search"
+					disabled={!hasBeenClicked}
+				/>
 			</div>
-		</div>
+		{/if}
 	</div>
+
+	<Tabs.Root class="w-full" bind:value={currentView}>
+		<Tabs.List class="w-full">
+			<Tabs.Trigger class="w-full" value="3">Historie</Tabs.Trigger>
+			<Tabs.Trigger class="w-full" value="4">Alle Bigramme</Tabs.Trigger>
+		</Tabs.List>
+		<Tabs.Content class="h-full w-full" value="3">
+			<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4" orientation="both">
+				<Table.Root>
+					<Table.Caption>
+						{#if !outputsHistory.length}Noch keine Historie verfügbar{/if}
+					</Table.Caption>
+					<Table.Header class="sticky top-0">
+						<Table.Row>
+							<Table.Head class="w-52">Bigramm</Table.Head>
+							<Table.Head class="text-right">Anzahl</Table.Head>
+							<Table.Head class="text-right">
+								<HoverCard.Root>
+									<HoverCard.Trigger class="hover:animate-pulse"
+										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
+									>
+									<HoverCard.Content class="w-72">
+										<div class="flex flex-col items-start gap-2 text-sm">
+											<p>
+												Die bedingte Wahrscheinlichkeit ist die Wahrscheinlichkeit, dass ein
+												Ereignis eintritt, unter der Bedingung, dass ein anderes Ereignis bereits
+												eingetreten ist.
+											</p>
+											<p>
+												Am Beispiel der Bigramme ist der gebenene Kontext, sofern dieser in dem
+												Wörterbuch vorhanden ist, immer das letzte Wort, welches das nächste
+												bedingt. Diese Zahl orientiert sich nicht mehr an den Häufigkeiten des
+												einzelnen Wortes, sondern sie gibt an, wie wahrscheinlich es ist, dass das
+												nächste Wort auf das gegebene folgt.
+											</p>
+											<Separator class="my-2" />
+											<a
+												class="flex items-center gap-2 text-muted-foreground"
+												href="https://de.wikipedia.org/wiki/Bedingte_Wahrscheinlichkeit"
+												target="_blank"
+												rel="noopener noreferrer"
+												>Bedingte Wahrscheinlichkeit<ExternalLink class="inline-block h-4 w-4" /></a
+											>
+										</div>
+									</HoverCard.Content>
+								</HoverCard.Root>
+							</Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body
+						>{#if outputsHistory.length}
+							{#each filterBy(outputsHistory, searchValueHistory) as { word: ngram, abs, rel }, i}
+								<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={ngram}>
+									<Table.Cell>
+										<Badge
+											class="box-border cursor-pointer text-sm transition-none {selectedWord ===
+											ngram
+												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+												: 'text-foreground'}"
+											variant="secondary">{@html formatSearch(ngram, searchValueHistory)}</Badge
+										>
+									</Table.Cell>
+									<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
+									<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+								</Table.Row>
+							{/each}
+						{/if}
+					</Table.Body>
+				</Table.Root>
+			</ScrollArea>
+		</Tabs.Content>
+		<Tabs.Content class="h-full w-full" value="4">
+			<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4" orientation="both">
+				<Table.Root>
+					<Table.Caption>
+						{#if !outputsBigrams.length}Noch keine Bigramme verfügbar{/if}
+					</Table.Caption>
+					<Table.Header class="sticky top-0">
+						<Table.Row>
+							<Table.Head class="w-52">Bigramm</Table.Head>
+							<Table.Head class="text-right">Anzahl</Table.Head>
+							<Table.Head class="text-right">
+								<HoverCard.Root>
+									<HoverCard.Trigger class="hover:animate-pulse"
+										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
+									>
+									<HoverCard.Content class="w-72">
+										<div class="flex flex-col items-start gap-2 text-sm">
+											<p>
+												Die bedingte Wahrscheinlichkeit ist die Wahrscheinlichkeit, dass ein
+												Ereignis eintritt, unter der Bedingung, dass ein anderes Ereignis bereits
+												eingetreten ist.
+											</p>
+											<p>
+												Am Beispiel der Bigramme ist der gebenene Kontext, sofern dieser in dem
+												Wörterbuch vorhanden ist, immer das letzte Wort, welches das nächste
+												bedingt. Diese Zahl orientiert sich nicht mehr an den Häufigkeiten des
+												einzelnen Wortes, sondern sie gibt an, wie wahrscheinlich es ist, dass das
+												nächste Wort auf das gegebene folgt.
+											</p>
+											<Separator class="my-2" />
+											<a
+												class="flex items-center gap-2 text-muted-foreground"
+												href="https://de.wikipedia.org/wiki/Bedingte_Wahrscheinlichkeit"
+												target="_blank"
+												rel="noopener noreferrer"
+												>Bedingte Wahrscheinlichkeit<ExternalLink class="inline-block h-4 w-4" /></a
+											>
+										</div>
+									</HoverCard.Content>
+								</HoverCard.Root>
+							</Table.Head>
+						</Table.Row>
+					</Table.Header>
+					<Table.Body
+						>{#if outputsBigrams.length}
+							{#each filterBy(outputsBigrams, searchValueBigrams) as { word, abs, rel }, i}
+								{@const words = word.split('+')}
+								<Table.Row>
+									<Table.Cell>
+										<Tooltip.Root>
+											<Tooltip.Trigger>
+												<Badge
+													onclick={handleSetContext}
+													class="cursor-pointer text-sm hover:animate-pulse"
+													variant="secondary"
+													data-context={words[words.length - 1] ?? 'N/A'}
+													>{@html formatSearch(word, searchValueBigrams)}</Badge
+												>
+											</Tooltip.Trigger>
+											<Tooltip.Content>
+												<p class="flex items-center justify-between gap-x-1">
+													<span>{words[0]} bedingt {words[words.length - 1]}</span>
+													<!-- <Sparkles class="h-4 w-4 text-muted-foreground" /> -->
+												</p>
+											</Tooltip.Content>
+										</Tooltip.Root>
+									</Table.Cell>
+									<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
+									<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+								</Table.Row>
+							{/each}
+						{/if}
+					</Table.Body>
+				</Table.Root>
+			</ScrollArea>
+		</Tabs.Content>
+	</Tabs.Root>
 
 	<LLMNext url={data.url} prev="Bigramm" next="N-Gramm" />
 </section>
