@@ -14,13 +14,12 @@
 	import { ScrollArea } from '@/ui/scroll-area';
 	import { Input } from '@/ui/input';
 	import { Label } from '@/ui/label';
-	import { formatSearch, preformat } from '$lib/ts/functions';
+	import { formatSearch } from '$lib/ts/functions';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
 	import ChevronRight from 'lucide-svelte/icons/chevron-right';
 	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
 	import { Toaster } from '@/ui/sonner/index.js';
 	import { toast } from 'svelte-sonner';
-	import { text } from '@sveltejs/kit';
 	import { END_TOKEN, END_TOKEN_HTML } from '$lib/ts/constants.js';
 
 	const { data } = $props();
@@ -38,6 +37,14 @@
 	let hasWobble = $state(false);
 	let hasEnded = $state(false);
 	let isFetching = $state(false);
+
+	function getContextWindow(searchValue: string) {
+		if (!searchValue) return 'Kein Kontext';
+
+		const words = searchValue.trim().split(' ');
+		const context = words[words.length - 1] || words[0];
+		return context + " (Kontext)";
+	}
 
 	async function handleClick() {
 		const contexts = contextValue.trim().split(' '); // .map(preformat); this would yield no error making the whole lecture non-educational
@@ -137,22 +144,6 @@
 				? `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match.replace(END_TOKEN_HTML, '[end]<br/>')}</mark>`
 				: `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match}</mark>`
 		);
-
-		// const coloredText = text
-		// 	.replace(
-		// 		regNormal,
-		// 		(match) =>
-		// 			`<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match}</mark>`
-		// 	)
-		// 	.replace(regEndToken, (match) => {
-		// 		if (selectedUnigrams.includes(END_TOKEN_HTML)) {
-		// 			return `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${END_TOKEN}</mark><br />`;
-		// 		}
-		// 		return match;
-		// 	});
-
-		console.log(text);
-		// console.log(coloredText);
 
 		return coloredText;
 	}
@@ -298,9 +289,13 @@
 				type="text"
 				placeholder="i, shape, of, ..."
 				pattern="[\w\s]+"
+				maxlength={75}
 				disabled={hasBeenClicked || hasEnded}
 			/>
-
+			<div class="mt-1.5 flex select-none items-center justify-between text-muted-foreground">
+				<small class="font-mono text-xs">{(contextValue as string).length || 0} / 75</small>
+				<small>{getContextWindow(contextValue)}</small>
+			</div>
 			<Tabs.Root value="0" class="mt-10 w-full">
 				<Tabs.List class="w-full">
 					<Tabs.Trigger class="w-full" value="0">Bigramme</Tabs.Trigger>
@@ -311,15 +306,17 @@
 						<div
 							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
 						>
-							{#each outputsHistory as { word, rel }, i}
+							{#each outputsHistory as { word: ngram, rel }, i}
 								<Tooltip.Root>
 									<Tooltip.Trigger>
 										<Badge
+											onclick={handleSelectedWord}
+											data-word={ngram}
 											variant="outline"
-											class="box-border inline-block animate-bounceIn text-base {selectedWord ===
-											word
+											class="box-border inline-block animate-bounceIn cursor-pointer text-base {selectedWord ===
+											ngram
 												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
-												: 'text-foreground'}">{word}</Badge
+												: 'text-foreground'}">{ngram}</Badge
 										>
 									</Tooltip.Trigger>
 									<Tooltip.Content>
@@ -352,6 +349,15 @@
 					</ScrollArea>
 				</Tabs.Content>
 			</Tabs.Root>
+			<div class="mt-2 flex select-none items-center justify-between text-muted-foreground">
+				<small class="font-mono text-xs"
+					>{outputsHistory.length
+						? outputsHistory.length === 1
+							? '1 Bigramm'
+							: `${outputsHistory.length} Bigramme`
+						: 'Noch keine Bigramme'}</small
+				>
+			</div>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
@@ -362,7 +368,7 @@
 				>
 			</div>
 			<Button
-				class="relative min-w-[158px] px-5 py-6 transition-transform ease-out active:translate-y-0.5 {isFetching
+				class="relative px-5 py-6 transition-transform ease-out active:translate-y-0.5 {isFetching
 					? 'pointer-events-none'
 					: 'pointer-events-auto'}"
 				disabled={!contextValue.trim() || hasWobble}
@@ -394,7 +400,9 @@
 						class="group px-3 py-2 transition-transform focus-visible:px-3 focus-visible:py-2"
 						variant="secondary"
 						onclick={toRight}
-						>Alle Bigramme<ChevronRight
+					>
+						Alle Bigramme
+						<ChevronRight
 							class="ml-2 h-4 w-4 transition-transform ease-in-out group-hover:translate-x-1"
 						/></Button
 					>

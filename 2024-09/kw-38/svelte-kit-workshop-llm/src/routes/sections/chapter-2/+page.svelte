@@ -251,9 +251,9 @@
 				<small class="font-mono text-xs"
 					>{outputsHistory.length
 						? outputsHistory.length === 1
-							? '1 Wort'
-							: `${outputsHistory.length} Wörter`
-						: 'Noch keine Wörter'}</small
+							? '1 Unigramm'
+							: `${outputsHistory.length} Unigramme`
+						: 'Noch keine Unigramme'}</small
 				>
 			</div>
 		</Card.Content>

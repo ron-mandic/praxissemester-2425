@@ -1,122 +1,242 @@
 <script lang="ts">
 	import { Button } from '$lib/components/ui/button/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Separator } from '$lib/components/ui/separator/index.js';
-	import { Badge } from '$lib/components/ui/badge';
-	import { Toaster } from '$lib/components/ui/sonner';
-	import { Textarea } from '@/ui/textarea';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import * as HoverCard from '$lib/components/ui/hover-card';
 	import * as Table from '$lib/components/ui/table';
-	import { toast } from 'svelte-sonner';
+	import * as Tabs from '$lib/components/ui/tabs';
+	import * as Tooltip from '$lib/components/ui/tooltip';
 	import LLMNext from '@/svelte/LLMNext.svelte';
 
 	import Info from 'lucide-svelte/icons/info';
 	import Reset from 'lucide-svelte/icons/rotate-ccw';
+	import { Badge } from '@/ui/badge';
+	import { ScrollArea } from '@/ui/scroll-area';
+	import { Input } from '@/ui/input';
+	import { Label } from '@/ui/label';
+	import { formatSearch } from '$lib/ts/functions';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
+	import ChevronRight from 'lucide-svelte/icons/chevron-right';
+	import ChevronLeft from 'lucide-svelte/icons/chevron-left';
+	import { Toaster } from '@/ui/sonner/index.js';
+	import { toast } from 'svelte-sonner';
+	import { END_TOKEN, END_TOKEN_HTML } from '$lib/ts/constants.js';
+	import { Textarea } from '@/ui/textarea';
+
 	import ChevronUp from 'lucide-svelte/icons/chevron-up';
 	import ChevronDown from 'lucide-svelte/icons/chevron-down';
 	import { tick } from 'svelte';
-	import { Label } from '@/ui/label';
-	import { ScrollArea } from '@/ui/scroll-area';
 
 	const { data } = $props();
+	const MAX_CONTEXT_LENGTH = 4; // the maximum context length you can send to the server e.g. 4 for evaluating pentagrams
 
 	let seed = $state(null as number | null);
-	let text = $state('' as string | number | string[] | null);
-	let inputs = $state([] as { id: number; seed: number | string; text: string }[]);
+	let contextValue = $state('');
+	let contextWords = $state(0);
+	let searchValueHistory = $state('');
+	let searchValueNgrams = $state('');
+	let selectedWord = $state('');
+	let scene = $state(0);
+	let outputStart = $state('');
+	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
+	let outputsNgrams = $state([] as { word: string; abs: number; rel: number }[]);
 	let hasBeenReset = $state(false);
 	let hasBeenClicked = $state(false);
+	let hasWobble = $state(false);
+	let hasEnded = $state(false);
+	let isFetching = $state(false);
 
-	function getModelName(text: string) {
-		if (!text) return;
-		const numWhitespaces = text.trim().split(' ').length - 1;
-		switch (numWhitespaces) {
-			case 0:
-				return 'Bigramm (Kontext: 1 Wort)';
+	const getNewContext = (words: string[], context_length: number) => {
+		// e.g words = ['ich', 'bin', 'ein', 'test'] context_length = 4
+		// result -> 'bin+ein+test'
+
+		// e.g. words = ["im", "in", "love", "with", "your"] context_length = 4
+		if (words.length > context_length) {
+			return words.slice(words.length - context_length, words.length).join('+');
+		}
+
+		// e.g. words = ["im", "in", "love"] context_length = 4
+		const newContext = words
+			.slice(words.length - context_length - (context_length - 1), words.length)
+			.join('+');
+		return newContext;
+	};
+
+	function getModelName(contextValue: string) {
+		if (!contextValue) return;
+		const context_length = contextValue.trim().split(/[\s\+]/g).length;
+
+		switch (context_length) {
 			case 1:
-				return 'Trigramm (Kontext: 2 Wörter)';
+				return 'Bigramm (Kontext: 1 Wort)';
 			case 2:
-				return 'Tetragramm (Kontext: 3 Wörter)';
+				return 'Trigramm (Kontext: 2 Wörter)';
 			case 3:
-				return 'Pentagramm (Kontext: 4 Wörter)';
+				return 'Tetragramm (Kontext: 3 Wörter)';
 			case 4:
-				return 'Hexagramm (Kontext: 5 Wörter)';
-			case 5:
-				return 'Heptagramm (Kontext: 6 Wörter)';
-			case 6:
-				return 'Oktogramm (Kontext: 7 Wörter)';
-			case 7:
-				return 'Nonagramm (Kontext: 8 Wörter)';
-			case 8:
-				return 'Dezagramm (Kontext: 9 Wörter)';
+				return 'Pentagramm (Kontext: 4 Wörter)';
 			default:
 				return 'Multigramm (Kontext: N-1 Wörter)';
 		}
 	}
 
-	function handleClick() {
-		// TODO: Request to server
-
-		const alreadyAdded = inputs.some((input) => input.seed === seed && input.text === text);
-		if (alreadyAdded) {
-			toast(
-				'Deine jetzigen Werte tauchen schon in der Historie auf. Versuche es erneut mit anderen Werten'
-			);
-			return;
-		}
-
-		if (!hasBeenClicked) hasBeenClicked = true;
-
-		inputs.push({
-			id: Date.now(),
-			seed: (seed! > 0 ? seed : seed?.toFixed(3)) ?? 'N/A',
-			text: (text as string).trim() ?? ''
-		});
-	}
-
-	function handleInputOnInput() {
+	function handleInputSeed() {
 		tick().then(() => {
 			if (seed && seed! > 9999) {
 				seed = 9999;
 			}
 		});
 	}
-
-	function handleTextareaOnInput(e: Event) {
-		tick().then(() => {
-			console.log((e as KeyboardEvent).code);
-
-			if ((e as KeyboardEvent).code === 'Enter') {
-				e.preventDefault();
-			}
-
-			if ((e as KeyboardEvent).ctrlKey && (e as KeyboardEvent).code === 'Enter') {
-				handleClick();
-			}
-		});
-	}
-
-	const increment = (e: MouseEvent) => {
+	const incrementSeed = (e: MouseEvent) => {
 		seed = seed! + 1;
 	};
-
-	const decrement = (e: MouseEvent) => {
+	const decrementSeed = (e: MouseEvent) => {
 		seed = seed! - 1;
 	};
 
+	async function handleClick() {
+		// TODO: Check if duplicates are being creatd by the user
+		// const alreadyAdded = inputs.some((input) => input.seed === seed && input.text === text);
+		// if (alreadyAdded) {
+		// 	toast(
+		// 		'Deine jetzigen Werte tauchen schon in der Historie auf. Versuche es erneut mit anderen Werten'
+		// 	);
+		// 	return;
+		// }
+
+		const contexts = contextValue.trim().split(/[\s\+]/g); // .map(preformat); this would yield no error making the whole lecture non-educational
+		const context_length = Math.min(MAX_CONTEXT_LENGTH, contexts.length);
+		const context =
+			contexts.length <= MAX_CONTEXT_LENGTH
+				? contextValue.split(/[\s\+]/g).join('+')
+				: getNewContext(contexts, context_length);
+
+		if (!hasBeenClicked) {
+			hasBeenClicked = true;
+			// outputStart = `<span class="italic inline-block ${contexts.length > 1 ? 'mr-1' : 'mr-0'}">${contexts.slice(0, contexts.length - context_length - 1).join(' ')} </span>`;
+		}
+
+		if (!isFetching) isFetching = true;
+		const [dataHistory, dataBigram] = await Promise.all([
+			fetch(
+				`/api/ngram?context=${context.replace(/[\s\+]/g, '%2B')}&context_length=${context_length}`
+			).then((res) => res.json()),
+			fetch(
+				`/api/ngram?context=${context.replace(/[\s\+]/g, '%2B')}&context_length=${context_length}&num_samples=-1`
+			).then((res) => res.json())
+		]);
+
+		if (dataHistory.data === null || dataBigram.data === null) {
+			hasWobble = hasEnded = true;
+			setTimeout(() => {
+				hasWobble = false;
+			}, 2000);
+			toast.error('Deine Eingabe taucht im Wörterbuch nicht auf');
+			return;
+		}
+
+		console.log(dataHistory, dataBigram);
+
+		const [keyH, absH, , relH] = dataHistory.data;
+
+		const keyHWords = keyH.split(/[\s\+]/g);
+		contextValue = getNewContext(keyHWords, context_length);
+
+		outputsHistory.push({
+			word: keyHWords.join('+'),
+			abs: absH,
+			rel: relH
+		});
+		outputsNgrams = dataBigram.data.map(([key, abs, _, rel]) => ({ word: key, abs, rel }));
+		isFetching = false;
+	}
+
+	function handleSetContext(event: MouseEvent) {
+		// TODO: Check usability
+		// const target = event.currentTarget as HTMLElement;
+		// const context = target.dataset.context;
+		// contextValue = context;
+	}
+
+	function handleSelectedWord(e: any) {
+		const target = e.currentTarget as HTMLElement;
+		const { word } = target.dataset;
+		// selectedWord = word as string;
+
+		if (selectedWord && selectedWord === word) {
+			selectedWord = '';
+		} else {
+			selectedWord = word as string;
+		}
+	}
+
+	function filterBy(arr: typeof outputsHistory, value: string) {
+		if (!value) return arr;
+
+		const filteredInputs = arr.filter(({ word }) => word.includes(value));
+		return filteredInputs;
+	}
+
+	const toRight = () => {
+		scene = -1;
+	};
+
+	const toLeft = () => {
+		scene = 0;
+	};
+
+	function ngramToText(outputsHistory: { word: string; abs: number; rel: number }[]) {
+		const text = outputsHistory
+			.map(({ word: ngram }, i, arr) => {
+				const unigrams = ngram.split('+');
+
+				const regEndToken = new RegExp(`\\[end\\]`, 'g');
+
+				const context = !i
+					? unigrams.join(' ').replace(regEndToken, END_TOKEN_HTML).trim()
+					: unigrams[unigrams.length - 1];
+
+				if (context === END_TOKEN) return END_TOKEN_HTML;
+				return context;
+			})
+			.join(' ');
+		return text;
+	}
+
+	function textToColoredNgrams(text: string, selectedWord: string) {
+		const containsEndToken = selectedWord.includes('[end]');
+		const selectedUnigrams = selectedWord
+			.split('+')
+			.map((unigram) => unigram.replace(/\[end\]/g, END_TOKEN_HTML));
+		console.log(selectedUnigrams);
+
+		const regNormal = new RegExp(`${selectedUnigrams.join(' ')}`, 'g');
+		const coloredText = text.replace(regNormal, (match) =>
+			containsEndToken
+				? `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match.replace(END_TOKEN_HTML, '[end]<br/>')}</mark>`
+				: `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match}</mark>`
+		);
+
+		return coloredText;
+	}
+
 	function handleReset() {
-		hasBeenReset = true;
-		hasBeenClicked = false;
 		seed = null;
-		text = '';
-		inputs = [];
+		hasBeenClicked = false;
+		hasBeenReset = true;
+		hasEnded = false;
+		contextValue = '';
+		contextWords = 0;
+		outputStart = '';
+		outputsHistory = [];
+		outputsNgrams = [];
+		selectedWord = '';
 		setTimeout(() => {
 			hasBeenReset = false;
 		}, 1000);
 	}
 
-	$inspect(seed).with(console.log);
+	$inspect(outputsNgrams);
 </script>
 
 <section class="h-full w-full">
@@ -126,8 +246,8 @@
 		<Card.Header class="gap-2">
 			<div class="flex items-center justify-between">
 				<Card.Title>Kontext <span class="whitespace-nowrap">gefällig?</span></Card.Title>
-				<div class="flex items-center gap-4">
-					<p class="text-sm text-muted-foreground">
+				<div class="flex items-center gap-3">
+					<Label for="seed" class="text-sm text-muted-foreground">
 						<HoverCard.Root>
 							<HoverCard.Trigger class="hover:animate-pulse">
 								<span class="inline-flex items-center justify-between gap-1"
@@ -162,19 +282,19 @@
 								</div>
 							</HoverCard.Content>
 						</HoverCard.Root>
-					</p>
+					</Label>
 					<div class="relative">
 						<Button
 							variant="secondary"
 							class="absolute right-[.25rem] top-[.25rem] h-1.5 w-1.5 rounded-sm p-2 transition-transform ease-out active:-translate-y-[.125rem]"
-							onclick={increment}
+							onclick={incrementSeed}
 						>
 							<ChevronUp class="absolute h-[.875rem] w-[.875rem] text-foreground" />
 						</Button>
 						<Button
 							variant="secondary"
 							class="absolute bottom-[.25rem] right-[.25rem] h-1.5 w-1.5 rounded-[.75rem] p-2 transition-transform ease-out active:translate-y-[.125rem]"
-							onclick={decrement}
+							onclick={decrementSeed}
 						>
 							<ChevronDown class="absolute h-[.875rem] w-[.875rem] text-foreground" />
 						</Button>
@@ -182,17 +302,18 @@
 							bind:value={seed}
 							class="max-w-32"
 							type="number"
+							id="seed"
 							min={0}
 							max={9999}
 							maxlength={4}
 							pattern="\d{4}"
-							oninput={handleInputOnInput}
+							oninput={handleInputSeed}
 						/>
 					</div>
 				</div>
 			</div>
 			<Card.Description>
-				<p class="mb-3 mt-2">
+				<p class="mt-2">
 					Sprachmodelle sagen das nächste Wort voraus, indem sie jedem möglichen nächsten Wort eine
 					Wahrscheinlichkeit zuordnen. Das <HoverCard.Root>
 						<HoverCard.Trigger class="hover:animate-pulse"
@@ -263,13 +384,6 @@
 					sind überraschend einfach und bieten ein gutes Modell, um zu verstehen, wie kontextbasierte
 					Vorhersagen funktionieren.
 				</p>
-
-				<p class="mb-3">
-					Vollständige und fortgeschrittenere Sprachmodelle wie neuronale Sprachmodelle sind
-					wesentlich leistungsfähiger, da sie Kontext und Wortsequenzen berücksichtigen.
-				</p>
-
-				<p>...</p>
 			</Card.Description>
 		</Card.Header>
 		<Separator class="mb-6" />
@@ -305,61 +419,264 @@
 					</HoverCard.Content>
 				</HoverCard.Root>
 			</Label>
-			<Textarea
-				bind:value={text}
-				class="h-28 w-full resize-none"
-				id="textarea"
-				maxlength={300}
-				placeholder="im in love ..."
-				onkeypress={handleTextareaOnInput}
+			<Input
+				bind:value={contextValue}
+				id="text"
+				class="w-full {hasWobble ? 'animate-wobble' : 'animate-none'}"
+				type="text"
+				placeholder="im in love with ..."
+				pattern="[\w\s]+"
+				maxlength={75}
+				disabled={hasBeenClicked || hasEnded}
 			/>
 			<div class="mt-1.5 flex select-none items-center justify-between text-muted-foreground">
-				<small class="font-mono text-xs">{(text as string).length || 0} / 300</small>
-				<small>{`${getModelName(text as string) ?? 'Unigramm (Kontext: 0 Wörter)'}`}</small>
+				<small class="font-mono text-xs">{(contextValue as string).length || 0} / 75</small>
+				<small>{`${getModelName(contextValue as string) ?? 'Unigramm (Kontext: 0 Wörter)'}`}</small>
 			</div>
-			<div class="mt-6 h-32 w-full overflow-y-auto rounded-md bg-muted/30"></div>
+			<Tabs.Root value="0" class="mt-10 w-full">
+				<Tabs.List class="w-full">
+					<Tabs.Trigger class="w-full" value="0">N-Gramme</Tabs.Trigger>
+					<Tabs.Trigger class="w-full" value="1">Output</Tabs.Trigger>
+				</Tabs.List>
+				<Tabs.Content class="h-full w-full" value="0">
+					<ScrollArea class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0">
+						<div
+							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
+						>
+							{#each outputsHistory as { word: ngram, rel }, i}
+								<Tooltip.Root>
+									<Tooltip.Trigger>
+										<Badge
+											onclick={handleSelectedWord}
+											data-word={ngram}
+											variant="outline"
+											class="box-border inline-block animate-bounceIn cursor-pointer text-base {selectedWord ===
+											ngram
+												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+												: 'text-foreground'}">{ngram}</Badge
+										>
+									</Tooltip.Trigger>
+									<Tooltip.Content>
+										<p class="font-mono">{(rel * 100).toFixed(3)}%</p>
+									</Tooltip.Content>
+								</Tooltip.Root>
+							{/each}
+						</div>
+					</ScrollArea>
+				</Tabs.Content>
+				<Tabs.Content class="h-full w-full" value="1">
+					<ScrollArea
+						class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0"
+						orientation="both"
+					>
+						<div
+							class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
+						>
+							{#if selectedWord}
+								<span class="w-full whitespace-nowrap"
+									>{@html outputStart +
+										textToColoredNgrams(ngramToText(outputsHistory), selectedWord)}</span
+								>
+							{:else}
+								<span class="w-full whitespace-nowrap"
+									>{@html outputStart + ngramToText(outputsHistory)}</span
+								>
+							{/if}
+						</div>
+					</ScrollArea>
+				</Tabs.Content>
+			</Tabs.Root>
+			<div class="mt-2 flex select-none items-center justify-between text-muted-foreground">
+				<small class="font-mono text-xs"
+					>{outputsHistory.length
+						? outputsHistory.length === 1
+							? '1 N-Gramm'
+							: `${outputsHistory.length} N-Gramme`
+						: 'Noch keine N-Gramme'}</small
+				>
+			</div>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
 			<div style="visibility: {!hasBeenReset && hasBeenClicked ? 'auto' : 'hidden'};">
-				<Button class="px-5 py-6" onclick={handleReset} variant="outline"
-					>Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
+				<Button
+					class="px-5 py-6 {hasEnded ? 'duration-400 animate-bounce ease-in' : 'animate-none'}"
+					onclick={handleReset}
+					variant="outline">Zurücksetzen<Reset class="ml-2 h-4 w-4" /></Button
 				>
 			</div>
 			<Button
-				class="px-5 py-6 transition-transform ease-out active:translate-y-0.5"
+				class="relative px-5 py-6 transition-transform ease-out active:translate-y-0.5 {isFetching
+					? 'pointer-events-none'
+					: 'pointer-events-auto'}"
+				disabled={!contextValue.trim() || hasWobble}
 				onclick={handleClick}
-				disabled={!text}>{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}</Button
 			>
+				{hasBeenClicked ? 'Erneut generieren' : 'Generieren'}
+			</Button>
 		</Card.Footer>
 	</Card.Root>
 
-	<div class="relative my-10">
-		<ScrollArea class="h-[350px] w-full rounded-md border p-4">
-			<Table.Root>
-				<Table.Caption>
-					{#if !inputs.length}Noch keine Historie verfügbar{/if}
-				</Table.Caption>
-				<Table.Header>
-					<Table.Row>
-						<Table.Head class="w-24">Seed</Table.Head>
-						<Table.Head>Input</Table.Head>
-					</Table.Row>
-				</Table.Header>
-				<Table.Body
-					>{#if inputs.length}
-						{#each inputs as { id, seed, text } (id)}
+	<div
+		class="relative mb-4 mt-10 w-[calc(100%+16px)] -translate-x-3 -translate-y-3 overflow-clip py-3 pl-3 pr-5"
+	>
+		<div
+			class="flex w-[calc(200%+8px+24px)] flex-row gap-x-4 {scene === -1
+				? '-translate-x-[calc(50%+4px)]'
+				: '-translate-x-0'} will-change duration-475 transition-transform ease-out"
+		>
+			<div class="left flex-1 flex-shrink-0">
+				<div class="mb-2 flex w-full items-center justify-between">
+					<Input
+						bind:value={searchValueHistory}
+						class="w-1/2"
+						placeholder="Historie durchsuchen"
+						type="search"
+						disabled={!hasBeenClicked || hasEnded}
+					/>
+					<Button
+						class="group px-3 py-2 transition-transform focus-visible:px-3 focus-visible:py-2"
+						variant="secondary"
+						onclick={toRight}
+					>
+						Alle N-Gramme
+						<ChevronRight
+							class="ml-2 h-4 w-4 transition-transform ease-in-out group-hover:translate-x-1"
+						/></Button
+					>
+				</div>
+				<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4">
+					<Table.Root>
+						<Table.Caption>
+							{#if !outputsHistory.length}Noch keine Historie verfügbar{/if}
+						</Table.Caption>
+						<Table.Header class="sticky top-0">
 							<Table.Row>
-								<Table.Cell>{seed}</Table.Cell>
-								<Table.Cell>{text}</Table.Cell>
+								<Table.Head class="w-56">N-Gramm</Table.Head>
+								<Table.Head class="text-right">Anzahl</Table.Head>
+								<Table.Head class="text-right">
+									<HoverCard.Root>
+										<HoverCard.Trigger class="hover:animate-pulse"
+											>Bedingte Wkt. <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
+										>
+										<HoverCard.Content class="w-72">
+											<div class="flex flex-col items-start gap-2 text-sm">
+												<p>
+													Die bedingte Wahrscheinlichkeit ist die Wahrscheinlichkeit, dass ein
+													Ereignis eintritt, unter der Bedingung, dass ein anderes Ereignis bereits
+													eingetreten ist.
+												</p>
+												<p>
+													Am Beispiel der N-Gramme ist der gebenene Kontext, sofern dieser in dem
+													Wörterbuch vorhanden ist, immer das letzte Wort, welches das nächste
+													bedingt. Diese Zahl orientiert sich nicht mehr an den Häufigkeiten des
+													einzelnen Wortes, sondern sie gibt an, wie wahrscheinlich es ist, dass das
+													nächste Wort auf das gegebene folgt.
+												</p>
+												<Separator class="my-2" />
+												<a
+													class="flex items-center gap-2 text-muted-foreground"
+													href="https://de.wikipedia.org/wiki/Bedingte_Wahrscheinlichkeit"
+													target="_blank"
+													rel="noopener noreferrer"
+													>Bedingte Wahrscheinlichkeit<ExternalLink
+														class="inline-block h-4 w-4"
+													/></a
+												>
+											</div>
+										</HoverCard.Content>
+									</HoverCard.Root>
+								</Table.Head>
 							</Table.Row>
-						{/each}
-					{/if}
-				</Table.Body>
-			</Table.Root>
-		</ScrollArea>
+						</Table.Header>
+						<Table.Body
+							>{#if outputsHistory.length}
+								{#each filterBy(outputsHistory, searchValueHistory) as { word: ngram, abs, rel }, i}
+									<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={ngram}>
+										<Table.Cell>
+											<Badge
+												class="box-border cursor-pointer text-sm transition-none {selectedWord ===
+												ngram
+													? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
+													: 'text-foreground'}"
+												variant="secondary">{@html formatSearch(ngram, searchValueHistory)}</Badge
+											>
+										</Table.Cell>
+										<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
+										<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+									</Table.Row>
+								{/each}
+							{/if}
+						</Table.Body>
+					</Table.Root>
+				</ScrollArea>
+			</div>
+			<div class="right flex-1">
+				<div class="mb-2 flex w-full items-center justify-between">
+					<Button
+						class="group px-3 py-2 pl-0 transition-transform focus-visible:px-3 focus-visible:py-2 focus-visible:pl-0"
+						variant="secondary"
+						onclick={toLeft}
+						><ChevronLeft
+							class="ml-2 h-4 w-4 transition-transform ease-in-out group-hover:-translate-x-1"
+						/>Historie</Button
+					>
+					<Input
+						bind:value={searchValueNgrams}
+						class="w-1/2"
+						placeholder="Nach Bigrammen suchen"
+						type="search"
+						disabled={!hasBeenClicked}
+					/>
+				</div>
+				<ScrollArea class="relative h-[450px] w-full rounded-md border px-4 pt-4">
+					<Table.Root>
+						<Table.Caption>
+							{#if !outputsNgrams.length}Noch keine N-Gramme verfügbar{/if}
+						</Table.Caption>
+						<Table.Header class="sticky top-0">
+							<Table.Row>
+								<Table.Head class="w-48">N-Gramm</Table.Head>
+								<Table.Head class="text-right">Anzahl</Table.Head>
+								<Table.Head class="text-right">Wahrscheinlichkeit</Table.Head>
+							</Table.Row>
+						</Table.Header>
+						<Table.Body
+							>{#if outputsNgrams.length}
+								{#each filterBy(outputsNgrams, searchValueNgrams) as { word, abs, rel }, i}
+									{@const words = word.split('+')}
+									<Table.Row>
+										<Table.Cell>
+											<Tooltip.Root>
+												<Tooltip.Trigger>
+													<Badge
+														onclick={handleSetContext}
+														class="cursor-pointer text-sm hover:animate-pulse"
+														variant="secondary"
+														data-context={words[words.length - 1] ?? 'N/A'}
+														>{@html formatSearch(word, searchValueNgrams)}</Badge
+													>
+												</Tooltip.Trigger>
+												<Tooltip.Content>
+													<p class="flex items-center justify-between gap-x-1">
+														<span>{words[0]} bedingt {words[words.length - 1]}</span>
+														<!-- <Sparkles class="h-4 w-4 text-muted-foreground" /> -->
+													</p>
+												</Tooltip.Content>
+											</Tooltip.Root>
+										</Table.Cell>
+										<Table.Cell class="text-right font-mono">{abs}</Table.Cell>
+										<Table.Cell class="text-right font-mono">{(rel * 100).toFixed(3)}</Table.Cell>
+									</Table.Row>
+								{/each}
+							{/if}
+						</Table.Body>
+					</Table.Root>
+				</ScrollArea>
+			</div>
+		</div>
 	</div>
 
-	<!-- <LLMNext url={data.url} prev="Bigramm" next="..." /> -->
+	<LLMNext url={data.url} prev="Bigramm" next="N-Gramm" />
 </section>
 
 <Toaster position="bottom-right" />

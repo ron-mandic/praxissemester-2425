@@ -4,9 +4,9 @@ from pydantic import BaseModel, Field
 from typing import Optional
 
 from predictor import load_data
-from lib.utils import sanitize
-from lib.constants import PATH, END_TOKEN
-from lib.classes import Unigram, Bigram
+from lib.utils import ask_dict, sanitize
+from lib.constants import PATH, END_TOKEN, MAX_CONTEXT_LENGTH
+from lib.classes import Unigram, Bigram, Ngram
 
 app = FastAPI()
 
@@ -17,7 +17,7 @@ list_list_words_with_token = sanitize(list_str_with_token)
 
 model_unigram = Unigram(list_list_words_with_token)
 model_bigram = Bigram(list_list_words_with_token)
-# model_ngram = Ngram()
+model_ngram = Ngram(list_list_words_with_token, max_context_length=MAX_CONTEXT_LENGTH)
 
 @app.get("/")
 def index(with_duplicates: Optional[int] = 1):
@@ -42,3 +42,25 @@ def index(context: str, num_samples: Optional[int] = 1):
         return {"data": model_bigram.get_all_predictions(context)}
 
     return {"data": model_bigram.get_predictions(context, num_samples)}
+
+@app.get("/ngram")
+def index(context: str, context_length: int, num_samples: Optional[int] = 1):
+    # context
+    if context is None:
+        raise HTTPException(status_code=Status.HTTP_400_BAD_REQUEST, detail="/ngram: Context is required")
+
+    # ngram_length
+    if context_length is None:
+        raise HTTPException(status_code=Status.HTTP_400_BAD_REQUEST, detail="/ngram: Context length is required")
+    if context_length < 0:
+        raise HTTPException(status_code=Status.HTTP_400_BAD_REQUEST, detail="/ngram: Context length must be greater than 0")
+    if context_length > MAX_CONTEXT_LENGTH:
+        raise HTTPException(status_code=Status.HTTP_400_BAD_REQUEST, detail="/ngram: Context length must be less than or equal to 4")
+
+    # num_samples
+    if num_samples is None or num_samples == 1:
+        return {"data": model_ngram.predict(context, context_length)}
+    elif num_samples == -1:
+        return {"data": model_ngram.get_all_predictions(context, context_length)} 
+
+    return {"data": model_ngram.get_predictions(context, context_length, num_samples)}
