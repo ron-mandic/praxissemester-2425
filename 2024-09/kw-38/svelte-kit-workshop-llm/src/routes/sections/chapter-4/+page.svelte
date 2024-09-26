@@ -32,6 +32,12 @@
 		return handleReset;
 	});
 
+	$effect(() => {
+		if (outputsHistory.length === 100) {
+			toast('Also bei den Zeilen würde selbst Ed Sheeran neidisch werden. Wahnsinn!');
+		}
+	});
+
 	let seed = $state(null as number | null);
 	let contextValue = $state('');
 	let contextWords = $state(0);
@@ -257,13 +263,14 @@
 	// TODO: Maybe pose questions like what happens at e.g. "im in love with your body" and seed = 9999
 </script>
 
-<section class="h-full w-full">
+<section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
 	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">N-Gramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
 			<div class="flex items-center justify-between">
-				<Card.Title>Kontext <span class="whitespace-nowrap">gefällig?</span></Card.Title>
+				<Card.Title>Sprachmagier <span class="mr-1 whitespace-nowrap">mit Lexikon</span></Card.Title
+				>
 				<div class="flex items-center gap-3">
 					<Label for="seed" class="text-sm text-muted-foreground">
 						<HoverCard.Root>
@@ -577,12 +584,14 @@
 					</Table.Caption>
 					<Table.Header class="sticky top-0">
 						<Table.Row>
-							<Table.Head>{!currentModelName ? 'N-Gramm' : currentModelName}</Table.Head>
+							<Table.Head class="whitespace-nowrap"
+								>{!currentModelName ? 'N-Gramm' : currentModelName}</Table.Head
+							>
 							<Table.Head class="whitespace-nowrap text-right">Seed</Table.Head>
 							<Table.Head class="whitespace-nowrap text-right">Anzahl</Table.Head>
-							<Table.Head class="whitespace-nowrap text-right">
+							<Table.Head class="text-right">
 								<HoverCard.Root>
-									<HoverCard.Trigger class="hover:animate-pulse"
+									<HoverCard.Trigger class="whitespace-nowrap hover:animate-pulse"
 										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
 									>
 									<HoverCard.Content class="w-72">
@@ -649,13 +658,13 @@
 					</Table.Caption>
 					<Table.Header class="sticky top-0">
 						<Table.Row class="max-w-96 overflow-x-auto">
-							<Table.Head class="w-52"
+							<Table.Head class="w-52 whitespace-nowrap"
 								>{!currentModelName ? 'N-Gramm' : currentModelName}</Table.Head
 							>
 							<Table.Head class="whitespace-nowrap text-right">Anzahl</Table.Head>
-							<Table.Head class="whitespace-nowrap text-right">
+							<Table.Head class="text-right">
 								<HoverCard.Root>
-									<HoverCard.Trigger class="hover:animate-pulse"
+									<HoverCard.Trigger class="whitespace-nowrap hover:animate-pulse"
 										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
 									>
 									<HoverCard.Content class="w-72">

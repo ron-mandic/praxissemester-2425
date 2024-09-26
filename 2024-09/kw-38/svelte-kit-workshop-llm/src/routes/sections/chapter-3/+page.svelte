@@ -41,6 +41,12 @@
 		return handleReset;
 	});
 
+	$effect(() => {
+		if (outputsHistory.length === 100) {
+			toast('Ganz schön ambitioniert. Ed Sheeran würde sich freuen!');
+		}
+	});
+
 	function handlePressEnter(event: KeyboardEvent) {
 		if (event.key === 'Enter') handleClick();
 	}
@@ -169,7 +175,7 @@
 	}
 </script>
 
-<section class="h-full w-full">
+<section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
 	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Bigramm</h2>
 
 	<Card.Root class="w-full">
@@ -423,11 +429,11 @@
 					</Table.Caption>
 					<Table.Header class="sticky top-0">
 						<Table.Row>
-							<Table.Head class="w-52">Bigramm</Table.Head>
+							<Table.Head>Bigramm</Table.Head>
 							<Table.Head class="text-right">Anzahl</Table.Head>
 							<Table.Head class="text-right">
 								<HoverCard.Root>
-									<HoverCard.Trigger class="hover:animate-pulse"
+									<HoverCard.Trigger class="whitespace-nowrap hover:animate-pulse"
 										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
 									>
 									<HoverCard.Content class="w-72">
@@ -488,11 +494,11 @@
 					</Table.Caption>
 					<Table.Header class="sticky top-0">
 						<Table.Row>
-							<Table.Head class="w-52">Bigramm</Table.Head>
+							<Table.Head>Bigramm</Table.Head>
 							<Table.Head class="text-right">Anzahl</Table.Head>
 							<Table.Head class="text-right">
 								<HoverCard.Root>
-									<HoverCard.Trigger class="hover:animate-pulse"
+									<HoverCard.Trigger class="whitespace-nowrap hover:animate-pulse"
 										>Bedingte Wkt. <Info class="-mt-1 inline-block h-4 w-4" /></HoverCard.Trigger
 									>
 									<HoverCard.Content class="w-72">

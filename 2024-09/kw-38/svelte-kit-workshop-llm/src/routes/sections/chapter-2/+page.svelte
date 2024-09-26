@@ -29,7 +29,7 @@
 	// TODO: Check if this is necessary
 	$effect(() => {
 		return handleReset;
-	})
+	});
 
 	$effect(() => {
 		if (outputsHistory.length === 100) {
@@ -86,7 +86,7 @@
 	$inspect(selectedWord).with(console.log);
 </script>
 
-<section class="h-full w-full">
+<section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
 	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Unigramm</h2>
 
 	<Card.Root class="w-full">
@@ -216,7 +216,7 @@
 						</div>
 					</ScrollArea>
 				</Tabs.Content>
-				<Tabs.Content class="h-full w-full" value="1">
+				<Tabs.Content class="h-full w-full max-w-full" value="1">
 					<ScrollArea
 						class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0"
 						orientation="both"

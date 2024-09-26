@@ -63,7 +63,7 @@
 			</Sheet.Root>
 		</header>
 		<main
-			class="relative mx-auto flex h-full min-h-screen max-w-[540px] flex-1 flex-col gap-6 px-2 pb-32 pt-10 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:h-full after:w-full after:from-transparent after:to-white after:content-[''] md:px-6 md:pt-20"
+			class="relative mx-auto flex h-full min-h-screen max-w-[540px] flex-1 flex-col gap-6 px-2 pb-32 pt-10 after:pointer-events-none after:absolute after:inset-0 after:z-10 after:h-full after:w-full after:from-transparent after:to-white after:content-[''] md:px-3 md:pt-20"
 		>
 			{#key data.url}
 				<div

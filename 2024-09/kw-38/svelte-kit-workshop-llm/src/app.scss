@@ -74,6 +74,8 @@
 	* {
 		@apply border-border;
 		scrollbar-width: normal;
+		// TODO: Check if this causes any issues with the UI
+		box-sizing: border-box;
 	}
 	pre,
 	code {
