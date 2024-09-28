@@ -13,6 +13,7 @@
 	import { quartOut } from 'svelte/easing';
 
 	const { data, children } = $props();
+	let isOpen = $state(false);
 
 	let content = {
 		page,
@@ -24,6 +25,9 @@
 	};
 	let attrB = {
 		version: 'v2',
+		handler: () => {
+			isOpen = false;
+		},
 		...content
 	};
 </script>
@@ -46,9 +50,14 @@
 		<header
 			class="sticky top-0 z-[2] flex h-[60px] items-center gap-4 border-b bg-background/80 px-4 py-8 backdrop-blur-3xl md:hidden"
 		>
-			<Sheet.Root>
+			<Sheet.Root bind:open={isOpen}>
 				<Sheet.Trigger asChild let:builder>
-					<Button variant="outline" size="icon" class="shrink-0 md:hidden" builders={[builder]}>
+					<Button
+						variant="outline"
+						size="icon"
+						class="-ml-1 shrink-0 md:hidden"
+						builders={[builder]}
+					>
 						<Menu class="h-5 w-5" />
 						<span class="sr-only">Toggle navigation menu</span>
 					</Button>

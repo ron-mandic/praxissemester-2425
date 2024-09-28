@@ -8,7 +8,7 @@
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Einleitung</h2>
+	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">Einleitung</h2>
 
 	<p class="mb-6 px-2 md:px-0">
 		Im ersten Kapitel des KI-Workshops zu Large Language Models (LLMs) schauen wir uns gemeinsam an,

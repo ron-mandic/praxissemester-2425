@@ -15,6 +15,10 @@ export function preformat(str: string) {
 		.toLowerCase();
 }
 
+export function formatOutput(str: string) {
+	return str.replace(/\+([^+]*)$/, '<span class="font-mono text-[12px]">-></span>$1');
+}
+
 export function preprocess({ text }: { text: string }) {
 	const title = text.match(/^(.*) Lyrics/)?.[1] || 'N/A';
 	const str = preformat(text);
@@ -33,7 +37,7 @@ export function preprocess({ text }: { text: string }) {
 
 	return {
 		title: title ?? 'N/A',
-		dict: sortedDict,
+		dictionary: sortedDict,
 		words
 	};
 }

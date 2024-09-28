@@ -43,7 +43,7 @@
 
 	$effect(() => {
 		if (outputsHistory.length === 100) {
-			toast('Ganz schön ambitioniert. Ed Sheeran würde sich freuen!');
+			toast('Ganz schön ambitioniert. Ed Sheeran würde sich bestimmt über die Zeilen freuen!');
 		}
 	});
 
@@ -176,7 +176,7 @@
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
-	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Bigramm</h2>
+	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">Bigramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">

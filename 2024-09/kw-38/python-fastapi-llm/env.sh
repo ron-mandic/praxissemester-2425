@@ -19,8 +19,10 @@ function install() {
 
 function start() {
     if [ -f main.py ]; then
-        if [ -n "$1" ] && [ "$1" == "host" ]; then
-            .venv/Scripts/uvicorn main:app --reload --host 0.0.0.0 --port 8000
+        if [ -n "$1" ] && [ -n "$2" ]; then
+            .venv/Scripts/uvicorn main:app --reload --host $1 --port $2
+        elif [ -n "$1" ]; then
+            .venv/Scripts/uvicorn main:app --reload --host $1 --port 8000
         else
             .venv/Scripts/uvicorn main:app --reload
         fi

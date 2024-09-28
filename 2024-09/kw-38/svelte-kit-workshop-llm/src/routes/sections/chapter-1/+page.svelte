@@ -58,13 +58,13 @@
 </script>
 
 <section class="h-full w-full">
-	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">Daten</h2>
+	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">Daten</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
 			<Card.Title>Korpus</Card.Title>
 			<Card.Description>
-				<p class="mb-3 mt-2 text-balance">
+				<p class="mb-3 mt-2">
 					Chatbots, Textvervollständigung und Sprachassistenten wie Alexa basieren alle auf
 					Sprachmodellen. Je nach Anwendungsfall gibt es Unterschiede in der Struktur dieser
 					Modelle, aber grundsätzlich wandeln sie alle Sprache in Zahlen und dann wieder in Sprache

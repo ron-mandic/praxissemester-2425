@@ -4,10 +4,16 @@
 	import Book from 'lucide-svelte/icons/book';
 	import BookOpenText from 'lucide-svelte/icons/book-open-text';
 
-	const { version, page, links } = $props<{
+	const { version, handler, page, links } = $props<{
+		version: string;
+		handler?: () => void;
 		page: Readable<Page<Record<string, string>, string | null>>;
 		links: { innerText: string; href: string }[];
 	}>();
+
+	// Make sure, once the links are clicked, you can close the sheet (dialog) automatically
+	// Source: https://www.bits-ui.com/docs/components/dialog
+	let attr = !handler ? {} : { onclick: handler };
 </script>
 
 {#if version === 'v1'}
@@ -15,6 +21,7 @@
 		{#each links as { innerText, href }, i}
 			<a
 				{href}
+				{...attr}
 				id="{version}-{i}"
 				class="group flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-transform hover:text-primary {$page
 					.route.id === href
@@ -37,6 +44,7 @@
 		{#each links as { innerText, href }, i}
 			<a
 				{href}
+				{...attr}
 				id="{version}-{i}"
 				class="group mx-[-0.65rem] flex select-none items-center gap-4 rounded-xl px-3 py-2 transition-transform hover:text-foreground {$page
 					.route.id === href

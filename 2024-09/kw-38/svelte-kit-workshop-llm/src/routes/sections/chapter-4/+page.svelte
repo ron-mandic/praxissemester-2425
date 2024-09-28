@@ -261,10 +261,27 @@
 	}
 
 	// TODO: Maybe pose questions like what happens at e.g. "im in love with your body" and seed = 9999
+	// or "im in love with" and seed = 30
+
+	// TODO: Also questions regarding the common understanding of N-Gramms and the actual implementation
+	/* Warum also nicht immer N-Gramme?
+		Begrenzte Kontextualisierung:
+		N-Gramme können nur sehr kurze Abhängigkeiten zwischen Wörtern erfassen. Längere
+		Zusammenhänge oder komplexere Sprachphänomene können sie nicht gut modellieren.
+		
+		Datensparsamkeit:
+		Für sehr seltene Wortkombinationen gibt es möglicherweise keine oder nur wenige
+		Beispiele im Trainingskorpus. Dies kann zu ungenauen Vorhersagen führen.
+
+		Keine Generalisierung:
+		N-Gramme sind stark an die spezifischen Daten gebunden, auf denen sie trainiert
+		wurden. Sie können Schwierigkeiten haben, auf neue oder unbekannte Daten
+		zu generalisieren.
+	*/
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
-	<h2 class="mb-6 px-2 text-4xl font-bold md:px-0">N-Gramm</h2>
+	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">N-Gramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
