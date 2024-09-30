@@ -7,8 +7,8 @@
 	const { data } = $props();
 </script>
 
-<section class="h-full w-full">
-	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">Einleitung</h2>
+<section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
+	<h2 class="mb-12 text-center text-4xl font-bold lg:text-left">Übersicht</h2>
 
 	<p class="mb-6 px-2 md:px-0">
 		Im ersten Kapitel des KI-Workshops zu Large Language Models (LLMs) schauen wir uns gemeinsam an,
@@ -24,7 +24,7 @@
 	</p>
 
 	<Card.Root
-		class="border-1 font-regular mt-6 w-full border border-yellow-700/40 bg-yellow-100/20 text-yellow-700"
+		class="font-regular mt-6 w-full border-2 border-yellow-700/40 bg-yellow-100 text-yellow-800"
 	>
 		<Card.Header class="gap-2 p-1.5">
 			<div class="relative grid h-[315px] w-full place-items-center rounded-md bg-yellow-400">
@@ -36,7 +36,7 @@
 			</div>
 			<div class="px-6 pb-6 pt-2">
 				<Card.Description>
-					<p class="mb-3 text-balance">
+					<p class="mb-3 select-none">
 						Hugging Face bietet hochwertige, vielfältige und kuratierte Datensätze, die es uns
 						ermöglichen, schnell die benötigten Ressourcen für unsere Unigramm-Analysen,
 						N-Gramm-Modelle und andere Sprachaufgaben zu finden. Dadurch sparen wir Zeit, da wir
@@ -47,7 +47,7 @@
 					<Separator class="my-6 bg-yellow-700/20" />
 
 					<a
-						class="inline-block items-center gap-2 text-yellow-700/70 hover:text-yellow-900"
+						class="inline-block items-center gap-2 text-yellow-700/90 hover:text-yellow-900"
 						href="https://huggingface.co/"
 						target="_blank"
 						rel="noopener noreferrer"
@@ -66,13 +66,13 @@
 	</p>
 
 	<Card.Root
-		class="border-1 font-regular mt-6 w-full border border-orange-700/40 bg-orange-100/20 text-orange-700"
+		class="font-regular mt-6 w-full border-2 border-orange-700/40 bg-orange-100 text-orange-800"
 	>
 		<Card.Header class="gap-2 p-1.5">
 			<img src="/jpg/ed-sheeran.jpg" alt="Ed Sheeran" class="w-full select-none rounded-md" />
 			<div class="px-6 pb-6 pt-2">
 				<Card.Description>
-					<p class="mb-3 text-balance">
+					<p class="mb-3 select-none">
 						In diesem Workshop arbeiten wir mit 100 Songtexten von Ed Sheeran, um die Funktionsweise
 						einfacher Sprachmodelle zu verstehen. Dabei werden wir untersuchen, wie Modelle
 						Vorhersagen treffen und versuchen, den Stil des Künstlers zu imitieren. Anhand dieses
@@ -83,7 +83,7 @@
 					<Separator class="my-6 bg-orange-700/20" />
 
 					<a
-						class="inline-block items-center gap-2 text-orange-700/70 hover:text-orange-900"
+						class="inline-block items-center gap-2 text-orange-700/90 hover:text-orange-900"
 						href="https://huggingface.co/datasets/huggingartists/ed-sheeran"
 						target="_blank"
 						rel="noopener noreferrer"

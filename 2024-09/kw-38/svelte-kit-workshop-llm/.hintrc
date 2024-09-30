@@ -9,6 +9,7 @@
       {
         "document-title": "off"
       }
-    ]
+    ],
+    "meta-viewport": "off"
   }
 }

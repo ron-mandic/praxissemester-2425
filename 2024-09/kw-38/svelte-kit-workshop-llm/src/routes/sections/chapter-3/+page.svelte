@@ -176,7 +176,7 @@
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
-	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">Bigramm</h2>
+	<h2 class="mb-12 text-center text-4xl font-bold lg:text-left">Bigramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
@@ -470,7 +470,7 @@
 								<Table.Row class="cursor-pointer" onclick={handleSelectedWord} data-word={ngram}>
 									<Table.Cell>
 										<Badge
-											class="box-border cursor-pointer text-sm transition-none {selectedWord ===
+											class="box-border cursor-pointer whitespace-nowrap text-sm transition-none {selectedWord ===
 											ngram
 												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
 												: 'text-foreground'}"
@@ -539,7 +539,7 @@
 											<Tooltip.Trigger>
 												<Badge
 													onclick={handleSetContext}
-													class="cursor-pointer text-sm hover:animate-pulse"
+													class="cursor-pointer whitespace-nowrap text-sm hover:animate-pulse"
 													variant="secondary"
 													data-context={words[words.length - 1] ?? 'N/A'}
 													>{@html formatSearch(word, searchValueBigrams)}</Badge

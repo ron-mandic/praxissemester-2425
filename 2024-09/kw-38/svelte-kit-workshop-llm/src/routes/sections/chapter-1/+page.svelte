@@ -31,6 +31,17 @@
 		if (searchValueTable === '') selectedRow = null;
 	});
 
+	// TODO: Implement mobile support and resolve mismatch issues with Bits UI
+	// const hoverCards = $state({
+	// 	corpus: true
+	// } as { [key: string]: boolean });
+
+	// function handleOnTriggerClick(event: MouseEvent) {
+	// 	const target = event.currentTarget;
+	// 	const { trigger } = (target as HTMLElement).dataset;
+	// 	hoverCards[trigger as string] = !hoverCards[trigger as string];
+	// }
+
 	let searchValueTable = $state('');
 	let selectedRow = $state(null) as (typeof data.fastapi.rows)[0];
 
@@ -57,8 +68,8 @@
 	}
 </script>
 
-<section class="h-full w-full">
-	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">Daten</h2>
+<section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
+	<h2 class="mb-12 text-center text-4xl font-bold lg:text-left">Daten</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
@@ -75,7 +86,7 @@
 					Diese Modelle speichern Wahrscheinlichkeiten darüber, welche Wörter in Abhängigkeit von
 					den benachbarten Wörtern als nächstes kommen könnten. Sie berechnen diese
 					Wahrscheinlichkeiten auf der Grundlage von Wortfolgen, die im <HoverCard.Root>
-						<HoverCard.Trigger class="hover:animate-pulse"
+						<HoverCard.Trigger class="hover:animate-pulse" data-trigger="corpus"
 							>Korpus <Info class="inline-block h-4 w-4" /></HoverCard.Trigger
 						>
 						<HoverCard.Content class="w-72">
@@ -127,7 +138,7 @@
 						<LLMCode innerText={EXAMPLE_OBJ_SONG} language="json" />
 					</div>
 
-					<p class="text-balance">
+					<p>
 						Mit nur 100 Liedern haben wir auch eine relativ begrenzte Datenmenge. Um
 						sicherzustellen, dass unser Modell die Lieder trotzdem gut lernen kann, müssen wir die
 						Daten bereinigen. Das Modell lernt in unserem Fall am besten, wenn sie in
@@ -138,7 +149,7 @@
 						<LLMCode innerText={Object.assign({}, EXAMPLE_OBJ_SONG_PREFORMATTED)} language="json" />
 					</div>
 
-					<p class="text-balance">
+					<p>
 						Gleichzeitig behalten wir die Zeilenumbrüche bei, weil sie für die Liedstrophen
 						charakteristisch sind. Wir kennzeichnen sie dann mit einem separaten Symbol.
 					</p>
@@ -215,7 +226,7 @@
 				placeholder="Nach Songtitel suchen"
 				type="search"
 			/>
-			<ScrollArea class="relative h-[330px] w-full rounded-md border px-4 pt-4">
+			<ScrollArea class="relative h-[330px] w-full rounded-md border px-4 pt-4" orientation="both">
 				<Table.Root>
 					<Table.Header class="sticky top-0">
 						<Table.Row>

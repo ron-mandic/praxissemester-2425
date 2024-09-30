@@ -58,6 +58,7 @@
 		"runed": "^0.15.2",
 		"svelte-motion": "^0.12.2",
 		"svelte-sonner": "^0.3.28",
+		"swapy": "^0.4.1",
 		"tailwind-merge": "^2.5.2",
 		"tailwind-variants": "^0.2.1",
 		"vaul-svelte": "^0.3.2"

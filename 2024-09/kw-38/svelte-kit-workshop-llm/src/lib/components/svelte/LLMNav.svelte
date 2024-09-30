@@ -3,12 +3,13 @@
 	import type { Readable } from 'svelte/store';
 	import Book from 'lucide-svelte/icons/book';
 	import BookOpenText from 'lucide-svelte/icons/book-open-text';
+	import ScrollArea from '@/ui/scroll-area/scroll-area.svelte';
 
 	const { version, handler, page, links } = $props<{
 		version: string;
 		handler?: () => void;
 		page: Readable<Page<Record<string, string>, string | null>>;
-		links: { innerText: string; href: string }[];
+		links: ({ innerText: string; href?: string } | { heading: string })[];
 	}>();
 
 	// Make sure, once the links are clicked, you can close the sheet (dialog) automatically
@@ -17,47 +18,73 @@
 </script>
 
 {#if version === 'v1'}
-	<nav class="grid items-start gap-1 p-3 font-medium">
-		{#each links as { innerText, href }, i}
-			<a
-				{href}
-				{...attr}
-				id="{version}-{i}"
-				class="group flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-transform hover:text-primary {$page
-					.route.id === href
-					? 'bg-muted text-foreground'
-					: 'text-muted-foreground'}"
-			>
-				{#if $page.route.id === href}
-					<BookOpenText class="h-5 w-5 animate-slideIn ease-out" />
+	<ScrollArea orientation="vertical" class="h-full w-full pt-4" type="scroll">
+		<nav class="grid items-start gap-1 p-3 font-medium">
+			{#each links as { innerText, href, heading }, i}
+				{#if heading}
+					<p
+						class="font-regular mb-1 mt-6 select-none px-3 text-sm uppercase text-muted-foreground/70 first:mt-0"
+					>
+						{heading}
+					</p>
 				{:else}
-					<Book class="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
+					<a
+						{href}
+						{...attr}
+						id="{version}-{i}"
+						class="group flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-transform last:mb-3 hover:text-primary {!href
+							? 'pointer-events-none cursor-not-allowed select-none text-muted-foreground/40'
+							: 'pointer-events-auto text-foreground'} {$page.route.id === href
+							? 'bg-muted text-foreground'
+							: 'text-muted-foreground'}"
+					>
+						{#if $page.route.id === href}
+							<BookOpenText class="h-5 w-5 animate-slideIn ease-out" />
+						{:else}
+							<Book class="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
+						{/if}
+						<span class="w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap"
+							>{innerText}</span
+						>
+					</a>
 				{/if}
-				<span>{innerText}</span>
-			</a>
-		{/each}
-	</nav>
+			{/each}
+		</nav>
+	</ScrollArea>
 {/if}
 
 {#if version === 'v2'}
-	<nav class="mt-2 grid gap-1 text-lg font-medium">
-		{#each links as { innerText, href }, i}
-			<a
-				{href}
-				{...attr}
-				id="{version}-{i}"
-				class="group mx-[-0.65rem] flex select-none items-center gap-4 rounded-xl px-3 py-2 transition-transform hover:text-foreground {$page
-					.route.id === href
-					? 'bg-muted text-foreground'
-					: 'text-muted-foreground'}"
-			>
-				{#if $page.route.id === href}
-					<BookOpenText class="h-5 w-5 animate-slideIn ease-out" />
+	<ScrollArea orientation="vertical" class="w-full px-3 pt-4">
+		<nav class="mt-2 grid gap-1 text-lg font-medium">
+			{#each links as { innerText, href, heading }, i}
+				{#if heading}
+					<p
+						class="font-regular mb-1 mt-6 select-none px-4 text-sm uppercase text-muted-foreground/70 first:mt-0"
+					>
+						{heading}
+					</p>
 				{:else}
-					<Book class="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
+					<a
+						{href}
+						{...attr}
+						id="{version}-{i}"
+						class="group flex select-none items-center gap-4 rounded-xl px-3 py-2 transition-transform last:mb-6 hover:text-foreground {!href
+							? 'pointer-events-none cursor-not-allowed select-none text-muted-foreground/40'
+							: 'pointer-events-auto text-foreground'} {$page.route.id === href
+							? 'bg-muted text-foreground'
+							: 'text-muted-foreground'}"
+					>
+						{#if $page.route.id === href}
+							<BookOpenText class="ml-1 h-5 w-5 animate-slideIn ease-out" />
+						{:else}
+							<Book class="ml-1 h-5 w-5 transition-transform group-hover:translate-y-0.5" />
+						{/if}
+						<span class="w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap"
+							>{innerText}</span
+						>
+					</a>
 				{/if}
-				<span>{innerText}</span>
-			</a>
-		{/each}
-	</nav>
+			{/each}
+		</nav>
+	</ScrollArea>
 {/if}

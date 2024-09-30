@@ -281,7 +281,7 @@
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
-	<h2 class="mb-12 text-center md:text-left text-4xl font-bold">N-Gramm</h2>
+	<h2 class="mb-12 text-center text-4xl font-bold lg:text-left">N-Gramm</h2>
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
@@ -364,7 +364,7 @@
 						>
 						<HoverCard.Content class="w-80">
 							<div class="flex flex-col items-start gap-2 text-sm">
-								<p class="text-balance">
+								<p>
 									Ein N-Gramm ist das Ergebnis der Zerlegung eines Textes in einzelne Bausteine. Das
 									zusammengefasste N-Gramm besteht aus <code class="bg-muted px-1 font-mono">N</code
 									> einzelnen Wörtern oder auch kleineren Einheiten.
@@ -496,7 +496,7 @@
 											onclick={handleSelectedWord}
 											data-word={ngram}
 											variant="outline"
-											class="box-border inline-block animate-bounceIn cursor-pointer text-base {selectedWord ===
+											class="box-border inline-block animate-bounceIn cursor-pointer whitespace-nowrap text-base {selectedWord ===
 											ngram
 												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
 												: 'text-foreground'}">{ngram}</Badge
@@ -750,7 +750,7 @@
 		</Tabs.Content>
 	</Tabs.Root>
 
-	<LLMNext url={data.url} prev="Bigramm" next="N-Gramm" />
+	<LLMNext url={data.url} prev="Bigramm" next="Leerzeichen" />
 </section>
 
 <Toaster position="bottom-right" />

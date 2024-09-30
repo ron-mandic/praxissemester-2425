@@ -1,11 +1,17 @@
 export const LINKS = [
 	{
-		innerText: 'Einleitung',
+		heading: 'Einführung'
+	},
+	{
+		innerText: 'Übersicht',
 		href: '/sections/chapter-0'
 	},
 	{
 		innerText: 'Daten',
 		href: '/sections/chapter-1'
+	},
+	{
+		heading: 'Grundlagen'
 	},
 	{
 		innerText: 'Unigramm',
@@ -18,6 +24,76 @@ export const LINKS = [
 	{
 		innerText: 'N-Gramm',
 		href: '/sections/chapter-4'
+	},
+	{
+		heading: 'Tokens'
+	},
+	{
+		innerText: 'Leerzeichen',
+		href: '/sections/chapter-5'
+	},
+	{
+		innerText: 'Zeichensetzung'
+	},
+	{
+		innerText: 'Byte-Pair'
+	},
+	{
+		heading: 'Embeddings'
+	},
+	{
+		innerText: 'Generierung'
+	},
+	{
+		innerText: 'Visualisierung'
+	},
+	{
+		heading: 'Exkurs'
+	},
+	{
+		innerText: 'Eliza'
+	},
+	{
+		heading: 'Inferenz'
+	},
+	{
+		innerText: 'Seed'
+	},
+	{
+		innerText: 'Temperatur'
+	},
+	{
+		innerText: 'System Prompt'
+	},
+	{
+		heading: 'Beispiele'
+	},
+	{
+		innerText: 'Fill-Mask'
+	},
+	{
+		innerText: 'Frage-Antwort-Systeme'
+	},
+	{
+		innerText: 'Textklassifizierung'
+	},
+	{
+		innerText: 'Textvervollständigung'
+	},
+	{
+		innerText: 'Textzusammenfassung'
+	},
+	{
+		innerText: 'Textübersetzung'
+	},
+	{
+		innerText: 'Reasoning'
+	},
+	{
+		innerText: 'Satzähnlichkeit'
+	},
+	{
+		innerText: 'Zero-Shot'
 	}
 ];
 
