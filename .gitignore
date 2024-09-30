@@ -128,3 +128,4 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+2024-09/kw-38/python-jupyter-n-gram-model/lib/.DS_Store

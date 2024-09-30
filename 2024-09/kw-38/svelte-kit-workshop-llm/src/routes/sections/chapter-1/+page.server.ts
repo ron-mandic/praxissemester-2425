@@ -1,8 +1,9 @@
 import type { PageServerLoad } from './$types';
+import { URL_SERVER } from '$env/static/private';
 
 export const load: PageServerLoad = async ({ fetch }) => {
 	async function loadData() {
-		const response = await fetch('http://127.0.0.1:8000/');
+		const response = await fetch(URL_SERVER);
 		const data = await response.json();
 		return data;
 	}
