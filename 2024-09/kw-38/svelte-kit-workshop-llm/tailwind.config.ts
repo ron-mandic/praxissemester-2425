@@ -51,7 +51,8 @@ const config: Config = {
 				}
 			},
 			backgroundImage: {
-				'llm-gradient': 'linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 60%)'
+				'llm-gradient':
+					'linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 1) 60%)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -97,6 +98,14 @@ const config: Config = {
 						transform: 'translateY(0) scaleX(1)'
 					}
 				},
+				flyIn: {
+					'0%': {
+						transform: 'translateY(20%)'
+					},
+					'100%': {
+						transform: 'translateY(0)'
+					}
+				},
 				bounce: {
 					'0%, 100%': {
 						transform: 'translateY(-5%)',
@@ -132,6 +141,7 @@ const config: Config = {
 				bounceIn: 'bounceIn 1s both',
 				bounce: 'bounce 1s infinite',
 				slideIn: 'slideIn 0.5s both',
+				flyIn: "flyIn .25s both",
 				wobble: 'wobble 1s both'
 			}
 		}

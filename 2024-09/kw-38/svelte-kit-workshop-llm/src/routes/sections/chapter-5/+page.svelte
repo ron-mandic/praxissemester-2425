@@ -20,6 +20,8 @@
 
 	import { createSwapy } from 'swapy';
 	import { onMount } from 'svelte';
+	import { fly, slide } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 
 	// let container: HTMLDivElement;
 	// onMount(() => {
@@ -29,6 +31,9 @@
 	// 		});
 	// 	}
 	// });
+
+	let result = $state('');
+	let chunks = $state([] as any[]);
 
 	async function handleClick() {
 		const response = await fetch('http://localhost:8000/generate', {
@@ -41,12 +46,16 @@
 			})
 		});
 
+		const reader = response.body!.getReader();
 		const decoder = new TextDecoder('utf-8');
-		let result = '';
 
-		// Verwende for await...of, um die Chunks zu lesen
-		for await (const chunk of response.body) {
-			result += decoder.decode(chunk, { stream: true });
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) break;
+			const chunk = JSON.parse(decoder.decode(value, { stream: true }));
+			chunks.push(chunk);
+			result += chunk.response;
+			console.log('{' + chunk.response + '}');
 		}
 	}
 
@@ -100,6 +109,20 @@
 		<Separator class="mb-6" />
 		<Card.Content>
 			<Button onclick={handleClick}>Hello World</Button>
+
+			<div class="whitespace-break-spaces bg-muted p-3">
+				{#each chunks as chunk, i (chunk)}
+					{@const current = chunk}
+					{@const next = chunks[i + 1]}
+					{#if next?.response.trim() !== next?.response}
+						<div class="inline-block animate-flyIn">{chunk.response.trim() + ' '}</div>
+					{:else}
+						<div class="inline-block animate-flyIn">{chunk?.response.trim()}</div>
+					{/if}
+				{/each}
+
+				<span class="inline-block h-4 w-4 translate-y-0.5 rounded-full bg-black"></span>
+			</div>
 		</Card.Content>
 		<Card.Footer class="flex justify-between"></Card.Footer>
 	</Card.Root>
