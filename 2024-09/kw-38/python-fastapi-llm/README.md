@@ -11,18 +11,18 @@
 ## Pakete
 
 ```bash
-(.venv)
-$ .venv/Scripts/pip install fastapi "uvicorn[standard]"
-$ .venv/Scripts/pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
-$ .venv/Scripts/uvicorn main:app --reload
+(.venv) $ pip install fastapi "uvicorn[standard]"
+(.venv) $ pip install torch torchvision torchaudio
+(.venv) $ pip install requests python-dotenv
+(.venv) $ uvicorn main:app --host 0.0.0.0 --reload
 ```
 
 ## Befehle
 
-- `.venv/Scripts/activate` zum Aktivieren der Umgebung (falls noch nicht geschehen)
-- `.venv/Scripts/pip freeze > requirements.txt` zum Erstellen einer Anforderungsliste
-- `.venv/Scripts/pip install -r requirements.txt` zum Installieren der Abhängigkeiten
-- `.venv/Scripts/gunicorn -w 4 -k uvicorn.workers.UvicornWorker <FILE>:app` zum Starten von Workern
+- `activate` zum Aktivieren der Umgebung (falls noch nicht geschehen)
+- `pip freeze > requirements.txt` zum Erstellen einer Anforderungsliste
+- `pip install -r requirements.txt` zum Installieren der Abhängigkeiten
+- `gunicorn -w 4 -k uvicorn.workers.UvicornWorker <FILE>:app` zum Starten von Workern
 
 ## Weitere Libraries
 

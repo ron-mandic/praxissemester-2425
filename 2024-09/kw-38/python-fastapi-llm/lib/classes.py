@@ -1,4 +1,5 @@
 from typing import Optional
+from pydantic import BaseModel, Field
 import torch
 from lib.utils import ask_dict, get_dict, sample, get_samples
 
@@ -89,3 +90,27 @@ class Ngram():
             return None
 
         return sorted(list_key_tuple_answers, key=lambda x: x[1], reverse=True)
+    
+class QC(BaseModel):
+    question: str
+    context: str
+
+class SSS(BaseModel):
+    source_sentence: str
+    sentences: list[str]
+
+class C(BaseModel):
+    candidate_labels: list[str]
+
+class PayloadInput(BaseModel):
+    inputs: str
+
+class PayloadInputQC(BaseModel):
+    inputs: QC
+
+class PayloadInputSSS(BaseModel):
+    inputs: SSS
+
+class PayloadInputP(BaseModel):
+    inputs: str
+    parameters: C

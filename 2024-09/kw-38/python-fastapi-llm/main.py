@@ -3,11 +3,18 @@ from fastapi import FastAPI, HTTPException, Path, Query, Depends, status as Stat
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional
+from dotenv import load_dotenv
+import requests
+import os
 
 from predictor import load_data
-from lib.utils import ask_dict, sanitize
-from lib.constants import PATH, END_TOKEN, MAX_CONTEXT_LENGTH
-from lib.classes import Unigram, Bigram, Ngram
+from lib.utils import sanitize
+from lib.constants import API_URL_FILL_MASK, API_URL_QUESTION_ANSWERING, API_URL_SENTENCE_SIMILARITY, API_URL_SUMMARIZATION, API_URL_TEXT2TEXT, API_URL_TEXT_CLASSIFICATION_EMOTIONS, API_URL_TEXT_CLASSIFICATION_SENTIMENT, API_URL_TEXT_GENERATION, API_URL_TRANSLATION, API_URL_ZERO_SHOT_CLASSIFICATION, PATH, END_TOKEN, MAX_CONTEXT_LENGTH
+from lib.classes import PayloadInput, PayloadInputP, PayloadInputQC, PayloadInputSSS, Unigram, Bigram, Ngram
+
+load_dotenv(dotenv_path=".env")
+HF_TOKEN = os.getenv("HF_TOKEN")
+headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 app = FastAPI()
 
@@ -69,3 +76,59 @@ def index(context: str, context_length: int, num_samples: Optional[int] = 1, see
         return {"data": model_ngram.get_all_predictions(context, context_length)} 
 
     return {"data": model_ngram.get_predictions(context, context_length, num_samples, seed)}
+
+def query(payload, api_url):
+    response = requests.post(api_url, headers=headers, json=payload.dict())
+    return response.json()
+
+@app.post("/fill-mask")
+def index(payload: PayloadInput):
+    output = query(payload, API_URL_FILL_MASK)
+    return output
+
+@app.post("/question-answering")
+def index(payload: PayloadInputQC):
+    output = query(payload, API_URL_QUESTION_ANSWERING)
+    return output
+
+@app.post("/text-classification/sentiment")
+def index(payload: PayloadInput):
+    output = query(payload, API_URL_TEXT_CLASSIFICATION_SENTIMENT)
+    return output
+
+@app.post("/text-classification/emotions")
+def index(payload: PayloadInput):
+    output = query(payload, API_URL_TEXT_CLASSIFICATION_EMOTIONS)
+    return output
+
+@app.post("/text-generation")
+def index(payload: PayloadInput):
+    output = query(payload, API_URL_TEXT_GENERATION)
+    return output
+
+@app.post("/summarization")
+def index(payload: PayloadInput):
+    output = query(payload, API_URL_SUMMARIZATION)
+    return output
+
+@app.post("/translation")
+def index(payload: PayloadInput):
+    """en to de"""
+    output = query(payload, API_URL_TRANSLATION)
+    return output
+
+@app.post("/text2text")
+def index(payload: PayloadInput):
+    """reasoning"""
+    output = query(payload, API_URL_TEXT2TEXT)
+    return output
+
+@app.post("/sentence-similarity")
+def index(payload: PayloadInputSSS):
+    output = query(payload, API_URL_SENTENCE_SIMILARITY)
+    return output
+
+@app.post("/zero-shot-classification")
+def index(payload: PayloadInputP):
+    output = query(payload, API_URL_ZERO_SHOT_CLASSIFICATION)
+    return output

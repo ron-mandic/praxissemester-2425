@@ -21,14 +21,14 @@
 	import { createSwapy } from 'swapy';
 	import { onMount } from 'svelte';
 
-	let container: HTMLDivElement;
-	onMount(() => {
-		if (container) {
-			const swapy = createSwapy(container, {
-				animation: 'dynamic'
-			});
-		}
-	});
+	// let container: HTMLDivElement;
+	// onMount(() => {
+	// 	if (container) {
+	// 		const swapy = createSwapy(container, {
+	// 			animation: 'dynamic'
+	// 		});
+	// 	}
+	// });
 
 	const { data } = $props();
 	console.log(data.fastapi.rows);
@@ -82,27 +82,6 @@
 		<Card.Content></Card.Content>
 		<Card.Footer class="flex justify-between"></Card.Footer>
 	</Card.Root>
-
-	<div class="container" bind:this={container}>
-		<div class="section-1" data-swapy-slot="foo">
-			<div class="content-a" data-swapy-item="a">
-				<p>A</p>
-			</div>
-		</div>
-
-		<div class="section-2" data-swapy-slot="bar">
-			<div class="content-b" data-swapy-item="b">
-				<p>B</p>
-				<div class="handle" data-swapy-handle></div>
-			</div>
-		</div>
-
-		<div class="section-3" data-swapy-slot="baz">
-			<div class="content-c" data-swapy-item="c">
-				<p>C</p>
-			</div>
-		</div>
-	</div>
 
 	<LLMNext url={data.url} prev="N-Gramm" next="Zeichensetzung" />
 </section>
