@@ -1,6 +1,6 @@
-import json, re
 from typing import Optional
-
+from collections import defaultdict
+import json, re, requests
 import torch
 
 def load(path: str, encoding = 'utf-8') -> dict:
@@ -74,3 +74,92 @@ def get_samples(tensor_probs, list_key_tuple, num_samples: int, seed: Optional[i
 
     indexes = torch.multinomial(**args)
     return [list_key_tuple[index.item()] for index in indexes]
+
+# Helpers
+
+def query(payload, api_url, headers):
+    response = requests.post(api_url, headers=headers, json=payload.dict())
+    return response.json()
+
+def to_fragments(data):
+    fragments = []
+    word = data["word"]
+    stem = data["stem"]
+    suffix = word[len(stem):] 
+
+    if word == stem:
+        suffix = ""
+    fragments.append(stem)
+    if suffix:
+        fragments.append(suffix)
+
+    return fragments
+
+def split_affixes(sentence, tokenizer, stemmer):
+    words = tokenizer.tokenize(sentence)
+    
+    tokens = []
+    for word in words:
+        w = word.lower()
+        stem = stemmer.stem(w)
+
+        dict = {"word": w, "stem": stem}
+        list_fragments = to_fragments(dict)
+
+        for fragment in list_fragments:
+            tokens.append(fragment)
+    
+    return tokens
+
+# External sources
+# Source: https://www.geeksforgeeks.org/byte-pair-encoding-bpe-in-nlp/
+def get_stats(vocab):
+    """
+    Given a vocabulary (dictionary mapping words to frequency counts), returns a 
+    dictionary of tuples representing the frequency count of pairs of characters 
+    in the vocabulary.
+    """
+    pairs = defaultdict(int)
+    for word, freq in vocab.items():
+        symbols = word.split()
+        for i in range(len(symbols)-1):
+            pairs[symbols[i],symbols[i+1]] += freq
+    return pairs
+
+def merge_vocab(pair, v_in):
+    """
+    Given a pair of characters and a vocabulary, returns a new vocabulary with the 
+    pair of characters merged together wherever they appear.
+    """
+    v_out = {}
+    bigram = re.escape(' '.join(pair))
+    p = re.compile(r'(?<!\S)' + bigram + r'(?!\S)')
+    for word in v_in:
+        w_out = p.sub(''.join(pair), word)
+        v_out[w_out] = v_in[word]
+    return v_out
+
+def get_vocab(data, end_token):
+    """
+    Given a list of strings, returns a dictionary of words mapping to their frequency 
+    count in the data.
+    """
+    vocab = defaultdict(int)
+    for line in data:
+        for word in line.split():
+            vocab[' '.join(list(word)) + f' {end_token}'] += 1
+    return vocab
+
+def bpe(data, n, end_token = "</w>"):
+    """
+    Given a list of strings and an integer n, returns a list of n merged pairs
+    of characters found in the vocabulary of the input data.
+    """
+    vocab = get_vocab(data, end_token)
+
+    for _ in range(n):
+        pairs = get_stats(vocab)
+        best = max(pairs, key=pairs.get)
+        vocab = merge_vocab(best, vocab)
+
+    return vocab

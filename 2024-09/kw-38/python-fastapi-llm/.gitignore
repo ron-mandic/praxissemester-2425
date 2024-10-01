@@ -1,5 +1,10 @@
 # Ignoriere die virtuelle Umgebung
+.venv
+.test
+test
 .venv/
+.test/
+test/
 
 # Bytecode-Dateien
 __pycache__/

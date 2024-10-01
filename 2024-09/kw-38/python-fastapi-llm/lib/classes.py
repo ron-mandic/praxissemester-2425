@@ -114,3 +114,11 @@ class PayloadInputSSS(BaseModel):
 class PayloadInputP(BaseModel):
     inputs: str
     parameters: C
+
+class PayloadInputT(BaseModel):
+    inputs: str
+    treebank: bool
+
+class PayloadInputI(BaseModel):
+    inputs: str
+    iterations: int

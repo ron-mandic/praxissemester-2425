@@ -36,6 +36,9 @@ export const LINKS = [
 		innerText: 'Zeichensetzung'
 	},
 	{
+		innerText: 'Affixe'
+	},
+	{
 		innerText: 'Byte-Pair'
 	},
 	{

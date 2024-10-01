@@ -14,6 +14,7 @@
 (.venv) $ pip install fastapi "uvicorn[standard]"
 (.venv) $ pip install torch torchvision torchaudio
 (.venv) $ pip install requests python-dotenv
+(.venv) $ pip install nltk
 (.venv) $ uvicorn main:app --host 0.0.0.0 --reload
 ```
 
