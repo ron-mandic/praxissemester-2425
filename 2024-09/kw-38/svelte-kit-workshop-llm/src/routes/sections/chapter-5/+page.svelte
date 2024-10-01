@@ -30,8 +30,27 @@
 	// 	}
 	// });
 
+	async function handleClick() {
+		const response = await fetch('http://localhost:8000/generate', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				prompt: 'What is the meaning of life?'
+			})
+		});
+
+		const decoder = new TextDecoder('utf-8');
+		let result = '';
+
+		// Verwende for await...of, um die Chunks zu lesen
+		for await (const chunk of response.body) {
+			result += decoder.decode(chunk, { stream: true });
+		}
+	}
+
 	const { data } = $props();
-	console.log(data.fastapi.rows);
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
@@ -79,7 +98,9 @@
 			</Card.Description>
 		</Card.Header>
 		<Separator class="mb-6" />
-		<Card.Content></Card.Content>
+		<Card.Content>
+			<Button onclick={handleClick}>Hello World</Button>
+		</Card.Content>
 		<Card.Footer class="flex justify-between"></Card.Footer>
 	</Card.Root>
 
