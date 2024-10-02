@@ -32,11 +32,40 @@
 	// 	}
 	// });
 
+	const colors = [
+		'#f1cfc6',
+		'#cbf2bd',
+		'#bbdaf1',
+		'#d9e8a2',
+		'#eff1b6',
+		'#d7b0ec',
+		'#efe8af',
+		'#e4d59a',
+		'#f4ddcf',
+		'#e4f8d5',
+		'#d68ca8',
+		'#91c2dd'
+	];
+
+	function* generator(colors: string[]) {
+		let currentColor = '';
+
+		while (true) {
+			let color = colors[Math.floor(Math.random() * colors.length)];
+			if (color !== currentColor) {
+				currentColor = color;
+				yield currentColor;
+			}
+		}
+	}
+
+	const gen = generator(colors);
+
 	let result = $state('');
 	let chunks = $state([] as any[]);
 
 	async function handleClick() {
-		const response = await fetch('http://localhost:8000/generate', {
+		const response = await fetch('http://192.168.0.203:8000/generate', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
@@ -55,9 +84,10 @@
 			const chunk = JSON.parse(decoder.decode(value, { stream: true }));
 			chunks.push(chunk);
 			result += chunk.response;
-			console.log('{' + chunk.response + '}');
 		}
 	}
+
+	// $inspect(chunks).with(console.log);
 
 	const { data } = $props();
 </script>
@@ -96,7 +126,7 @@
 								>
 							</div>
 						</HoverCard.Content>
-					</HoverCard.Root> wiederum ist wie eine kleine EInheit, die eine semantische Bedeutung mit
+					</HoverCard.Root> wiederum ist wie eine kleine Einheit, die eine semantische Bedeutung mit
 					sich führt und vom Modell verarbeitet wird.
 				</p>
 
@@ -110,18 +140,52 @@
 		<Card.Content>
 			<Button onclick={handleClick}>Hello World</Button>
 
-			<div class="whitespace-break-spaces bg-muted p-3">
-				{#each chunks as chunk, i (chunk)}
-					{@const current = chunk}
-					{@const next = chunks[i + 1]}
-					{#if next?.response.trim() !== next?.response}
-						<div class="inline-block animate-flyIn">{chunk.response.trim() + ' '}</div>
-					{:else}
-						<div class="inline-block animate-flyIn">{chunk?.response.trim()}</div>
-					{/if}
-				{/each}
+			{#if chunks[chunks.length - 1]?.done}
+				{@const {
+					eval_count,
+					eval_duration,
+					prompt_eval_count,
+					prompt_eval_duration,
+					load_duration,
+					total_duration
+				} = chunks[chunks.length - 1]}
+				<p>Generierungs-Evaluierung pro Sekunde</p>
+				<p class="font-mono">{((eval_count / eval_duration) * 1e9).toFixed(2)} tokens / sec</p>
+				<p>Prompt-Evaluierung pro Sekunde</p>
+				<p class="font-mono">
+					{((prompt_eval_count / prompt_eval_duration) * 1e9).toFixed(2)} prompt tokens / sec
+				</p>
+				<p>Prompt-Evaluierungsanteil an dem Gesamtzeitverhältnis</p>
+				<p class="font-mono">{((prompt_eval_duration / total_duration) * 100).toFixed(2)} %</p>
+				<p>Generierungsanteil an dem Gesamtzeitverhältnis</p>
+				<p class="font-mono">{((eval_duration / total_duration) * 100).toFixed(2)} %</p>
+				<p>Durchschnittliche Token-Evaluierungsdauer</p>
+				<p class="font-mono">{(eval_duration / eval_count / 1e6).toFixed(2)} ms</p>
+				<p>Modell-Ladezeit als Anteil der Gesamtzeit</p>
+				<p class="font-mono">{((load_duration / total_duration) * 100).toFixed(2)} %</p>
+				<p>Gesamtzeit pro Token (ms)</p>
+				<p class="font-mono">
+					{(total_duration / (eval_count + prompt_eval_count) / 1e6).toFixed(2)} ms
+				</p>
+				<p>Gesamtgeschwindigkeit (Token / s)</p>
+				<p class="font-mono">
+					{(((eval_count + prompt_eval_count) / total_duration) * 1e9).toFixed(2)} tokens / s
+				</p>
+			{/if}
 
+			<!-- <div class="bg-muted p-3">
+				<span>{result}</span>
 				<span class="inline-block h-4 w-4 translate-y-0.5 rounded-full bg-black"></span>
+			</div> -->
+
+			<div class="whitespace-break-spaces bg-muted/40 p-3 font-mono">
+				{#each chunks as chunk, i (chunk)}
+					<span
+						style="background-color: {gen.next().value};"
+						class="my-1 inline-block animate-flyIn cursor-pointer select-none selection:bg-black selection:text-white"
+						>{chunk.response}</span
+					>
+				{/each}
 			</div>
 		</Card.Content>
 		<Card.Footer class="flex justify-between"></Card.Footer>
