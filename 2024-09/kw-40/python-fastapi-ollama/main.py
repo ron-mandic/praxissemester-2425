@@ -35,6 +35,15 @@ HEADERS = {
     'Content-Type': 'application/json',
 }
 
+models = {
+    # TODO: Add more models
+    "gpt2": {
+        "tokenizer": AutoTokenizer.from_pretrained("openai-community/gpt2"),
+        "model": AutoModelForCausalLM.from_pretrained("openai-community/gpt2"),
+        "model_name": "openai-community/gpt2"
+    },
+}
+
 class PayloadInput(BaseModel):
     input: str
 
@@ -59,99 +68,112 @@ class PayloadChat(BaseModel):
     messages: Sequence[Message] | None = None
     options: Optional[Options] | None = None # Does not work in CLI nor in modelfiles
 
-tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
-model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2")
+class PayloadParamsLogits(BaseModel):
+    model: Literal["gpt2"] = "gpt2"
+    prompt: str
+    temperature: Optional[float] = 0.7
+    seed: Optional[int] = None
+    num_samples: Optional[int] = 5
 
-@app.get("/test")
-async def index():
-    # 1
-    # prompt = "The sky is "
-    # inputs = tokenizer(prompt, return_tensors="pt")
-    # outputs = model(**inputs, labels=inputs["input_ids"])
-    
-    # logits = outputs.logits[-1, -1, :]
-    # print(logits.shape)
+@app.post("/test")
+async def index(payload: PayloadParamsLogits):
+    """Source: https://huggingface.co/docs/transformers/main/en/model_doc/gpt2#transformers.GPT2LMHeadModel.forward.example"""
+    m = models[payload.model]
+    model: AutoModelForCausalLM = m["model"]
+    tokenizer: AutoTokenizer = m["tokenizer"]
+    model_name: str = m["model_name"]
 
-    # temperature = 0.00000001
+    prompt = payload.prompt
+    temperature = min(max(payload.temperature, 1e-4), 2.0)
+    seed = payload.seed
+    k = payload.num_samples
 
-    # scaled_logits = logits / temperature
-    # probabilities = F.softmax(scaled_logits, dim=-1)
-    # print(probabilities)
-
-    # num_samples = 5
-    # samples = torch.multinomial(probabilities, num_samples=num_samples)
-
-    # decoded_samples = [tokenizer.decode(sample) for sample in samples]
-
-    # return {
-    #     "samples": decoded_samples
-    # }
-
-    # 2
-    # prompt = "The sky is blue or"
-
-    # # Tokenisieren des Prompts
-    # inputs = tokenizer(prompt, return_tensors="pt")
-
-    # # Vorwärtsdurchlauf des Modells
-    # outputs = model(**inputs)
-
-    # # Logits: [Batch Size, Sequence Length, Vocab Size]
-    # logits = outputs.logits
-    # print("Logits shape:", logits.shape)  # Ausgabe: torch.Size([1, 5, 50257]) ([Batch Size, Sequence Length, Vocab Size])
-
-    # # Extrahiere die Logits des letzten Tokens in der Sequenz
-    # # Da logits die Form [1, 5, 50257] haben, brauchen wir die Logits des letzten Tokens, also Index -1
-    # last_token_logits = logits[:, -1, :]
-    # print("Logits of the last token:", last_token_logits.shape)  # Ausgabe: torch.Size([1, 50257])
-
-    # # Temperatur einstellen für Wahrscheinlichkeitsverteilung
-    # temperature = 0.7
-    # scaled_logits = last_token_logits / temperature
-
-    # # Wahrscheinlichkeiten mit Softmax berechnen
-    # probabilities = F.softmax(scaled_logits, dim=-1)
-
-    # # Die 5 wahrscheinlichsten Tokens finden
-    # num_samples = 5
-    # top_probs, top_indices = torch.topk(probabilities, num_samples)
-
-    # # Dekodiere die Token-Indices zu lesbarem Text
-    # decoded_samples = [tokenizer.decode(index.item()) for index in top_indices[0]]
-
-    # # Ausgabe
-    # print("Top 5 predictions:", decoded_samples)
-    # print("Probabilities:", top_probs)
-
-    # 3
-    prompt = "The earth is "
-
+    # Tokenization
     inputs = tokenizer(prompt, return_tensors="pt")
+    outputs = model(**inputs, labels=inputs["input_ids"])
+    logits = outputs.logits[-1, -1, :] # (batch-size, sequence-length, vocab-size) -> (vocab)
 
-    outputs = model(**inputs)
-
-    logits = outputs.logits
-
-    last_token_logits = logits[:, -1, :]
-    
-    temperature = 0.00001
-    scaled_logits = last_token_logits / temperature
-
+    # Scaling logits by temperature
+    scaled_logits = logits / temperature
     probabilities = F.softmax(scaled_logits, dim=-1)
 
-    num_samples = 5
-    top_probs, top_indices = torch.topk(probabilities, num_samples)
+    # TODO: Implement custom generation mechanism ("Connection was forcibly closed by a peer" GPU needed)
+    # print(list(outputs.past_key_values)[0][0].shape) # torch.Size([1, 12, 4, 64]) (Batch-size, number of attention-heads, sequence-length, hidden-size)
+    # past_key_values = outputs.past_key_values
 
-    decoded_samples = [tokenizer.decode(index.item()) for index in top_indices[0]]
+    # # Generiere mehrere Tokens
+    # for _ in range(5):
+    #     # Berechne die Wahrscheinlichkeiten aus den Logits
+    #     logits = outputs.logits[-1, -1, :]  # Letzte Logits
+    #     probabilities = F.softmax(logits, dim=-1)  # Softmax für Wahrscheinlichkeiten
 
-    logit_values = [scaled_logits[0, index].item() for index in top_indices[0]]
-    probability_values = [prob.item() for prob in top_probs[0]]
+    #     # Sample next_token
+    #     next_token = torch.multinomial(probabilities, num_samples=1)  # Ziehe ein Token
 
-    return {
-        "predictions": decoded_samples,
-        "logits": logit_values,
-        "probabilities": probability_values
+    #     # Dekodiere das Token
+    #     decoded_token = tokenizer.decode(next_token, skip_special_tokens=True)  # Dekodierung ohne spezielle Tokens
+    #     print(decoded_token, end=" ")
+
+    #     # Bereite die neuen Eingaben für das Modell vor
+    #     new_inputs = tokenizer.encode(decoded_token, return_tensors="pt")  # Encoding als Tensor
+    #     # new_inputs = new_inputs.to(outputs.logits.device)  # Sicherstellen, dass die Eingaben auf dem richtigen Gerät sind
+
+    #     # Führe das Modell mit den neuen Eingaben und den past_key_values aus
+    #     outputs = model(new_inputs, past_key_values=past_key_values, use_cache=True)
+    #     past_key_values = outputs.past_key_values
+    
+    # Top and bottom k probabilities
+    top_probabilities, top_indices = torch.topk(input=probabilities, k=k)
+    bottom_probabilities, bottom_indices = torch.topk(input=probabilities, k=k, largest=False)
+    
+    # Decoding the samples
+    decoded_top_samples = [tokenizer.decode([idx], clean_up_tokenization_spaces = False) for idx in top_indices]
+    decoded_bottom_samples = [tokenizer.decode([idx], clean_up_tokenization_spaces = False) for idx in bottom_indices]
+
+    # Random sample for less deterministic results
+    if seed is not None:
+        random_index = torch.multinomial(top_probabilities, num_samples=1, replacement=True, generator=torch.Generator().manual_seed(seed)).item()
+    else:
+        random_index = torch.multinomial(top_probabilities, num_samples=1, replacement=True).item()
+
+    # vocab = [
+    #     {
+    #         "token": token,
+    #         "logit": scaled_logit.item(),
+    #         "probability": prob.item()
+    #     }
+    #     for token, scaled_logit, prob in zip(
+    #         [tokenizer.decode([idx], clean_up_tokenization_spaces=False) for idx in range(len(probabilities))],
+    #         scaled_logits,
+    #         probabilities
+    #     )
+    # ]
+
+    top_k_results = [ {"token": decoded_top_samples[i], "logit": logits[top_indices[i]].item(), "probability": top_probabilities[i].item()} for i in range(k) ]
+    bottom_k_results = sorted([ {"token": decoded_bottom_samples[i], "logit": logits[bottom_indices[i]].item(), "probability": bottom_probabilities[i].item()} for i in range(k) ], key=lambda x: -x["probability"])
+
+    # TODO: Make visualizations for the top_k_sample and bottom_k_sample (how to choose them from the analogous urn)
+    response = {
+        "model": model_name,
+        "stats": {
+            "temperature": temperature,
+            "seed": seed,
+            "num_samples": k,
+            "loss": outputs.loss.item(),
+            "prompt_length": len(tokenizer(prompt)["input_ids"]),
+            # "vocab": sorted(vocab, key=lambda x: x["probability"], reverse=True),
+            "vocab_size": len(tokenizer.get_vocab()),
+            "entropy": -torch.sum(probabilities * torch.log(probabilities + 1e-10)).item(),
+            "avg_top_probability": top_probabilities.mean().item(),
+            "avg_bottom_probability": bottom_probabilities.mean().item(),
+        },
+        "top_k": top_k_results,
+        "bottom_k": bottom_k_results,
+        "top_k_sample": top_k_results[random_index],
+        "bottom_k_sample": bottom_k_results[random_index],
     }
+
+    return response
 
 # ############################################################################### Embeddings
 

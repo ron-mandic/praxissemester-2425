@@ -60,13 +60,13 @@ export const LINKS = [
 		heading: 'Inferenz'
 	},
 	{
-		innerText: 'Seed'
-	},
-	{
-		innerText: 'Temperatur'
+		innerText: 'Seed und Temperatur'
 	},
 	{
 		innerText: 'System Prompt'
+	},
+	{
+		innerText: 'Chatbot'
 	},
 	{
 		heading: 'Beispiele'
