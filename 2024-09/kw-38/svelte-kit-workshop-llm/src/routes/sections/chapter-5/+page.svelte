@@ -149,11 +149,17 @@
 					load_duration,
 					total_duration
 				} = chunks[chunks.length - 1]}
+				<p>Gesamtdauer</p>
+				<p>{(total_duration / 1e9).toFixed(2)} s</p>
+				<p>Tokens (Input)</p>
+				<p>{prompt_eval_count} tokens</p>
+				<p>Tokens (Output)</p>
+				<p>{eval_count} tokens</p>
 				<p>Generierungs-Evaluierung pro Sekunde</p>
-				<p class="font-mono">{((eval_count / eval_duration) * 1e9).toFixed(2)} tokens / sec</p>
+				<p class="font-mono">{((eval_count / eval_duration) * 1e9).toFixed(2)} tokens / s</p>
 				<p>Prompt-Evaluierung pro Sekunde</p>
 				<p class="font-mono">
-					{((prompt_eval_count / prompt_eval_duration) * 1e9).toFixed(2)} prompt tokens / sec
+					{((prompt_eval_count / prompt_eval_duration) * 1e9).toFixed(2)} prompt tokens / s
 				</p>
 				<p>Prompt-Evaluierungsanteil an dem Gesamtzeitverhältnis</p>
 				<p class="font-mono">{((prompt_eval_duration / total_duration) * 100).toFixed(2)} %</p>

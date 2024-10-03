@@ -3,12 +3,20 @@ from fastapi import FastAPI, HTTPException, Path, Query, Depends, status as Stat
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from typing import List, Optional, Union
+from typing import Dict, List, Literal, Optional, Sequence, Union
 from dotenv import load_dotenv
+from ollama import AsyncClient, Message, Options
+from sklearn.manifold import TSNE
+import numpy as np
 import requests, httpx
 import ollama
-from ollama import AsyncClient
 import os, json
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch.nn.functional as F
+import torch
+import platform
+
+from lib.functions import normalize, normalize_coords
 
 app = FastAPI()
 app.add_middleware(
@@ -22,6 +30,7 @@ app.add_middleware(
 URL_OLLAMA_GENERATE = "http://localhost:11434/api/generate"
 URL_OLLAMA_EMBED = "http://localhost:11434/api/embed"
 URL_OLLAMA_EMBEDDINGS = URL_OLLAMA_EMBED + "dings"
+URL_OLLAMA_CHAT = "http://localhost:11434/api/chat"
 HEADERS = {
     'Content-Type': 'application/json',
 }
@@ -32,8 +41,117 @@ class PayloadInput(BaseModel):
 class PayloadInput(BaseModel):
     input: Union[str, List[str]]
 
+class TSNEParams(BaseModel):
+    learning_rate: Union[float, Literal['auto']] = "auto"
+    max_iter: Optional[int] = 1000 # former n_iter
+    init: Literal['random', 'pca'] = "pca"
+    random_state: Optional[int] = None # only works with "init": "random"
+    verbose: Literal[0, 1] = 0
+
+class PayloadInputTSNE(BaseModel):
+    input: Union[str, List[str]]
+    params: Optional[TSNEParams] = None
+
 class PayloadPrompt(BaseModel):
     prompt: str
+
+class PayloadChat(BaseModel):
+    messages: Sequence[Message] | None = None
+    options: Optional[Options] | None = None # Does not work in CLI nor in modelfiles
+
+tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
+model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2")
+
+@app.get("/test")
+async def index():
+    # 1
+    # prompt = "The sky is "
+    # inputs = tokenizer(prompt, return_tensors="pt")
+    # outputs = model(**inputs, labels=inputs["input_ids"])
+    
+    # logits = outputs.logits[-1, -1, :]
+    # print(logits.shape)
+
+    # temperature = 0.00000001
+
+    # scaled_logits = logits / temperature
+    # probabilities = F.softmax(scaled_logits, dim=-1)
+    # print(probabilities)
+
+    # num_samples = 5
+    # samples = torch.multinomial(probabilities, num_samples=num_samples)
+
+    # decoded_samples = [tokenizer.decode(sample) for sample in samples]
+
+    # return {
+    #     "samples": decoded_samples
+    # }
+
+    # 2
+    # prompt = "The sky is blue or"
+
+    # # Tokenisieren des Prompts
+    # inputs = tokenizer(prompt, return_tensors="pt")
+
+    # # Vorwärtsdurchlauf des Modells
+    # outputs = model(**inputs)
+
+    # # Logits: [Batch Size, Sequence Length, Vocab Size]
+    # logits = outputs.logits
+    # print("Logits shape:", logits.shape)  # Ausgabe: torch.Size([1, 5, 50257]) ([Batch Size, Sequence Length, Vocab Size])
+
+    # # Extrahiere die Logits des letzten Tokens in der Sequenz
+    # # Da logits die Form [1, 5, 50257] haben, brauchen wir die Logits des letzten Tokens, also Index -1
+    # last_token_logits = logits[:, -1, :]
+    # print("Logits of the last token:", last_token_logits.shape)  # Ausgabe: torch.Size([1, 50257])
+
+    # # Temperatur einstellen für Wahrscheinlichkeitsverteilung
+    # temperature = 0.7
+    # scaled_logits = last_token_logits / temperature
+
+    # # Wahrscheinlichkeiten mit Softmax berechnen
+    # probabilities = F.softmax(scaled_logits, dim=-1)
+
+    # # Die 5 wahrscheinlichsten Tokens finden
+    # num_samples = 5
+    # top_probs, top_indices = torch.topk(probabilities, num_samples)
+
+    # # Dekodiere die Token-Indices zu lesbarem Text
+    # decoded_samples = [tokenizer.decode(index.item()) for index in top_indices[0]]
+
+    # # Ausgabe
+    # print("Top 5 predictions:", decoded_samples)
+    # print("Probabilities:", top_probs)
+
+    # 3
+    prompt = "The earth is "
+
+    inputs = tokenizer(prompt, return_tensors="pt")
+
+    outputs = model(**inputs)
+
+    logits = outputs.logits
+
+    last_token_logits = logits[:, -1, :]
+    
+    temperature = 0.00001
+    scaled_logits = last_token_logits / temperature
+
+    probabilities = F.softmax(scaled_logits, dim=-1)
+
+    num_samples = 5
+    top_probs, top_indices = torch.topk(probabilities, num_samples)
+
+    decoded_samples = [tokenizer.decode(index.item()) for index in top_indices[0]]
+
+    logit_values = [scaled_logits[0, index].item() for index in top_indices[0]]
+    probability_values = [prob.item() for prob in top_probs[0]]
+
+    return {
+        "predictions": decoded_samples,
+        "logits": logit_values,
+        "probabilities": probability_values
+    }
 
 # ############################################################################### Embeddings
 
@@ -47,6 +165,25 @@ async def index(payload: PayloadInput):
     async with httpx.AsyncClient() as client:
         response = await client.post(URL_OLLAMA_EMBED, headers=HEADERS, json=data)
         return response.json()
+    
+# ############################################################################### Visualize
+# TODO: Implement euclidian distance / cosinus similarity in the frontend
+@app.post("/tsne")
+async def index(payload: PayloadInputTSNE):
+    """It is assumed that the model is only Mistral, so no need to both specify model and input for now"""
+    data = {"model": "mistral", "input": payload.input}
+    async with httpx.AsyncClient() as client:
+        response = await client.post(URL_OLLAMA_EMBED, headers=HEADERS, json=data)
+        response_data = response.json()
+
+    embeddings = np.array(response_data["embeddings"])
+    tsne = TSNE(
+        perplexity=min(30, embeddings.shape[0] - 1),
+        **payload.params.model_dump()
+    )
+    coords = tsne.fit_transform(embeddings)
+
+    return {"input": payload.input, "coordinates": normalize_coords(coords)}
 
 # ############################################################################### Prompt
 
@@ -70,16 +207,27 @@ async def index(payload: PayloadPrompt):
 
     return StreamingResponse(generator(), media_type="application/json")
 
-# TODO: Implement stateless chatting mechanism (https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-chat-completion)
-# curl http://localhost:11434/api/chat -d '{
-#   "model": "llama3.2",
-#   "messages": [
-#     {
-#       "role": "user",
-#       "content": "why is the sky blue?"
-#     }
-#   ]
-# }'
+# ############################################################################### Chat
+
+# @app.post("/chat")
+# async def index(payload: PayloadChat):
+#     async def generator():
+#         async for chunk in await AsyncClient().chat(model='mistral', messages=payload.messages, options={"seed": 1}, stream=True):
+#             yield json.dumps(chunk) + "\n"
+
+#     return StreamingResponse(generator(), media_type="application/json")
+@app.post("/chat")
+async def index(payload: PayloadChat):
+    data = {"model": "mistral", "messages": payload.messages, "options": payload.options}
+
+    async def generator():
+        async with httpx.AsyncClient() as client:
+            async with client.stream("POST", URL_OLLAMA_CHAT, headers=HEADERS, json=data) as response:
+                response.raise_for_status()
+                async for chunk in response.aiter_bytes():
+                    yield chunk.decode('utf-8')
+
+    return StreamingResponse(generator(), media_type="application/json")
 
 # TODO: Make model load und unload (https://github.com/ollama/ollama/blob/main/docs/api.md#load-a-model, https://github.com/ollama/ollama/blob/main/docs/api.md#load-a-model-1)
 # curl http://localhost:11434/api/generate -d '{

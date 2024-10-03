@@ -86,7 +86,7 @@
 	input::placeholder,
 	thead,
 	caption {
-		@apply select-none;
+		@apply select-none touch-manipulation
 	}
 	a:focus-visible,
 	button:focus-visible {
