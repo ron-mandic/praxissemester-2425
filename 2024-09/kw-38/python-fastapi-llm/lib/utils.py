@@ -3,6 +3,8 @@ from collections import defaultdict
 import json, re, requests
 import torch
 
+from lib.constants import PREFIXES, SUFFIXES
+
 def load(path: str, encoding = 'utf-8') -> dict:
     with open(path, 'r', encoding=encoding) as f:
         return json.load(f)
@@ -81,35 +83,66 @@ def query(payload, api_url, headers):
     response = requests.post(api_url, headers=headers, json=payload.dict())
     return response.json()
 
-def to_fragments(data):
-    fragments = []
-    word = data["word"]
-    stem = data["stem"]
-    suffix = word[len(stem):] 
-
-    if word == stem:
-        suffix = ""
-    fragments.append(stem)
-    if suffix:
-        fragments.append(suffix)
-
-    return fragments
-
-def split_affixes(sentence, tokenizer, stemmer):
-    words = tokenizer.tokenize(sentence)
+def word_analysis(words, stemmer, lemmatizer, nlp):
+    results = []
     
-    tokens = []
     for word in words:
-        w = word.lower()
-        stem = stemmer.stem(w)
+        stem = stemmer.stem(word)
+        lemma = lemmatizer.lemmatize(word)
 
-        dict = {"word": w, "stem": stem}
-        list_fragments = to_fragments(dict)
+        prefix = ''
+        suffix = ''
+        
+        # Search for suffixes
+        for s in SUFFIXES:
+            if word.endswith(s):
+                suffix = s
+                break
 
-        for fragment in list_fragments:
-            tokens.append(fragment)
-    
-    return tokens
+        # Search for prefixes
+        for p in PREFIXES:
+            if word.startswith(p):
+                prefix = p
+                break
+
+        stem_without_affixes = word
+        if prefix:
+            stem_without_affixes = stem_without_affixes[len(prefix):]
+        if suffix:
+            stem_without_affixes = stem_without_affixes[:-len(suffix)]
+
+        infix = word[len(prefix):len(word)-len(suffix)]
+
+        capitalizations = []
+        for char in word:
+            if char.isupper():
+                capitalizations.append(1)
+            else:
+                capitalizations.append(0)
+
+        doc = nlp(word)
+        for token in doc:
+            group = token.pos_
+
+        result = {
+            "word": word,
+            "nltk": {
+                "stem": stem,
+                "lemma": lemma,
+            },
+            "fragments": {
+                "prefix": prefix,
+                "infix": infix,
+                "suffix": suffix,
+            },
+            "details": {
+                "capitalizations": capitalizations,
+                "group": group
+            }
+        }
+        results.append(result)
+
+    return results
 
 # External sources
 # Source: https://www.geeksforgeeks.org/byte-pair-encoding-bpe-in-nlp/

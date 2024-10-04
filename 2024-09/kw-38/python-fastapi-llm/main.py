@@ -4,14 +4,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from typing import Optional
 from dotenv import load_dotenv
-from nltk.tokenize import word_tokenize, WhitespaceTokenizer, WordPunctTokenizer, TreebankWordTokenizer
+from nltk.tokenize import WhitespaceTokenizer, WordPunctTokenizer, TreebankWordTokenizer
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from predictor import load_data
-from lib.utils import bpe, get_stats, query, sanitize, split_affixes
+from lib.utils import bpe, get_stats, query, sanitize, word_analysis
 from lib.constants import API_URL_FILL_MASK, API_URL_QUESTION_ANSWERING, API_URL_SENTENCE_SIMILARITY, API_URL_SUMMARIZATION, API_URL_TEXT2TEXT, API_URL_TEXT_CLASSIFICATION_EMOTIONS, API_URL_TEXT_CLASSIFICATION_SENTIMENT, API_URL_TEXT_GENERATION, API_URL_TRANSLATION, API_URL_ZERO_SHOT_CLASSIFICATION, PATH, END_TOKEN, MAX_CONTEXT_LENGTH
 from lib.classes import PayloadInput, PayloadInputP, PayloadInputT, PayloadInputI, PayloadInputQC, PayloadInputSSS, Unigram, Bigram, Ngram
 import nltk
 import os, re
+import spacy
 
 # Own model
 data_with_duplicates, data, list_str, list_str_with_token = load_data(PATH)
@@ -34,6 +35,9 @@ wordpunct_tokenizer = WordPunctTokenizer()
 treebank_tokenizer = TreebankWordTokenizer()
 stemmer = PorterStemmer()
 lemmatizer = WordNetLemmatizer()
+
+# spacy
+nlp = spacy.load("en_core_web_sm")
 
 app = FastAPI()
 
@@ -175,8 +179,8 @@ async def index(payload: PayloadInputT):
 @app.post("/tokenizer/affixes")
 async def index(payload: PayloadInput):
     """Problem: unnatural endings e.g. thi and s due to in-built heuristics"""
-    tokens = split_affixes(payload.inputs, treebank_tokenizer, stemmer)
-    return tokens
+    words = treebank_tokenizer.tokenize(payload.inputs)
+    return word_analysis(words, stemmer, lemmatizer, nlp)
 
 # Route für BPE-Tokenization
 @app.post("/tokenizer/bpe")
@@ -185,11 +189,30 @@ def index(input: PayloadInputI):
     data = input.inputs.split(".")
     iterations = input.iterations
     
-    tokens = bpe(data, iterations)
-    # Case to original dict since lists /tuples) are not hasable / cannot be used for keys
-    stats = {f"{tuple[0]} {tuple[1]}": iterations for (tuple, iterations) in get_stats(tokens).items()}
+    try:
+        tokens = bpe(data, iterations)
+        # Case to original dict since lists /tuples) are not hasable / cannot be used for keys
+        stats = {f"{tuple[0]} {tuple[1]}": iterations for (tuple, iterations) in get_stats(tokens).items()}
 
-    return {
-        "tokens": tokens,
-        "stats": dict(sorted(stats.items(), key=lambda item: (-item[1], item[0])))
-    }
+        # Guard clause
+        expressions = tokens.keys()
+        no_more_whitespace = all(re.match(r"^\S+$", expression) for expression in expressions)
+        empty_stats = not stats
+
+        if no_more_whitespace and empty_stats:
+            return {
+                "info": "No more whitespace in tokens",
+                "iterations": iterations,
+                "tokens": tokens,
+                "stats": stats
+            }
+
+        return {
+            "tokens": tokens,
+            "iterations": iterations,
+            "stats": dict(sorted(stats.items(), key=lambda item: (-item[1], item[0])))
+        }
+    except Exception as e:
+        return {
+            "error": "BPE cannot be applied anymore due to lack of whitespace",
+        }
