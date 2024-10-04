@@ -33,10 +33,12 @@ export const LINKS = [
 		href: '/sections/chapter-5'
 	},
 	{
-		innerText: 'Zeichensetzung'
+		innerText: 'Zeichensetzung',
+		href: '/sections/chapter-6'
 	},
 	{
-		innerText: 'Affixe'
+		innerText: 'Affixe',
+		href: '/sections/chapter-7'
 	},
 	{
 		innerText: 'Byte-Pair'
@@ -103,6 +105,22 @@ export const LINKS = [
 	{
 		innerText: 'Zero-Shot'
 	}
+];
+
+// TODO: Add more colors or use a more uniform color palette
+export const TOKEN_COLORS = [
+	'#f1cfc6',
+	'#cbf2bd',
+	'#bbdaf1',
+	'#d9e8a2',
+	'#eff1b6',
+	'#d7b0ec',
+	'#efe8af',
+	'#e4d59a',
+	'#f4ddcf',
+	'#e4f8d5',
+	'#d68ca8',
+	'#91c2dd'
 ];
 
 export const END_TOKEN = `[end]`;

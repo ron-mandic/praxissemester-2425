@@ -297,7 +297,7 @@
 			<Input
 				bind:value={contextValue}
 				id="text"
-				class="w-full {hasWobble ? 'animate-wobble' : 'animate-none'}"
+				class="w-full text-base {hasWobble ? 'animate-wobble' : 'animate-none'}"
 				type="text"
 				placeholder="i, shape, of, ..."
 				pattern="[\w\s]+"
@@ -397,7 +397,7 @@
 			<div class="mb-2 flex w-full items-center justify-between">
 				<Input
 					bind:value={searchValueHistory}
-					class="w-1/2"
+					class="w-full text-base md:w-1/2"
 					placeholder="Historie durchsuchen"
 					type="search"
 					disabled={!hasBeenClicked || hasEnded}
@@ -407,7 +407,7 @@
 			<div class="mb-2 flex w-full items-center justify-between">
 				<Input
 					bind:value={searchValueBigrams}
-					class="w-1/2"
+					class="w-full text-base md:w-1/2"
 					placeholder="Nach Bigrammen suchen"
 					type="search"
 					disabled={!hasBeenClicked}

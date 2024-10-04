@@ -286,7 +286,7 @@
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
 			<div class="flex items-center justify-between">
-				<Card.Title>Sprachmagier <span class="mr-1 whitespace-nowrap">mit Lexikon</span></Card.Title
+				<Card.Title>Sprachmagier <span class="mr-2 whitespace-nowrap">mit Lexikon</span></Card.Title
 				>
 				<div class="flex items-center gap-3">
 					<Label for="seed" class="text-sm text-muted-foreground">
@@ -342,7 +342,7 @@
 						</Button>
 						<Input
 							bind:value={seed}
-							class="max-w-32"
+							class="min-w-20 max-w-20"
 							type="number"
 							id="seed"
 							min={0}
@@ -465,7 +465,7 @@
 			<Input
 				bind:value={contextValue}
 				id="text"
-				class="w-full {hasWobble ? 'animate-wobble' : 'animate-none'}"
+				class="w-full text-base {hasWobble ? 'animate-wobble' : 'animate-none'}"
 				type="text"
 				placeholder="im in love with ..."
 				pattern="[\w\s]+"
@@ -567,7 +567,7 @@
 			<div class="mb-2 flex w-full items-center justify-between">
 				<Input
 					bind:value={searchValueHistory}
-					class="w-1/2"
+					class="w-full text-base md:w-1/2"
 					placeholder="Historie durchsuchen"
 					type="search"
 					disabled={!hasBeenClicked || hasEnded}
@@ -577,7 +577,7 @@
 			<div class="mb-2 flex w-full items-center justify-between">
 				<Input
 					bind:value={searchValueNgrams}
-					class="w-1/2"
+					class="w-full text-base md:w-1/2"
 					placeholder="Nach Bigrammen suchen"
 					type="search"
 					disabled={!hasBeenClicked}

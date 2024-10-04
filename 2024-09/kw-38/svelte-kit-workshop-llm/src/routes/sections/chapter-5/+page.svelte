@@ -7,6 +7,7 @@
 	import * as Tooltip from '$lib/components/ui/tooltip';
 	import * as Tabs from '$lib/components/ui/tabs';
 	import LLMNext from '@/svelte/LLMNext.svelte';
+	import LLMCode from '@/svelte/LLMCode.svelte';
 
 	import Info from 'lucide-svelte/icons/info';
 	import Reset from 'lucide-svelte/icons/rotate-ccw';
@@ -22,74 +23,28 @@
 	import { onMount } from 'svelte';
 	import { fly, slide } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { EXAMPLE_OBJ_SONG, EXAMPLE_OBJ_SONG_PREFORMATTED } from '$lib/ts/constants.js';
+	import { Label } from '@/ui/label/index.js';
+	import Textarea from '@/ui/textarea/textarea.svelte';
 
-	// let container: HTMLDivElement;
-	// onMount(() => {
-	// 	if (container) {
-	// 		const swapy = createSwapy(container, {
-	// 			animation: 'dynamic'
-	// 		});
-	// 	}
-	// });
-
-	const colors = [
-		'#f1cfc6',
-		'#cbf2bd',
-		'#bbdaf1',
-		'#d9e8a2',
-		'#eff1b6',
-		'#d7b0ec',
-		'#efe8af',
-		'#e4d59a',
-		'#f4ddcf',
-		'#e4f8d5',
-		'#d68ca8',
-		'#91c2dd'
-	];
-
-	function* generator(colors: string[]) {
-		let currentColor = '';
-
-		while (true) {
-			let color = colors[Math.floor(Math.random() * colors.length)];
-			if (color !== currentColor) {
-				currentColor = color;
-				yield currentColor;
-			}
-		}
-	}
-
-	const gen = generator(colors);
-
-	let result = $state('');
-	let chunks = $state([] as any[]);
-
-	async function handleClick() {
-		const response = await fetch('http://192.168.0.203:8001/generate', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				prompt: 'What is the meaning of life?'
-			})
-		});
-
-		const reader = response.body!.getReader();
-		const decoder = new TextDecoder('utf-8');
-
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-			const chunk = JSON.parse(decoder.decode(value, { stream: true }));
-			chunks.push(chunk);
-			result += chunk.response;
-		}
-	}
-
-	// $inspect(chunks).with(console.log);
+	let contextValue = $state('');
+	let outputs = $state([] as string[]);
+	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
+	let hasBeenClicked = $state(false);
+	let hasBeenReset = $state(false);
 
 	const { data } = $props();
+
+	$effect(() => {
+		return () => {
+			contextValue = '';
+			outputsHistory = [];
+		};
+	});
+
+	function handleOnKeypress() {
+		outputs = contextValue.trim().split(' ');
+	}
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
@@ -97,7 +52,7 @@
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
-			<Card.Title>Leerzeichen ohne Ende</Card.Title>
+			<Card.Title>Tokenisierung</Card.Title>
 			<Card.Description>
 				<p class="mb-3 mt-2">
 					Die Tokenisierung ist ein Prozess, bei dem eine Eingabe von Wörtern oder Buchstaben in
@@ -136,65 +91,113 @@
 				</p>
 			</Card.Description>
 		</Card.Header>
+	</Card.Root>
+
+	<Card.Root class="dark my-8 w-full">
+		<Card.Header class="gap-2 p-6">
+			<div>
+				<Card.Description>
+					<p class="mb-3 text-muted-foreground">
+						Nehmen wir andere alltägliche Texte wie Nachrichtenartikel oder Anzeigen aus dem
+						Internet. Neben den Wörtern finden wir auch Satzzeichen, Zahlen und Sonderzeichen. Diese
+						Zeichen sind genauso wichtig wie die Wörter selbst, weil sie die Bedeutung des Textes
+						verändern können.
+					</p>
+
+					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
+						<LLMCode
+							innerText={{
+								text: '“This is your reminder that we previously notified you,” reads the first line of Ring’s email to me today. When? I certainly don’t remember ever getting an email telling me about a 100 percent price hike before...'
+							}}
+							language="json"
+						/>
+					</div>
+
+					<p class="text-muted-foreground">
+						Nachdem der Text an den Leerzeichen aufgeteilt wurde, können wir die fertigen Tokens
+						sehen, die unser Modell verarbeiten würde. Achte auch besonders darauf, dass die Tokens
+						auch Satzzeichen und Sonderzeichen enthalten können.
+					</p>
+
+					<ScrollArea class="relative my-8 h-[225px] w-full rounded-md bg-muted/50">
+						<div>
+							<div class="h-full w-full p-6">
+								<LLMCode
+									innerText={{
+										text: '“This is your reminder that we previously notified you,” reads the first line of Ring’s email to me today. When? I certainly don’t remember ever getting an email telling me about a 100 percent price hike before...'.split(
+											' '
+										)
+									}}
+									language="json"
+								/>
+							</div>
+						</div>
+					</ScrollArea>
+
+					<p class="text-muted-foreground">
+						Wie man sehen kann, führt diese Tokenisierungsart Probleme mit sich, da einzelne Tokens
+						vom Wortinhalt identisch sein mögen, aber in ihrer Bedeutung unterschiedlich sind. Wie
+						kann das Modell den Unterschied zwischen denselben Tokens mit und ohne Sonderzeichen
+						erkennen?
+					</p>
+				</Card.Description>
+			</div>
+		</Card.Header>
+	</Card.Root>
+
+	<Card.Root class="w-full">
+		<Card.Header class="gap-2">
+			<Card.Title>Leerzeichen ohne Ende</Card.Title>
+			<Card.Description>
+				<p>
+					Im unteren Textfeld kannst du einen beliebigen Text einfügen. Im Outputfenster kannst du
+					dann die unterschiedlichen Tokens angezeigt bekommen. Achte dabei besonders darauf, welche
+					Tokens mit und ohne Sonderzeichen vorkommen und inwiefern sie in ihrer semantischen
+					Bedeutung unterschiedlich sein können.
+				</p>
+			</Card.Description>
+		</Card.Header>
 		<Separator class="mb-6" />
 		<Card.Content>
-			<Button onclick={handleClick}>Hello World</Button>
-
-			{#if chunks[chunks.length - 1]?.done}
-				{@const {
-					eval_count,
-					eval_duration,
-					prompt_eval_count,
-					prompt_eval_duration,
-					load_duration,
-					total_duration
-				} = chunks[chunks.length - 1]}
-				<p>Gesamtdauer</p>
-				<p>{(total_duration / 1e9).toFixed(2)} s</p>
-				<p>Tokens (Input)</p>
-				<p>{prompt_eval_count} tokens</p>
-				<p>Tokens (Output)</p>
-				<p>{eval_count} tokens</p>
-				<p>Generierungs-Evaluierung pro Sekunde</p>
-				<p class="font-mono">{((eval_count / eval_duration) * 1e9).toFixed(2)} tokens / s</p>
-				<p>Prompt-Evaluierung pro Sekunde</p>
-				<p class="font-mono">
-					{((prompt_eval_count / prompt_eval_duration) * 1e9).toFixed(2)} prompt tokens / s
-				</p>
-				<p>Prompt-Evaluierungsanteil an dem Gesamtzeitverhältnis</p>
-				<p class="font-mono">{((prompt_eval_duration / total_duration) * 100).toFixed(2)} %</p>
-				<p>Generierungsanteil an dem Gesamtzeitverhältnis</p>
-				<p class="font-mono">{((eval_duration / total_duration) * 100).toFixed(2)} %</p>
-				<p>Durchschnittliche Token-Evaluierungsdauer</p>
-				<p class="font-mono">{(eval_duration / eval_count / 1e6).toFixed(2)} ms</p>
-				<p>Modell-Ladezeit als Anteil der Gesamtzeit</p>
-				<p class="font-mono">{((load_duration / total_duration) * 100).toFixed(2)} %</p>
-				<p>Gesamtzeit pro Token (ms)</p>
-				<p class="font-mono">
-					{(total_duration / (eval_count + prompt_eval_count) / 1e6).toFixed(2)} ms
-				</p>
-				<p>Gesamtgeschwindigkeit (Token / s)</p>
-				<p class="font-mono">
-					{(((eval_count + prompt_eval_count) / total_duration) * 1e9).toFixed(2)} tokens / s
-				</p>
-			{/if}
-
-			<!-- <div class="bg-muted p-3">
-				<span>{result}</span>
-				<span class="inline-block h-4 w-4 translate-y-0.5 rounded-full bg-black"></span>
-			</div> -->
-
-			<div class="whitespace-break-spaces bg-muted/40 p-3 font-mono">
-				{#each chunks as chunk, i (chunk)}
-					<span
-						style="background-color: {gen.next().value};"
-						class="my-1 inline-block animate-flyIn cursor-pointer select-none selection:bg-black selection:text-white"
-						>{chunk.response}</span
-					>
-				{/each}
+			<Label for="text" class="mb-2 block">Ausgangstext</Label>
+			<Textarea
+				bind:value={contextValue}
+				class="max-h-72 min-h-36 w-full text-base"
+				id="text"
+				placeholder="Can't complain, this model ain't half bad. What a hit!"
+				maxlength={512}
+				disabled={hasBeenClicked}
+				oninput={handleOnKeypress}
+			/>
+			<div class="mt-1.5 flex select-none items-center justify-between text-muted-foreground">
+				<small class="font-mono text-xs">{(contextValue as string).length || 0} / 512</small>
 			</div>
+
+			<Label for="text" class="mb-2 mt-8 block">Tokens</Label>
+			<ScrollArea
+				class="h-72 max-h-72 w-full rounded-md bg-muted/30 px-6 py-0"
+				orientation="vertical"
+			>
+				<div
+					class="inline-flex h-full w-full flex-wrap items-start justify-start gap-x-2 gap-y-3 py-6"
+				>
+					{#if outputs.length === 0}
+						<p
+							class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap text-muted-foreground"
+						>
+							Hier werden die Tokens angezeigt
+						</p>
+					{:else}
+						{#each outputs as output, i}
+							<Badge
+								class="box-border animate-bounceIn select-none text-base transition-none"
+								variant="secondary">{output}</Badge
+							>
+						{/each}
+					{/if}
+				</div>
+			</ScrollArea>
 		</Card.Content>
-		<Card.Footer class="flex justify-between"></Card.Footer>
 	</Card.Root>
 
 	<LLMNext url={data.url} prev="N-Gramm" next="Zeichensetzung" />

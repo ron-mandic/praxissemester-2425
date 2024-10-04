@@ -125,31 +125,31 @@
 				</div>
 			</ScrollArea>
 
-			<Card.Title class="pl-6">Vorbearbeitung des Datensatzes</Card.Title>
-			<div class="px-6 pb-6 pt-2">
+			<Card.Title class="pl-[1.125rem]">Vorbearbeitung des Datensatzes</Card.Title>
+			<div class="px-[1.125rem] pb-[1.125rem] pt-2">
 				<Card.Description>
-					<p class="mb-3">
+					<p class="mb-3 text-muted-foreground">
 						Man kann gut erkennen, dass die Songtexte nicht gerade bestens formatiert sind. Das
 						Problem dabei ist, dass unser Modell mit der jetzigen Formatierung Titel, Songtexte und
 						Sonderformatierung gleichzeitig lernen würde.
 					</p>
 
-					<div class="relative my-6 h-full w-full rounded-md bg-muted/50 p-6">
+					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode innerText={EXAMPLE_OBJ_SONG} language="json" />
 					</div>
 
-					<p>
+					<p class="text-muted-foreground">
 						Mit nur 100 Liedern haben wir auch eine relativ begrenzte Datenmenge. Um
 						sicherzustellen, dass unser Modell die Lieder trotzdem gut lernen kann, müssen wir die
 						Daten bereinigen. Das Modell lernt in unserem Fall am besten, wenn sie in
 						Kleinbuchstaben und ohne Sonderzeichen geschrieben sind.
 					</p>
 
-					<div class="relative my-6 h-full w-full rounded-md bg-muted/50 p-6">
+					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode innerText={Object.assign({}, EXAMPLE_OBJ_SONG_PREFORMATTED)} language="json" />
 					</div>
 
-					<p>
+					<p class="text-muted-foreground">
 						Gleichzeitig behalten wir die Zeilenumbrüche bei, weil sie für die Liedstrophen
 						charakteristisch sind. Wir kennzeichnen sie dann mit einem separaten Symbol.
 					</p>
@@ -158,14 +158,14 @@
 						<LLMCode innerText={preprocess(data.fastapi.rows[0].row)} language="json" />
 					</div>
 
-					<p class="mb-3">
+					<p class="mb-3 text-muted-foreground">
 						Mit diesem Bereinigungsschritt stellen wir sicher, dass unser Modell mehr Beispiele von
 						denselben Wortfolgen erhält. Bliebe der Datensatz unbereinigt, würde es auch die
 						Sonderzeichen und Großschreibung als Wortfolgen mit lernen, was unsere Lernerfolge bei
 						der Datenknappheit schmälert.
 					</p>
 
-					<p class="mb-3">
+					<p class="mb-3 text-muted-foreground">
 						Hinzu kommt noch, dass in dem Datensatz insgesamt vier Duplikate auftauchen, was die
 						Datenknappheit weiter verschärft. Diese Duplikate sind in der unteren Tabelle
 						aufzusuchen, für die weiteren Trainings wird aber der vollständig bereinigte Datensatz
@@ -222,7 +222,7 @@
 		<div class="relative mb-4 mt-10">
 			<Input
 				bind:value={searchValueTable}
-				class="mb-2 w-1/2"
+				class="mb-2 w-full text-base md:w-1/2"
 				placeholder="Nach Songtitel suchen"
 				type="search"
 			/>
