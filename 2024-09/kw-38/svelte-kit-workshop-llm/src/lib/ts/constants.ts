@@ -57,13 +57,18 @@ export const LINKS = [
 		innerText: 'Eliza'
 	},
 	{
+		// TODO: https://github.com/eleventigers/mitsuku-api
+		innerText: 'Mitsuku',
+		available: false
+	},
+	{
 		heading: 'Inferenz'
 	},
 	{
 		innerText: 'Seed und Temperatur'
 	},
 	{
-		innerText: 'System Prompt'
+		innerText: 'Dialog Engineering'
 	},
 	{
 		innerText: 'Chatbot'

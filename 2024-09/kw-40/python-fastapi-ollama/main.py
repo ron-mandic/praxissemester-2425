@@ -27,6 +27,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+OLLAMA_MODEL = "mistral:latest"
 URL_OLLAMA_GENERATE = "http://localhost:11434/api/generate"
 URL_OLLAMA_EMBED = "http://localhost:11434/api/embed"
 URL_OLLAMA_EMBEDDINGS = URL_OLLAMA_EMBED + "dings"
@@ -67,15 +68,17 @@ class PayloadPrompt(BaseModel):
 class PayloadChat(BaseModel):
     messages: Sequence[Message] | None = None
     options: Optional[Options] | None = None # Does not work in CLI nor in modelfiles
+    content_system: str = None
 
 class PayloadParamsLogits(BaseModel):
     model: Literal["gpt2"] = "gpt2"
     prompt: str
     temperature: Optional[float] = 0.7
     seed: Optional[int] = None
-    num_samples: Optional[int] = 5
+    num_samples: Optional[int] = 7
 
-@app.post("/test")
+# ############################################################################### Seed and Temperature
+@app.post("/gpt2")
 async def index(payload: PayloadParamsLogits):
     """Source: https://huggingface.co/docs/transformers/main/en/model_doc/gpt2#transformers.GPT2LMHeadModel.forward.example"""
     m = models[payload.model]
@@ -84,7 +87,7 @@ async def index(payload: PayloadParamsLogits):
     model_name: str = m["model_name"]
 
     prompt = payload.prompt
-    temperature = min(max(payload.temperature, 1e-4), 2.0)
+    temperature = min(max(payload.temperature, 1e-6), 2.0)
     seed = payload.seed
     k = payload.num_samples
 
@@ -135,8 +138,14 @@ async def index(payload: PayloadParamsLogits):
         random_index = torch.multinomial(top_probabilities, num_samples=1, replacement=True, generator=torch.Generator().manual_seed(seed)).item()
     else:
         random_index = torch.multinomial(top_probabilities, num_samples=1, replacement=True).item()
+    
+    vocab = tokenizer.get_vocab()
+    prompt_tokens = [{"token": tokenizer.decode([idx], clean_up_tokenization_spaces=False), "token_id": None} for idx in inputs["input_ids"].squeeze()]
+    for prompt_token in prompt_tokens:
+        if prompt_token["token"] in vocab:
+            prompt_token["token_id"] = vocab[prompt_token["token"]]
 
-    # vocab = [
+    # vocab_output = [
     #     {
     #         "token": token,
     #         "logit": scaled_logit.item(),
@@ -160,8 +169,11 @@ async def index(payload: PayloadParamsLogits):
             "seed": seed,
             "num_samples": k,
             "loss": outputs.loss.item(),
+            "prompt_tokens": prompt_tokens,
             "prompt_length": len(tokenizer(prompt)["input_ids"]),
-            # "vocab": sorted(vocab, key=lambda x: x["probability"], reverse=True),
+            "attention_mask": inputs["attention_mask"].tolist(),
+            # "vocab": vocab,
+            # "vocab_output": sorted(vocab, key=lambda x: x["probability"], reverse=True),
             "vocab_size": len(tokenizer.get_vocab()),
             "entropy": -torch.sum(probabilities * torch.log(probabilities + 1e-10)).item(),
             "avg_top_probability": top_probabilities.mean().item(),
@@ -176,14 +188,13 @@ async def index(payload: PayloadParamsLogits):
     return response
 
 # ############################################################################### Embeddings
-
 # @app.post("/embed")
 # async def index(payload: PayloadInput):
 #     return ollama.embed(model='mistral', input=payload.input)
 @app.post("/embed")
 async def index(payload: PayloadInput):
     """It is assumed that the model is only Mistral, so no need to both specify model and input for now"""
-    data = {"model": "mistral", "input": payload.input}
+    data = {"model": OLLAMA_MODEL, "input": payload.input}
     async with httpx.AsyncClient() as client:
         response = await client.post(URL_OLLAMA_EMBED, headers=HEADERS, json=data)
         return response.json()
@@ -193,7 +204,7 @@ async def index(payload: PayloadInput):
 @app.post("/tsne")
 async def index(payload: PayloadInputTSNE):
     """It is assumed that the model is only Mistral, so no need to both specify model and input for now"""
-    data = {"model": "mistral", "input": payload.input}
+    data = {"model": OLLAMA_MODEL, "input": payload.input}
     async with httpx.AsyncClient() as client:
         response = await client.post(URL_OLLAMA_EMBED, headers=HEADERS, json=data)
         response_data = response.json()
@@ -208,7 +219,6 @@ async def index(payload: PayloadInputTSNE):
     return {"input": payload.input, "coordinates": normalize_coords(coords)}
 
 # ############################################################################### Prompt
-
 # @app.post("/generate")
 # async def index(payload: PayloadPrompt):
 #     async def generator():
@@ -218,7 +228,7 @@ async def index(payload: PayloadInputTSNE):
 #     return StreamingResponse(generator(), media_type="application/json")
 @app.post("/generate")
 async def index(payload: PayloadPrompt):
-    data = {"model": "mistral", "prompt": payload.prompt}
+    data = {"model": OLLAMA_MODEL, "prompt": payload.prompt}
 
     async def generator():
         async with httpx.AsyncClient() as client:
@@ -230,7 +240,6 @@ async def index(payload: PayloadPrompt):
     return StreamingResponse(generator(), media_type="application/json")
 
 # ############################################################################### Chat
-
 # @app.post("/chat")
 # async def index(payload: PayloadChat):
 #     async def generator():
@@ -240,7 +249,14 @@ async def index(payload: PayloadPrompt):
 #     return StreamingResponse(generator(), media_type="application/json")
 @app.post("/chat")
 async def index(payload: PayloadChat):
-    data = {"model": "mistral", "messages": payload.messages, "options": payload.options}
+    messages = payload.messages
+    content_system = payload.content_system
+
+    data = {
+        "model": OLLAMA_MODEL,
+        "messages": messages if content_system is None else [{"role": "system", "content": content_system}] + messages,
+        "options": payload.options
+    }
 
     async def generator():
         async with httpx.AsyncClient() as client:
@@ -251,6 +267,7 @@ async def index(payload: PayloadChat):
 
     return StreamingResponse(generator(), media_type="application/json")
 
+# ############################################################################### Miscellaneous
 # TODO: Make model load und unload (https://github.com/ollama/ollama/blob/main/docs/api.md#load-a-model, https://github.com/ollama/ollama/blob/main/docs/api.md#load-a-model-1)
 # curl http://localhost:11434/api/generate -d '{
 #   "model": "llama3.2"
@@ -267,35 +284,3 @@ async def index(payload: PayloadChat):
 #   "format": "json",
 #   "stream": false
 # }'
-
-# Source: https://github.com/ollama/ollama/blob/main/docs/modelfile.md#valid-parameters-and-values
-# TODO: Implement most useful parameters (https://github.com/ollama/ollama/blob/main/docs/api.md#generate-request-with-options)
-# num_keep: Anzahl der letzten Vorhersagen, die behalten werden sollen. Nützlich, um Kontext für fortlaufende Konversationen zu speichern.
-# seed: Setzt den Zufallswert für die Generierung, um reproduzierbare Ergebnisse zu erzielen.
-# num_predict: Anzahl der Token, die generiert werden sollen.
-# top_k: Begrenzung der Anzahl der wahrscheinlichsten nächsten Token, die bei der Vorhersage berücksichtigt werden (Top-K Sampling).
-# top_p: Setzt den Schwellenwert für die kumulative Wahrscheinlichkeit, um die Auswahl der nächsten Token zu steuern (Nucleus Sampling).
-# min_p: Minimalwert für die Wahrscheinlichkeit eines Tokens, um sicherzustellen, dass nur relevante Tokens in Betracht gezogen werden.
-# tfs_z: Steuert die Temperatur bei Top-K Sampling für eine verbesserte Vielfalt.
-# typical_p: Eine weitere Methode zur Steuerung der Vielfalt, ähnlich wie top_p, jedoch spezifisch für die typical sampling Strategie.
-# repeat_last_n: Anzahl der letzten Token, die berücksichtigt werden, um Wiederholungen zu vermeiden.
-# temperature: Beeinflusst die Kreativität der Antworten; höhere Werte (z.B. 1.0) führen zu vielfältigeren Ergebnissen, niedrigere Werte (z.B. 0.2) zu deterministischeren Ausgaben.
-# repeat_penalty: Bestraft wiederholte Token in der Ausgabe, um die Vielfalt zu erhöhen.
-# presence_penalty: Strafe für das Erscheinen bestimmter Tokens in der generierten Antwort, um Wiederholungen zu minimieren.
-# frequency_penalty: Strafe für häufige Tokens in der Antwort, um die Vielfalt der Ausgaben zu fördern.
-# mirostat: Aktiviert Mirostat Sampling, das dynamisch die Temperatur anpasst, um eine zielgerichtete Ausgabe zu gewährleisten.
-# mirostat_tau: Parameter für Mirostat, der die Empfindlichkeit des Modells gegenüber Tokenverteilungen steuert.
-# mirostat_eta: Ein weiterer Mirostat-Parameter zur Steuerung der Anpassungsgeschwindigkeit.
-# penalize_newline: Bestimmt, ob neue Zeilen bestraft werden sollen, um formatierte Ausgaben zu steuern.
-# stop: Eine Liste von Tokens, bei deren Auftreten die Generierung gestoppt wird.
-# numa: Aktiviert die NUMA-Speicherverwaltung, um die Leistung zu optimieren.
-# num_ctx: Maximale Anzahl der Kontext-Tokens, die für die Vorhersage verwendet werden.
-# num_batch: Anzahl der Batch-Anfragen zur Parallelverarbeitung von Vorhersagen.
-# num_gpu: Anzahl der GPUs, die für die Berechnungen verwendet werden.
-# main_gpu: Bestimmt die Haupt-GPU für die Verarbeitung.
-# low_vram: Optimiert den Speicherverbrauch für Systeme mit wenig VRAM.
-# f16_kv: Verwendet 16-Bit-Gleitkommazahlen zur Optimierung des Speicherverbrauchs bei Schlüsseln und Werten.
-# vocab_only: Wenn true, wird nur das Vokabular und keine Gewichte geladen.
-# use_mmap: Erlaubt die Verwendung von Memory Mapping für effizientes Laden von Modellen.
-# use_mlock: Steuert die Verwendung von mlock, um zu verhindern, dass Speicher auf die Festplatte ausgelagert wird.
-# num_thread: Anzahl der Threads, die zur Verarbeitung von Anfragen verwendet werden.

@@ -65,7 +65,7 @@
 	let chunks = $state([] as any[]);
 
 	async function handleClick() {
-		const response = await fetch('http://192.168.0.203:8000/generate', {
+		const response = await fetch('http://192.168.0.203:8001/generate', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'

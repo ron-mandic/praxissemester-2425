@@ -9,7 +9,7 @@
 		version: string;
 		handler?: () => void;
 		page: Readable<Page<Record<string, string>, string | null>>;
-		links: ({ innerText: string; href?: string } | { heading: string })[];
+		links: ({ innerText: string; href?: string; available?: boolean } | { heading: string })[];
 	}>();
 
 	// Make sure, once the links are clicked, you can close the sheet (dialog) automatically
@@ -20,7 +20,7 @@
 {#if version === 'v1'}
 	<ScrollArea orientation="vertical" class="h-full w-full pt-4" type="scroll">
 		<nav class="grid items-start gap-1 p-3 font-medium">
-			{#each links as { innerText, href, heading }, i}
+			{#each links as { innerText, href, heading, available = true }, i}
 				{#if heading}
 					<p
 						class="font-regular mb-1 mt-6 select-none px-3 text-sm uppercase text-muted-foreground/70 first:mt-0"
@@ -32,7 +32,7 @@
 						{href}
 						{...attr}
 						id="{version}-{i}"
-						class="group flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-transform last:mb-3 hover:text-primary {!href
+						class="group relative flex select-none items-center gap-3 rounded-lg px-3 py-2 transition-transform last:mb-3 hover:text-primary {!href
 							? 'pointer-events-none cursor-not-allowed select-none text-muted-foreground/40'
 							: 'pointer-events-auto text-foreground'} {$page.route.id === href
 							? 'bg-muted text-foreground'
@@ -46,6 +46,12 @@
 						<span class="w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap"
 							>{innerText}</span
 						>
+						{#if !available}
+							<span
+								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-500"
+								>Bald verfügbar</span
+							>
+						{/if}
 					</a>
 				{/if}
 			{/each}
@@ -56,7 +62,7 @@
 {#if version === 'v2'}
 	<ScrollArea orientation="vertical" class="w-full px-3 pt-4">
 		<nav class="mt-2 grid gap-1 text-lg font-medium">
-			{#each links as { innerText, href, heading }, i}
+			{#each links as { innerText, href, heading, available = true }, i}
 				{#if heading}
 					<p
 						class="font-regular mb-1 mt-6 select-none px-4 text-sm uppercase text-muted-foreground/70 first:mt-0"
@@ -68,7 +74,7 @@
 						{href}
 						{...attr}
 						id="{version}-{i}"
-						class="group flex select-none items-center gap-4 rounded-xl px-3 py-2 transition-transform last:mb-6 hover:text-foreground {!href
+						class="group relative flex select-none items-center gap-4 rounded-xl px-3 py-2 transition-transform last:mb-6 hover:text-foreground {!href
 							? 'pointer-events-none cursor-not-allowed select-none text-muted-foreground/40'
 							: 'pointer-events-auto text-foreground'} {$page.route.id === href
 							? 'bg-muted text-foreground'
@@ -82,6 +88,12 @@
 						<span class="w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap"
 							>{innerText}</span
 						>
+						{#if !available}
+							<span
+								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-500"
+								>Bald verfügbar</span
+							>
+						{/if}
 					</a>
 				{/if}
 			{/each}

@@ -32,9 +32,9 @@ function start() {
         if [ -n "$1" ] && [ -n "$2" ]; then
             uvicorn main:app --reload --host "$1" --port "$2"
         elif [ -n "$1" ]; then
-            uvicorn main:app --reload --host "$1" --port 8000
+            uvicorn main:app --reload --host "$1" --port 8001
         else
-            uvicorn main:app --reload
+            uvicorn main:app --reload --port 8001
         fi
     else
         echo "Error: main.py not found"
