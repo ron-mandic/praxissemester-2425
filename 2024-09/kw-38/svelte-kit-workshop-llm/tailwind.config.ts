@@ -141,18 +141,27 @@ const config: Config = {
 				bounceIn: 'bounceIn 1s both',
 				bounce: 'bounce 1s infinite',
 				slideIn: 'slideIn 0.5s both',
-				flyIn: "flyIn .25s both",
+				flyIn: 'flyIn .25s both',
 				wobble: 'wobble 1s both'
 			}
 		}
 	},
 	plugins: [
-		plugin(function ({ addUtilities }) {
+		plugin(function ({ matchUtilities, theme, addUtilities }) {
 			addUtilities({
 				'.debug': {
 					outline: '1px solid red'
 				}
 			});
+			// https://www.hyperui.dev/blog/animation-duration-delay-with-tailwindcss
+			matchUtilities(
+				{
+					'animate-delay': (value) => ({
+						animationDelay: value
+					})
+				},
+				{ values: theme('transitionDelay') }
+			);
 		})
 	]
 };

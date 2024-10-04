@@ -283,7 +283,7 @@
 	<div class="relative mb-4 mt-10">
 		<Input
 			bind:value={searchValue}
-			class="mb-2 w-1/2"
+			class="mb-2 w-full text-base md:w-1/2"
 			placeholder="Historie durchsuchen"
 			type="search"
 			disabled={!hasBeenClicked}
