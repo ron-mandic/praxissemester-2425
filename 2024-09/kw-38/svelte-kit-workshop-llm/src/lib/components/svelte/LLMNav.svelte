@@ -43,12 +43,14 @@
 						{:else}
 							<Book class="h-5 w-5 transition-transform group-hover:translate-y-0.5" />
 						{/if}
-						<span class="w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap"
-							>{innerText}</span
+						<span
+							class="relative w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap {!available
+								? 'bg-gradient-to-r from-muted-foreground/40 to-transparent bg-clip-text text-transparent'
+								: 'bg-none'}">{innerText}</span
 						>
 						{#if !available}
 							<span
-								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-500"
+								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-violet-100 px-2 py-1 text-xs font-medium text-violet-600"
 								>Bald verfügbar</span
 							>
 						{/if}
@@ -85,12 +87,14 @@
 						{:else}
 							<Book class="ml-1 h-5 w-5 transition-transform group-hover:translate-y-0.5" />
 						{/if}
-						<span class="w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap"
-							>{innerText}</span
+						<span
+							class="w-full max-w-52 overflow-hidden text-ellipsis whitespace-nowrap {!available
+								? 'bg-gradient-to-r from-muted-foreground/40 to-transparent bg-clip-text text-transparent'
+								: 'bg-none'}">{innerText}</span
 						>
 						{#if !available}
 							<span
-								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-red-100 px-2 py-1 text-xs font-medium text-red-500"
+								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-violet-100 px-2 py-1 text-xs font-medium text-violet-600"
 								>Bald verfügbar</span
 							>
 						{/if}

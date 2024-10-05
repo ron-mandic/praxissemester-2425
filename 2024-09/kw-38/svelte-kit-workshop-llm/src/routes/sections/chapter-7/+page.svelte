@@ -170,8 +170,8 @@
 					Um die Affixe herzuleiten, kann man sowohl regelbasierte Ansätze (Stemmer) als auch
 					datenbankgestützte Methoden (Lemmatizer) nehmen. Der Stemmer entfernt die Affixe durch
 					Anwendung von Regeln ohne Rücksicht auf sprachliche Korrektheit, während der Lemmatizer
-					die Wörter in die korrekte Grundform zurückführt, indem es die Wörter in einer Datenbank
-					analysiert und nachschlägt.
+					die Wörter in die korrekte Grundform zurückführt, indem es die Wörter sprachlich
+					analysiert und in einer Datenbank nachschlägt.
 				</p>
 
 				<Accordion.Root class="-mb-2 mt-4">
@@ -435,7 +435,7 @@
 								<p
 									class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap text-muted-foreground"
 								>
-									Hier wird der formatierte Output angezeigt
+									Hier wird der Output angezeigt
 								</p>
 							{:else}
 								<span>{@html highlightSelectedWord(toString(outputsTokens, selectedWord))}</span>
@@ -465,7 +465,7 @@
 		</Card.Footer>
 	</Card.Root>
 
-	<LLMNext url={data.url} prev="N-Gramm" next="Zeichensetzung" />
+	<LLMNext url={data.url} prev="Zeichensetzung" next="Byte-Pair" />
 </section>
 
 <Toaster position="bottom-right" />

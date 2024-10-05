@@ -46,12 +46,23 @@ export function formatSearch(inputText: string, searchText: string) {
 	if (!searchText) return inputText;
 
 	const escapedSearchText = searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+	console.log(`'${escapedSearchText}'`);
 
 	const regExp = new RegExp(`(${escapedSearchText})`, 'gi');
+	console.log(`'${regExp}'`);
+	
+	// const markedText = inputText.replace(
+	// 	regExp,
+	// 	'<mark class="bg-blue-200 text-blue-700 rounded-[.25rem]">$1</mark>'
+	// );
+
+	// Keep the whitespace and newlines
 	const markedText = inputText.replace(
 		regExp,
-		'<mark class="bg-blue-200 text-blue-700 rounded-[.25rem]">$1</mark>'
+		(match) => `<mark class="bg-blue-200 text-blue-700 rounded-[.25rem]">${match}</mark>`
 	);
+
+	console.log(`'${markedText}'`);
 
 	return markedText;
 }

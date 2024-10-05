@@ -41,7 +41,8 @@ export const LINKS = [
 		href: '/sections/chapter-7'
 	},
 	{
-		innerText: 'Byte-Pair'
+		innerText: 'Byte-Pair',
+		href: '/sections/chapter-8'
 	},
 	{
 		heading: 'Embeddings'
@@ -95,6 +96,11 @@ export const LINKS = [
 	},
 	{
 		innerText: 'Textübersetzung'
+	},
+	{
+		// TODO: https://huggingface.co/dslim/bert-base-NER
+		innerText: 'Tokenklassifizierung',
+		available: false
 	},
 	{
 		innerText: 'Reasoning'

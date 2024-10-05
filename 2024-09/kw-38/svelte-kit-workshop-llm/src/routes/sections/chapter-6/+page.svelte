@@ -193,17 +193,17 @@
 					</ScrollArea>
 
 					<p class="text-muted-foreground">
-						Jedoch gehen wieder einzelne semantische Informationen verloren, wenn von Kommata
-						getrennte Wörter wie z.B. they'll oder Sätze in der Mitte des Korpus von ihren
+						Jedoch gehen wieder einzelne semantische Informationen verloren, wenn z.B. von
+						Apostrophen getrennte Wörter wie they'll oder Sätze in der Mitte des Korpus von ihren
 						Sonderzeichen getrennt werden. Der <a
 							class="inline-block items-center gap-2 text-muted-foreground"
 							href="https://www.nltk.org/api/nltk.tokenize.TreebankWordTokenizer.html"
 							target="_blank"
 							rel="noopener noreferrer"
 							>TreebankWordTokenizer <ExternalLink class="-mt-0.5 inline-block h-4 w-4" /></a
-						> hingegen ist in der Lage, Tokens semantisch zu bewahren, indem es zum Beispiel diese Standardkürzungen
-						aus dem Englischen erkennt und nur Punktzeichen am Ende des Korpus isoliert, um das Ende
-						eines Satzes zu markieren.
+						> hingegen ist in der Lage, Tokens so gut es geht kontextuell zu bewahren, indem es zum Beispiel
+						die Standardkürzungen aus dem Englischen erkennt und nur Punktzeichen am Ende des Korpus
+						isoliert, um das Ende eines Satzes zu markieren.
 					</p>
 
 					<ScrollArea
@@ -386,7 +386,7 @@
 		</Card.Footer>
 	</Card.Root>
 
-	<LLMNext url={data.url} prev="N-Gramm" next="Zeichensetzung" />
+	<LLMNext url={data.url} prev="Leerzeichen" next="Affixe" />
 </section>
 
 <Toaster position="bottom-right" />
