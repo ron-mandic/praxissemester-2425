@@ -48,10 +48,12 @@ export const LINKS = [
 		heading: 'Embeddings'
 	},
 	{
-		innerText: 'Generierung'
+		innerText: 'Generierung',
+		href: '/sections/chapter-9'
 	},
 	{
-		innerText: 'Visualisierung'
+		innerText: 'Visualisierung',
+		href: '/sections/chapter-10'
 	},
 	{
 		heading: 'Exkurs'

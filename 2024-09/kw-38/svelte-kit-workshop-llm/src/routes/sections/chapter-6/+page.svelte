@@ -128,7 +128,7 @@
 					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode
 							innerText={{
-								text: "Good muffins cost $3.88\nin New York.  Please buy me\ntwo of them.\nThanks. They'll save and invest more."
+								input: "Good muffins cost $3.88\nin New York.  Please buy me\ntwo of them.\nThanks. They'll save and invest more."
 							}}
 							language="json"
 						/>
@@ -136,7 +136,7 @@
 
 					<p class="text-muted-foreground">
 						Einerseits gibt es den <a
-							class="inline-block items-center gap-2 text-muted-foreground"
+							class="inline-block items-center gap-2 text-muted-foreground hover:text-foreground"
 							href="https://www.nltk.org/api/nltk.tokenize.regexp.html#nltk.tokenize.regexp.WordPunctTokenizer"
 							target="_blank"
 							rel="noopener noreferrer"
@@ -155,7 +155,7 @@
 							<div class="h-full w-full p-6">
 								<LLMCode
 									innerText={{
-										text: [
+										output: [
 											'Good',
 											'muffins',
 											'cost',
@@ -193,10 +193,10 @@
 					</ScrollArea>
 
 					<p class="text-muted-foreground">
-						Jedoch gehen wieder einzelne semantische Informationen verloren, wenn z.B. von
+						Jedoch gehen wieder einzelne semantische Informationen verloren, wenn zum Beispiel von
 						Apostrophen getrennte Wörter wie they'll oder Sätze in der Mitte des Korpus von ihren
 						Sonderzeichen getrennt werden. Der <a
-							class="inline-block items-center gap-2 text-muted-foreground"
+							class="inline-block items-center gap-2 text-muted-foreground hover:text-foreground"
 							href="https://www.nltk.org/api/nltk.tokenize.TreebankWordTokenizer.html"
 							target="_blank"
 							rel="noopener noreferrer"
@@ -214,7 +214,7 @@
 							<div class="h-full w-full p-6">
 								<LLMCode
 									innerText={{
-										text: [
+										output: [
 											'Good',
 											'muffins',
 											'cost',

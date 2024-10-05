@@ -15,6 +15,12 @@ const config: Config = {
 			}
 		},
 		extend: {
+			screens: {
+				'4xs': '320px', // iPhone 4
+				'3xs': '375px', // iPhone X
+				'2xs': '430px', // iPhone 14 Pro Max
+				xs: '540px' // Surface Duo
+			},
 			colors: {
 				border: 'hsl(var(--border) / <alpha-value>)',
 				input: 'hsl(var(--input) / <alpha-value>)',
@@ -135,6 +141,31 @@ const config: Config = {
 					'75%': {
 						transform: 'translateX(0%)'
 					}
+				},
+				pulse: {
+					'0%, 100%': {
+						transform: 'scale3d(1, 1, 1)'
+					},
+					'50%': {
+						transform: 'scale3d(1.05, 1.05, 1.05)'
+					}
+				},
+				heartBeat: {
+					'0%': {
+						transform: 'scale(1)'
+					},
+					'14%': {
+						transform: 'scale(1.3)'
+					},
+					'28%': {
+						transform: 'scale(1)'
+					},
+					'42%': {
+						transform: 'scale(1.3)'
+					},
+					'70%': {
+						transform: 'scale(1)'
+					}
 				}
 			},
 			animation: {
@@ -142,7 +173,9 @@ const config: Config = {
 				bounce: 'bounce 1s infinite',
 				slideIn: 'slideIn 0.5s both',
 				flyIn: 'flyIn .25s both',
-				wobble: 'wobble 1s both'
+				wobble: 'wobble 1s both',
+				pulse: 'pulse 1s both',
+				heartBeat: 'heartBeat 1s both'
 			}
 		}
 	},

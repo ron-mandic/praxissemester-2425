@@ -107,7 +107,7 @@
 					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode
 							innerText={{
-								text: '“This is your reminder that we previously notified you,” reads the first line of Ring’s email to me today. When? I certainly don’t remember ever getting an email telling me about a 100 percent price hike before...'
+								input: '“This is your reminder that we previously notified you,” reads the first line of Ring’s email to me today. When? I certainly don’t remember ever getting an email telling me about a 100 percent price hike before...'
 							}}
 							language="json"
 						/>
@@ -124,7 +124,7 @@
 							<div class="h-full w-full p-6">
 								<LLMCode
 									innerText={{
-										text: '“This is your reminder that we previously notified you,” reads the first line of Ring’s email to me today. When? I certainly don’t remember ever getting an email telling me about a 100 percent price hike before...'.split(
+										output: '“This is your reminder that we previously notified you,” reads the first line of Ring’s email to me today. When? I certainly don’t remember ever getting an email telling me about a 100 percent price hike before...'.split(
 											' '
 										)
 									}}

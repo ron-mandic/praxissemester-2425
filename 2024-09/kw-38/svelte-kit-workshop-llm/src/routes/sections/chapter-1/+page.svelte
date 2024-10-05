@@ -281,7 +281,7 @@
 
 				<div class="flex h-16 w-full items-center justify-center">
 					{#if !selectedRow}
-						<span class="font-regular text-sm text-muted-foreground"
+						<span class="select-none font-regular text-sm text-muted-foreground"
 							>Wähle einen Song oben aus der Liste aus</span
 						>
 					{:else}

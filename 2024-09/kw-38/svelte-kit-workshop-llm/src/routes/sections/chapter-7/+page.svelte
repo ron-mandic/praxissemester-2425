@@ -243,7 +243,7 @@
 					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode
 							innerText={{
-								text: 'low denser unhealthiest'
+								input: 'low denser unhealthiest'
 							}}
 							language="json"
 						/>
@@ -264,7 +264,7 @@
 							<div class="h-full w-full p-6">
 								<LLMCode
 									innerText={{
-										text: [['low'], ['dens', 'er'], ['un', 'health', 'iest']]
+										output: [['low'], ['dens', 'er'], ['un', 'health', 'iest']]
 									}}
 									language="json"
 								/>

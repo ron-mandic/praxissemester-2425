@@ -272,7 +272,7 @@
 					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode
 							innerText={{
-								text: 'The small cat quickly sat on the wooliful mat in the mewiful corner of the room.'
+								input: 'The small cat quickly sat on the wooliful mat in the mewiful corner of the room.'
 							}}
 							language="json"
 						/>

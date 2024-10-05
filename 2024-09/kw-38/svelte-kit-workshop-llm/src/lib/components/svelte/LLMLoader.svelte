@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { scale } from 'svelte/transition';
+	import { scale, type ScaleParams } from 'svelte/transition';
 	import { sineInOut } from 'svelte/easing';
 	import { delay } from '$lib/ts/functions';
 	// Source 1: https://uiverse.io/JkHuger/light-monkey-24
@@ -8,26 +8,36 @@
 	// Source 4: https://uiverse.io/Sourcesketch/strange-catfish-68
 	// Source 5: https://uiverse.io/ashish-yadv/dry-turtle-69
 
-	const { theme = 'light', asOverlay = true } = $props<{
+	const {
+		theme = 'light',
+		asOverlay = true,
+		in: inScale = {},
+		out: outScale = {}
+	} = $props<{
 		theme?: 'light' | 'dark';
 		asOverlay?: boolean;
+		in?: ScaleParams & { cssDelay?: number };
+		out?: ScaleParams;
 	}>();
 </script>
 
 <div class={asOverlay ? 'absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2' : 'relative'}>
 	<div
 		class="loader {theme}"
+		style="--animation-delay: {inScale.cssDelay || 0}ms;"
 		in:scale={{
 			duration: 500,
 			opacity: 0,
 			start: 1.5,
-			easing: sineInOut
+			easing: sineInOut,
+			...inScale
 		}}
 		out:scale={{
 			duration: 225,
 			opacity: 0,
 			start: 0.75,
-			easing: sineInOut
+			easing: sineInOut,
+			...outScale
 		}}
 	></div>
 </div>
@@ -44,6 +54,7 @@
 		height: var(--uib-size);
 		width: var(--uib-size);
 		animation: rotate936 calc(var(--uib-speed) * 1.667) infinite linear;
+		animation-delay: var(--animation-delay);
 	}
 
 	.loader::before,
