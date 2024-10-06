@@ -189,10 +189,16 @@ def bpe(data, n, end_token = "</w>"):
     of characters found in the vocabulary of the input data.
     """
     vocab = get_vocab(data, end_token)
+    rules = []
 
-    for _ in range(n):
+    for i in range(n):
         pairs = get_stats(vocab)
         best = max(pairs, key=pairs.get)
+
+        # Print the rule being applied
+        rule = {"old": list(best), "new": ''.join(best), "iteration": i + 1}
+        rules.append(rule)
+
         vocab = merge_vocab(best, vocab)
 
-    return vocab
+    return vocab, rules

@@ -190,7 +190,7 @@ def index(input: PayloadInputI):
     iterations = input.iterations
     
     try:
-        tokens = bpe(data, iterations)
+        tokens, rules = bpe(data, iterations)
         # Case to original dict since lists /tuples) are not hasable / cannot be used for keys
         stats = {f"{tuple[0]} {tuple[1]}": iterations for (tuple, iterations) in get_stats(tokens).items()}
 
@@ -202,15 +202,18 @@ def index(input: PayloadInputI):
         if no_more_whitespace and empty_stats:
             return {
                 "info": "No more whitespace in tokens",
+                "tokens": [{"token": key, "count": value} for (key, value) in tokens.items()],
                 "iterations": iterations,
-                "tokens": tokens,
-                "stats": stats
+                "rules": rules,
+                "stats": []
             }
 
+        stats = dict(sorted(stats.items(), key=lambda item: (-item[1], item[0])))
         return {
-            "tokens": tokens,
+            "tokens": [{"token": key, "count": value} for (key, value) in tokens.items()],
             "iterations": iterations,
-            "stats": dict(sorted(stats.items(), key=lambda item: (-item[1], item[0])))
+            "rules": rules,
+            "stats": [{"token": key, "count": value} for (key, value) in stats.items()]
         }
     except Exception as e:
         return {
