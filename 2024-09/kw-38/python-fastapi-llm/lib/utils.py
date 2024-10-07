@@ -1,6 +1,6 @@
 from typing import Optional
 from collections import defaultdict
-import json, re, requests
+import json, re, requests, httpx
 import torch
 
 from lib.constants import PREFIXES, SUFFIXES
@@ -82,6 +82,11 @@ def get_samples(tensor_probs, list_key_tuple, num_samples: int, seed: Optional[i
 def query(payload, api_url, headers):
     response = requests.post(api_url, headers=headers, json=payload.dict())
     return response.json()
+
+async def aquery(payload, api_url, headers):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(api_url, headers=headers, json=payload.dict())
+        return response.json()
 
 def word_analysis(words, stemmer, lemmatizer, nlp):
     results = []

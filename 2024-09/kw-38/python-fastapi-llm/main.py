@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from nltk.tokenize import WhitespaceTokenizer, WordPunctTokenizer, TreebankWordTokenizer
 from nltk.stem import PorterStemmer, WordNetLemmatizer
 from predictor import load_data
-from lib.utils import bpe, get_stats, query, sanitize, word_analysis
+from lib.utils import aquery, bpe, get_stats, query, sanitize, word_analysis
 from lib.constants import API_URL_FILL_MASK, API_URL_QUESTION_ANSWERING, API_URL_SENTENCE_SIMILARITY, API_URL_SUMMARIZATION, API_URL_TEXT2TEXT, API_URL_TEXT_CLASSIFICATION_EMOTIONS, API_URL_TEXT_CLASSIFICATION_SENTIMENT, API_URL_TEXT_GENERATION, API_URL_TRANSLATION, API_URL_ZERO_SHOT_CLASSIFICATION, PATH, END_TOKEN, MAX_CONTEXT_LENGTH
 from lib.classes import PayloadInput, PayloadInputP, PayloadInputT, PayloadInputI, PayloadInputQC, PayloadInputSSS, Unigram, Bigram, Ngram
 import nltk
@@ -102,55 +102,55 @@ def index(context: str, context_length: int, num_samples: Optional[int] = 1, see
 ###############################################
 """
 @app.post("/fill-mask")
-def index(payload: PayloadInput):
-    output = query(payload, API_URL_FILL_MASK, headers)
+async def index(payload: PayloadInput):
+    output = await aquery(payload, API_URL_FILL_MASK, headers)
     return output
 
 @app.post("/question-answering")
-def index(payload: PayloadInputQC):
-    output = query(payload, API_URL_QUESTION_ANSWERING, headers)
+async def index(payload: PayloadInputQC):
+    output = await aquery(payload, API_URL_QUESTION_ANSWERING, headers)
     return output
 
 @app.post("/text-classification/sentiment")
-def index(payload: PayloadInput):
-    output = query(payload, API_URL_TEXT_CLASSIFICATION_SENTIMENT, headers)
+async def index(payload: PayloadInput):
+    output = await aquery(payload, API_URL_TEXT_CLASSIFICATION_SENTIMENT, headers)
     return output
 
 @app.post("/text-classification/emotions")
-def index(payload: PayloadInput):
-    output = query(payload, API_URL_TEXT_CLASSIFICATION_EMOTIONS, headers)
+async def index(payload: PayloadInput):
+    output = await aquery(payload, API_URL_TEXT_CLASSIFICATION_EMOTIONS, headers)
     return output
 
 @app.post("/text-generation")
-def index(payload: PayloadInput):
-    output = query(payload, API_URL_TEXT_GENERATION, headers)
+async def index(payload: PayloadInput):
+    output = await aquery(payload, API_URL_TEXT_GENERATION, headers)
     return output
 
 @app.post("/summarization")
-def index(payload: PayloadInput):
-    output = query(payload, API_URL_SUMMARIZATION, headers)
+async def index(payload: PayloadInput):
+    output = await aquery(payload, API_URL_SUMMARIZATION, headers)
     return output
 
 @app.post("/translation")
-def index(payload: PayloadInput):
+async def index(payload: PayloadInput):
     """en to de"""
-    output = query(payload, API_URL_TRANSLATION, headers)
+    output = await aquery(payload, API_URL_TRANSLATION, headers)
     return output
 
 @app.post("/text2text")
-def index(payload: PayloadInput):
+async def index(payload: PayloadInput):
     """reasoning"""
-    output = query(payload, API_URL_TEXT2TEXT, headers)
+    output = await aquery(payload, API_URL_TEXT2TEXT, headers)
     return output
 
 @app.post("/sentence-similarity")
-def index(payload: PayloadInputSSS):
-    output = query(payload, API_URL_SENTENCE_SIMILARITY, headers)
+async def index(payload: PayloadInputSSS):
+    output = await aquery(payload, API_URL_SENTENCE_SIMILARITY, headers)
     return output
 
 @app.post("/zero-shot-classification")
-def index(payload: PayloadInputP):
-    output = query(payload, API_URL_ZERO_SHOT_CLASSIFICATION, headers)
+async def index(payload: PayloadInputP):
+    output = await aquery(payload, API_URL_ZERO_SHOT_CLASSIFICATION, headers)
     return output
 
 """

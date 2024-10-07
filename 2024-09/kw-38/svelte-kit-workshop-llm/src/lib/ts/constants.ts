@@ -82,18 +82,24 @@ export const LINKS = [
 		heading: 'Beispiele'
 	},
 	{
+		// https://huggingface.co/google-bert/bert-base-cased
 		innerText: 'Fill-Mask'
 	},
 	{
+		// https://huggingface.co/deepset/roberta-base-squad2
 		innerText: 'Frage-Antwort-Systeme'
 	},
 	{
+		// Senitment: https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment-latest
+		// Emotions: https://huggingface.co/j-hartmann/emotion-english-distilroberta-base
 		innerText: 'Textklassifizierung'
 	},
 	{
+		// https://huggingface.co/meta-llama/Llama-3.2-3B
 		innerText: 'Textvervollständigung'
 	},
 	{
+		// https://huggingface.co/facebook/bart-large-cnn
 		innerText: 'Textzusammenfassung'
 	},
 	{
