@@ -290,7 +290,7 @@
 									</Table.Cell>
 								</Table.Row>
 								<Table.Row>
-									<Table.Cell>Anzahl verarbeiteter Tokens</Table.Cell>
+									<Table.Cell>Tokenanzahl</Table.Cell>
 									<Table.Cell class="font-mono">{prompt_eval_count}</Table.Cell>
 								</Table.Row>
 								<Table.Row>
@@ -412,7 +412,7 @@
 							>Bitte gib erst einen Text ein</span
 						>
 					{:else}
-						<Card.Title class="max-w-full">
+						<Card.Title class="w-full max-w-96 mx-auto text-center">
 							<span class="inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap px-4"
 								>{contextValue}</span
 							>

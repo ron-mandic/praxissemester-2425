@@ -1,7 +1,7 @@
 <script lang="ts">
 	import '../../app.scss';
 	import { page } from '$app/stores';
-	import { fly } from 'svelte/transition';
+	import { blur, fade, fly, type EasingFunction, type TransitionConfig } from 'svelte/transition';
 
 	import Menu from 'lucide-svelte/icons/menu';
 	import Sparkles from 'lucide-svelte/icons/sparkles';
@@ -10,7 +10,20 @@
 	import LLMNav from '$lib/components/svelte/LLMNav.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
-	import { quartOut } from 'svelte/easing';
+	import { backIn, backOut, circIn, circOut } from 'svelte/easing';
+
+	// 1. back
+	// 2. circ
+	// 3. sine / quad / quint
+
+	type Params = {
+		delay?: number;
+		duration?: number;
+		easing?: EasingFunction;
+	};
+	type Options = {
+		direction?: 'in' | 'out' | 'both';
+	};
 
 	const { data, children } = $props();
 	let isOpen = $state(false);
@@ -30,6 +43,21 @@
 		},
 		...content
 	};
+
+	function opacity(
+		node: Element,
+		{ delay = 0, duration = 300, easing }: Params = {},
+		{ direction = 'both' }: Options = {}
+	): TransitionConfig {
+		return {
+			delay,
+			duration,
+			easing,
+			css: (t) => `
+        opacity: ${t};
+      `
+		};
+	}
 </script>
 
 <div class="grid h-full max-h-screen w-full max-[319px]:hidden lg:grid-cols-[290px_1fr]">
@@ -76,8 +104,8 @@
 		>
 			{#key data.url}
 				<div
-					in:fly={{ x: 10, duration: 500, delay: 500, opacity: 0, easing: quartOut }}
-					out:fly={{ x: -10, duration: 300, opacity: 0, easing: quartOut }}
+					in:fly={{ x: 15, duration: 500, delay: 300, opacity: 0, easing: backOut }}
+					out:fly={{ x: -15, duration: 300, opacity: 0, easing: backIn }}
 				>
 					{@render children()}
 				</div>

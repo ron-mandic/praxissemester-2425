@@ -16,6 +16,7 @@
 	import { ScrollArea } from '@/ui/scroll-area/index.js';
 	import * as Table from '@/ui/table';
 	import { Input } from '@/ui/input';
+	import * as Command from '$lib/components/ui/command';
 
 	const { data } = $props();
 
@@ -230,7 +231,7 @@
 				<Table.Root>
 					<Table.Header class="sticky top-0">
 						<Table.Row>
-							<Table.Head class="w-16 text-right">Index</Table.Head>
+							<Table.Head class="hidden w-16 text-right sm:flex sm:items-center">Index</Table.Head>
 							<Table.Head class="w-48">Songtitel</Table.Head>
 							<Table.Head class="cursor-pointer text-right">Wörter</Table.Head>
 							<Table.Head class="text-right">Wörterbuch</Table.Head>
@@ -247,7 +248,7 @@
 									onclick={handleSelectRow}
 									data-idx={row_idx}
 								>
-									<Table.Cell class="text-right font-mono">
+									<Table.Cell class="hidden text-right font-mono sm:flex">
 										{row_idx.toString().padStart(2, '0')}
 									</Table.Cell>
 									<Table.Cell>{@html formatSearch(song?.title, searchValueTable)}</Table.Cell>
@@ -281,7 +282,7 @@
 
 				<div class="flex h-16 w-full items-center justify-center">
 					{#if !selectedRow}
-						<span class="select-none font-regular text-sm text-muted-foreground"
+						<span class="font-regular select-none text-sm text-muted-foreground"
 							>Wähle einen Song oben aus der Liste aus</span
 						>
 					{:else}

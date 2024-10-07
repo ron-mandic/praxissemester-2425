@@ -27,6 +27,7 @@
 	import { Label } from '@/ui/label/index.js';
 	import Textarea from '@/ui/textarea/textarea.svelte';
 	import type { Key } from 'lucide-svelte';
+	import { is } from 'drizzle-orm';
 
 	let contextValue = $state('');
 	let selectedWord = $state('');
@@ -93,6 +94,20 @@
 		}
 	}
 
+	function handleHighlight(output: string, selected: string) {
+		// e.g. "?" and "?!" or "t" and "though"
+
+		const regNotAlphaNumeric = /^\W+$/;
+
+		const isCaseA =
+			regNotAlphaNumeric.test(output) &&
+			regNotAlphaNumeric.test(selected) &&
+			(selected.includes(output) || output.includes(selected));
+		const isCaseB = output === selected;
+
+		return isCaseA || isCaseB;
+	}
+
 	function handleReset() {
 		contextValue = '';
 		selectedWord = '';
@@ -128,7 +143,8 @@
 					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode
 							innerText={{
-								input: "Good muffins cost $3.88\nin New York.  Please buy me\ntwo of them.\nThanks. They'll save and invest more."
+								input:
+									"Good muffins cost $3.88\nin New York.  Please buy me\ntwo of them.\nThanks. They'll save and invest more."
 							}}
 							language="json"
 						/>
@@ -314,8 +330,9 @@
 								{#each outputsWordPunct as output, i}
 									<Badge
 										class="box-border animate-bounceIn cursor-pointer animate-delay-[{i *
-											50}ms] whitespace-nowrap text-base transition-none {selectedWord.includes(
-											output
+											50}ms] whitespace-nowrap text-base transition-none {handleHighlight(
+											output,
+											selectedWord
 										)
 											? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
 											: 'text-foreground'}"
@@ -348,8 +365,9 @@
 								{#each outputsTreebankWord as output, i}
 									<Badge
 										class="box-border animate-bounceIn cursor-pointer delay-[{i *
-											50}ms] whitespace-nowrap text-base transition-none {selectedWord.includes(
-											output
+											50}ms] whitespace-nowrap text-base transition-none {handleHighlight(
+											output,
+											selectedWord
 										)
 											? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
 											: 'text-foreground'}"

@@ -15,7 +15,7 @@
 	import { Badge } from '@/ui/badge';
 	import { ScrollArea } from '@/ui/scroll-area';
 	import { Input } from '@/ui/input';
-	import { formatSearch, preprocess } from '$lib/ts/functions';
+	import { formatSearch, formatSearchToken, preprocess } from '$lib/ts/functions';
 	import { Toaster } from '@/ui/sonner/index.js';
 	import { toast } from 'svelte-sonner';
 	import ExternalLink from 'lucide-svelte/icons/external-link';
@@ -52,6 +52,10 @@
 
 	const { data } = $props();
 	const END_TOKEN = '</w>';
+	const LT = '&lt;';
+	const SLASH = '&#47;';
+	const GT = '&gt;';
+	const END_TOKEN_ESCAPED = LT + SLASH + 'w' + GT;
 
 	$effect(() => {
 		return handleReset;
@@ -103,7 +107,9 @@
 
 		return str.replace(
 			new RegExp(!/\w+/.test(selectedWord) ? '\\' + selectedWord : selectedWord, 'g'),
-			`<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${selectedWord}</mark>`
+			// then: just `<mark>${selectedWord}</mark>`
+			(match) =>
+				`<mark class="bg-blue-200 text-blue-700 rounded-[.25rem] px-1 py-0.5">${match}</mark>`
 		);
 	}
 
@@ -272,7 +278,8 @@
 					<div class="relative my-8 h-full w-full rounded-md bg-muted/50 p-6">
 						<LLMCode
 							innerText={{
-								input: 'The small cat quickly sat on the wooliful mat in the mewiful corner of the room.'
+								input:
+									'The small cat quickly sat on the wooliful mat in the mewiful corner of the room.'
 							}}
 							language="json"
 						/>
@@ -594,12 +601,18 @@
 								>
 									<Table.Cell>
 										<Badge
-											class="box-border cursor-pointer whitespace-break-spaces text-sm transition-none {selectedWord &&
+											class="box-border cursor-pointer whitespace-pre text-sm transition-none {selectedWord &&
 											token === selectedWord
 												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
 												: 'text-foreground'}"
 											variant="secondary"
-											>{@html formatSearch(token + '&lt;&#47;w&gt;', searchValueAll)}</Badge
+											>{@html formatSearchToken(token, searchValueAll, {
+												endToken: END_TOKEN,
+												endTokenEscaped: END_TOKEN_ESCAPED,
+												lt: LT,
+												slash: SLASH,
+												gt: GT
+											})}</Badge
 										>
 									</Table.Cell>
 									<Table.Cell>{state}</Table.Cell>
@@ -637,7 +650,13 @@
 												? 'border-blue-700 bg-blue-100 text-blue-700 outline outline-2 outline-offset-[-2px] hover:bg-blue-100'
 												: 'text-foreground'}"
 											variant="secondary"
-											>{@html formatSearch(token + '&lt;&#47;w&gt;', searchValueOpen)}</Badge
+											>{@html formatSearchToken(token, searchValueAll, {
+												endToken: END_TOKEN,
+												endTokenEscaped: END_TOKEN_ESCAPED,
+												lt: LT,
+												slash: SLASH,
+												gt: GT
+											})}</Badge
 										>
 									</Table.Cell>
 									<Table.Cell class="text-right">{count}</Table.Cell>

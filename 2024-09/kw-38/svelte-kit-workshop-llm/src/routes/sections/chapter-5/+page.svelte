@@ -164,7 +164,7 @@
 				bind:value={contextValue}
 				class="max-h-72 min-h-36 w-full text-base"
 				id="text"
-				placeholder="Can't complain, this model ain't half bad. What a hit!"
+				placeholder="Can't complain, this tokenizer ain't that bad though ..."
 				maxlength={512}
 				disabled={hasBeenClicked}
 				oninput={handleOnKeypress}
