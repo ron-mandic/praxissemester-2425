@@ -1,5 +1,5 @@
 import { json } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+import type { RequestHandler } from '../$types';
 import { URL_SERVER_8001 } from '$env/static/private';
 
 export const POST: RequestHandler = async ({ request, fetch }) => {

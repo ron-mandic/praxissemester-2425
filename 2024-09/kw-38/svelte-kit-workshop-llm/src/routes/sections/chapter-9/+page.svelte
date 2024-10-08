@@ -70,7 +70,7 @@
 		let headers = { 'Content-Type': 'application/json' };
 
 		isFetching = true;
-		const response = await fetch('/api/embed', { method: 'POST', body, headers });
+		const response = await fetch('/api/embed/generate', { method: 'POST', body, headers });
 		const data = await response.json();
 		outputEmbedding = data;
 
