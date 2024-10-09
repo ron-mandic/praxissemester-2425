@@ -23,9 +23,15 @@
 			{#each links as { innerText, href, heading, available = true }, i}
 				{#if heading}
 					<p
-						class="font-regular mb-1 mt-6 select-none px-3 text-sm uppercase text-muted-foreground/70 first:mt-0"
+						class="font-regular relative mb-1 mt-6 select-none px-3 text-sm text-muted-foreground/70 first:mt-0"
 					>
-						{heading}
+						<span class="uppercase">{heading}</span>
+						{#if !available}
+							<span
+								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-violet-100 px-2 py-1 text-xs font-medium text-violet-600"
+								>Bald verfügbar</span
+							>
+						{/if}
 					</p>
 				{:else}
 					<a
@@ -67,9 +73,15 @@
 			{#each links as { innerText, href, heading, available = true }, i}
 				{#if heading}
 					<p
-						class="font-regular mb-1 mt-6 select-none px-4 text-sm uppercase text-muted-foreground/70 first:mt-0"
+						class="font-regular mb-1 mt-6 select-none px-4 text-sm text-muted-foreground/70 first:mt-0"
 					>
-						{heading}
+						<span class="uppercase">{heading}</span>
+						{#if !available}
+							<span
+								class="absolute right-1 top-1/2 -translate-y-1/2 rounded-md bg-violet-100 px-2 py-1 text-xs font-medium text-violet-600"
+								>Bald verfügbar</span
+							>
+						{/if}
 					</p>
 				{:else}
 					<a

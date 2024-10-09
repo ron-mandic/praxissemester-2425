@@ -32,7 +32,9 @@
 	import * as Accordion from '$lib/components/ui/accordion';
 	import { sparsevec } from 'drizzle-orm/pg-core';
 	import IconMistral from '@/svelte/IconMistral.svelte';
-	import { X } from 'lucide-svelte';
+	import * as Select from '$lib/components/ui/select';
+	import { X, Plus } from 'lucide-svelte';
+	import type { Selected } from 'bits-ui';
 
 	let contextValue = $state('');
 	let output = $state({} as any);
@@ -42,12 +44,41 @@
 	let hasEnded = $state(false);
 	let isFetching = $state(false);
 
-	let inputValues = $state(['', '', ''] as (null | string)[]);
+	let inputValues = $state(['', '', ''] as string[]);
+	let inputValues0 = [
+		'Shape of You',
+		'End Game',
+		'Cold Water',
+		'Bad Habits',
+		'Shivers',
+		'Over Again',
+		'Nothing on you'
+	]; // Item 2
+	let inputValues1 = ['Cat', 'Elephant', 'Donkey', 'Horse', 'Dog', 'Lion', 'Zebra']; // Item 1
+	let selectedView = $state() as Selected<string> | undefined;
+	let selectValues = [
+		{ value: '0', label: 'Ed Sheeran Songs' },
+		{ value: '1', label: 'Tiere' },
+		{ value: '2', label: 'Eigene Labels' }
+	];
 
 	const { data } = $props();
 
 	$effect(() => {
 		return handleReset;
+	});
+
+	$effect(() => {
+		if (selectedView?.value === '0') {
+			inputValues = inputValues0;
+			output = {};
+		} else if (selectedView?.value === '1') {
+			inputValues = inputValues1;
+			output = {};
+		} else if (selectedView?.value === '2') {
+			inputValues = ['', '', ''];
+			output = {};
+		}
 	});
 
 	function showEmbedding(embeddings: number[]) {
@@ -80,6 +111,8 @@
 	}
 
 	async function handlePress(event: KeyboardEvent) {
+		if (inputValues.length >= 7) return;
+
 		if (event.key === 'Enter' && event.ctrlKey) {
 			inputValues.push('');
 			tick().then(() => {
@@ -90,7 +123,9 @@
 	}
 
 	async function handleClick() {
-		let body = JSON.stringify({ input: inputValues });
+		let body = JSON.stringify({
+			input: inputValues
+		});
 		let headers = { 'Content-Type': 'application/json' };
 
 		isFetching = true;
@@ -115,6 +150,8 @@
 			hasBeenReset = false;
 		}, 1000);
 	}
+
+	$inspect(output);
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
@@ -122,23 +159,38 @@
 
 	<Card.Root class="w-full">
 		<Card.Header class="gap-2">
-			<Card.Title>Text als wildes Zahlengeflecht</Card.Title>
+			<Card.Title>Stochastische Nachbarschaftssuche</Card.Title>
 			<Card.Description>
 				<p>
-					Du kennst das Spiel bereits - unten kannst du deine Eingabe tätigen und dabei ist es egal,
-					ob es ein einzelnes Wort oder ein ganzer Satz ist. Hier geht es darum, die Wörter nur in
-					Zahlen umzuwandeln, bevor im nächsten Kapitel die Ähnlichkeit zwischen den Wörtern
-					untersucht werden kann, um so die semantische Bedeutung zu erfassen.
+					Wir befinden uns also im zweidimensionalen Raum und haben eine Menge von Punkten, die wir
+					untersuchen wollen. Die Frage, die wir uns stellen, ist, wie wir semantisch ähnliche
+					Punkte in die Nähe ähnlicher Punkte bringen. Dazu verwenden wir den t-SNE Algorithmus.
+					Wähle beliebige Wörter und Sätze aus und schaue dir die Visualisierung der Embeddings an.
 				</p>
 			</Card.Description>
 		</Card.Header>
 		<Separator class="mb-6" />
 		<Card.Content>
+			<div class="mb-8 flex w-full items-center justify-between">
+				<h3>Inputfelder</h3>
+				<Select.Root
+					selected={selectedView}
+					onSelectedChange={(v) => v && (selectedView = v)}
+					disabled={hasBeenClicked}
+				>
+					<Select.Trigger class="w-48">
+						<Select.Value placeholder="Themenfelder" />
+					</Select.Trigger>
+					<Select.Content>
+						{#each selectValues as { value, label }}
+							<Select.Item {value}>{label}</Select.Item>
+						{/each}
+					</Select.Content>
+				</Select.Root>
+			</div>
+
 			{#each inputValues as inputValue, i}
 				<div class="mt-2 flex flex-col justify-between">
-					{#if !i}
-						<Label for="text-{i}" class="mb-4 mr-2 mt-4">Inputfelder</Label>
-					{/if}
 					<div class="flex gap-x-2" in:fly={{ y: -10, opacity: 0, easing: backOut }}>
 						<Input
 							id="text-{i}"
@@ -167,15 +219,17 @@
 
 			<div class="mt-6 flex items-center justify-center">
 				<Button
+					class="w-10"
 					variant="secondary"
 					onclick={() => {
 						if (inputValues.length <= 6) {
 							inputValues.push('');
 						}
 					}}
-					class={inputValues.length === 1 ? 'animate-pulse' : 'animate-none'}
-					disabled={inputValues.length >= 7}>Inputfeld hinzufügen</Button
+					disabled={inputValues.length >= 7 || hasBeenClicked}
 				>
+					<span aria-hidden="true"> <Plus class="w-4- h-4" /> </span>
+				</Button>
 			</div>
 		</Card.Content>
 		<Card.Footer class="flex justify-between">
@@ -190,7 +244,9 @@
 				class="relative px-5 py-6 transition-transform ease-out active:translate-y-0.5 {isFetching
 					? 'pointer-events-none'
 					: 'pointer-events-auto'}"
-				disabled={inputValues.length >= 3 && inputValues.every((v) => v !== '')}
+				disabled={(inputValues.length >= 3 &&
+					inputValues.filter(Boolean).length !== inputValues.length) ||
+					hasBeenClicked}
 				onclick={handleClick}
 			>
 				{#if hasBeenClicked}
@@ -205,78 +261,37 @@
 	<div class="mt-6">
 		<Card.Root class="dark w-full">
 			<Card.Header class="p-1.5">
-				<ScrollArea
-					class="relative h-[525px] w-full rounded-md bg-muted/50 transition-all"
-					orientation="vertical"
-				>
-					<div>
-						<div class="h-full w-full px-4 pb-8 pt-4">
-							{#if hasBeenClicked}
-								<div
-									in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}
-									out:fly={{ duration: 300, y: 10, opacity: 0, easing: quintOut }}
-								>
-									<div
-										class="mx-auto w-full columns-1 3xs:max-w-[375px] 3xs:columns-2 xs:max-w-full xs:columns-3 sm:columns-4"
-									>
-										{#each showEmbedding(output?.embeddings[0]) as num, i}
-											<div
-												class="mb-2.5 flex items-center justify-around gap-1 font-mono 3xs:justify-evenly"
-											>
-												<span class="select-none text-sm text-muted-foreground"
-													>{i.toString().padStart(4, '0')}</span
-												>
-												<span
-													class="select-none rounded-sm p-1 text-sm 3xs:hidden {num === 0
-														? 'text-grey bg-white/10'
-														: num > 0
-															? 'bg-green-400/10 text-green-400'
-															: 'bg-red-400/10 text-red-400'}"
-													>{num.toFixed(num >= 0 ? 9 : 8).padEnd(25, '0')}</span
-												>
-												<span
-													class="hidden select-none rounded-sm p-1 text-sm 3xs:block sm:hidden {num ===
-													0
-														? 'text-grey bg-white/10'
-														: num > 0
-															? 'bg-green-400/10 text-green-400'
-															: 'bg-red-400/10 text-red-400'}">{num.toFixed(num >= 0 ? 9 : 8)}</span
-												>
-												<span
-													class="hidden select-none rounded-sm p-1 text-sm sm:block {num === 0
-														? 'text-grey bg-white/10'
-														: num > 0
-															? 'bg-green-400/10 text-green-400'
-															: 'bg-red-400/10 text-red-400'}">{num.toFixed(num >= 0 ? 7 : 6)}</span
-												>
-											</div>
-										{/each}
-									</div>
-
-									<div class="mt-8 flex w-full items-center justify-center">
-										<Button variant="secondary" onclick={handleConfirm}>
-											{#if hasConfirmed}
-												<span>Nur 512 Werte anzeigen</span>
-											{:else}
-												<span>Alle 4096 Werte anzeigen</span>
-											{/if}
-										</Button>
-									</div>
-								</div>
-							{:else}
-								<LLMLoader
-									in={{ start: 0, opacity: 0, duration: 1000, cssDelay: 1200 }}
-									out={{ duration: 250 }}
-								/>
-							{/if}
+				<div class="relative h-[525px] w-full rounded-md bg-muted/50 p-10 transition-all" id="grid">
+					{#if hasBeenClicked}
+						<div
+							class="relative h-full w-full"
+							in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}
+							out:fly={{ duration: 300, y: 10, opacity: 0, easing: quintOut }}
+						>
+							{#each output?.coordinates as { x, y, top, left }, i}
+								<HoverCard.Root>
+									<HoverCard.Trigger
+										class="absolute h-4 w-4 cursor-pointer rounded-full bg-white hover:animate-pulse"
+										style="top: calc({top}% - 6px); left: calc({left}% - 6px);"
+									></HoverCard.Trigger>
+									<HoverCard.Content class="h-min w-min text-sm">
+										<span>{output.input[i]}</span>
+									</HoverCard.Content>
+								</HoverCard.Root>
+							{/each}
 						</div>
-					</div>
-				</ScrollArea>
+					{:else}
+						<LLMLoader
+							in={{ start: 0, opacity: 0, duration: 1000, cssDelay: 1200 }}
+							out={{ duration: 250 }}
+						/>
+					{/if}
+				</div>
 
 				<div class="flex h-16 w-full items-center justify-center">
 					{#if !hasBeenClicked}
 						<span class="font-regular select-none text-sm text-muted-foreground"
-							>Bitte gib erst einen Text ein</span
+							>Bitte gib erst deine Texte ein</span
 						>
 					{:else}
 						<Card.Title class="mx-auto w-full max-w-96 text-center">
@@ -294,3 +309,20 @@
 </section>
 
 <Toaster position="bottom-right" />
+
+<style lang="scss">
+	#grid {
+		position: relative;
+		&::before {
+			// this will be the vertical line through the center from top to bottom
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 50%;
+			width: 1px;
+			height: 100%;
+			background-color: var(--color-muted-foreground);
+			z-index: 1;
+		}
+	}
+</style>

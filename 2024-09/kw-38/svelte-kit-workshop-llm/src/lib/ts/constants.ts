@@ -56,18 +56,19 @@ export const LINKS = [
 		href: '/sections/chapter-10'
 	},
 	{
-		heading: 'Exkurs'
+		heading: 'Exkurs',
+		available: false
 	},
 	{
 		innerText: 'Eliza'
 	},
 	{
 		// TODO: https://github.com/eleventigers/mitsuku-api
-		innerText: 'Mitsuku',
-		available: false
+		innerText: 'Mitsuku'
 	},
 	{
-		heading: 'Inferenz'
+		heading: 'Inferenz',
+		available: false
 	},
 	{
 		innerText: 'Seed und Temperatur'
@@ -79,7 +80,8 @@ export const LINKS = [
 		innerText: 'Chatbot'
 	},
 	{
-		heading: 'Beispiele'
+		heading: 'Beispiele',
+		available: false
 	},
 	{
 		// https://huggingface.co/google-bert/bert-base-cased
@@ -107,8 +109,7 @@ export const LINKS = [
 	},
 	{
 		// TODO: https://huggingface.co/dslim/bert-base-NER
-		innerText: 'Tokenklassifizierung',
-		available: false
+		innerText: 'Tokenklassifizierung'
 	},
 	{
 		innerText: 'Reasoning'
