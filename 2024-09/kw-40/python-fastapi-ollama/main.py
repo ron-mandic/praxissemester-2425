@@ -15,8 +15,9 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch.nn.functional as F
 import torch
 import platform
+from sklearn.decomposition import PCA
 
-from lib.functions import normalize, normalize_coords
+from lib.functions import normalize_coords
 
 app = FastAPI()
 app.add_middleware(
@@ -52,15 +53,14 @@ class PayloadInput(BaseModel):
     input: Union[str, List[str]]
 
 class TSNEParams(BaseModel):
-    learning_rate: Union[float, Literal['auto']] = "auto"
-    max_iter: Optional[int] = 1000 # former n_iter
-    init: Literal['random', 'pca'] = "pca"
-    random_state: Optional[int] = None # only works with "init": "random"
-    verbose: Literal[0, 1] = 0
+    learning_rate: Union[float, Literal['auto']]
+    max_iter: Optional[int] = 300
+    init: Literal['random', 'pca'] = "random"
+    random_state: Optional[int] = None
 
 class PayloadInputTSNE(BaseModel):
     input: Union[str, List[str]]
-    params: Optional[TSNEParams] = None
+    # params: Optional[TSNEParams] = None
 
 class PayloadPrompt(BaseModel):
     prompt: str
@@ -210,13 +210,16 @@ async def index(payload: PayloadInputTSNE):
         response_data = response.json()
 
     embeddings = np.array(response_data["embeddings"])
-    tsne = TSNE(
-        perplexity=min(30, embeddings.shape[0] - 1),
-        **payload.params.model_dump()
-    )
-    coords = tsne.fit_transform(embeddings)
 
-    return {"input": payload.input, "coordinates": normalize_coords(coords)}
+    # X = PCA().fit_transform(embeddings)
+    tsne = TSNE(n_components=2, random_state=0, perplexity=2)
+    X_embedded = tsne.fit_transform(embeddings)
+
+    return {
+        "input": payload.input,
+        "values": normalize_coords(X_embedded),
+        "params": tsne.get_params()
+    }
 
 # ############################################################################### Prompt
 # @app.post("/generate")
