@@ -35,6 +35,10 @@
 	import * as Select from '$lib/components/ui/select';
 	import { X, Plus } from 'lucide-svelte';
 	import type { Selected } from 'bits-ui';
+	import { Trigger } from '@/ui/collapsible';
+
+	// TODO: Switch to UMAP one day
+	// TODO: Add similarity scores and metrics (like euclidean distance)
 
 	let contextValue = $state('');
 	let output = $state({} as any);
@@ -46,23 +50,54 @@
 
 	let inputValues = $state(['', '', ''] as string[]);
 	let inputValues0 = [
-		'Shape of You',
-		'End Game',
-		'Cold Water',
-		'Bad Habits',
-		'Shivers',
-		'Over Again',
-		'Nothing on you'
+		'In Shape of You, there is being taught the moral of love and attraction.',
+		'In Perfect, the lyrics express unconditional love and commitment.',
+		'Castle on the Hill narrates a nostalgic journey of youth and memories.',
+		'Photograph captures the essence of preserving memories through love.',
+		'Happier highlights the bittersweet feeling of seeing an ex move on.',
+		"I Don't Care conveys a carefree attitude in the face of judgment.",
+		'Bad Habits discusses the conflict between desires and personal flaws.'
+	]; // Item 0
+	let inputValues1 = [
+		'The cat pounces playfully on the balcony.',
+		'The elephant forages for food in the savanna.',
+		'The donkey brays loudly in the farmyard.',
+		'The buffalo grazes steadily in the vast grasslands.',
+		'The dog barks happily in the backyard.',
+		'The lion roars majestically in the grasslands.',
+		'The zebra grazes peacefully under the sun.'
+	]; // Item 1
+	let inputValues2 = [
+		'In a democracy, the people have the power to elect their leaders.',
+		'A monarchy is a system of government where a king or queen rules the country.',
+		'In a republic, the head of state is elected, rather than inheriting the position.',
+		'A theocracy is a government ruled by religious leaders and based on religious law.',
+		'Under a dictatorship, a single person holds absolute power, often gained through force.',
+		'An oligarchy is a system where a small group of people control the government.',
+		'A federation is a union of states with a central government, but states retain some independence.'
 	]; // Item 2
-	let inputValues1 = ['Cat', 'Elephant', 'Donkey', 'Horse', 'Dog', 'Lion', 'Zebra']; // Item 1
+	let inputValues3 = [
+		'Joy: She feels pure joy as she celebrates her birthday with friends and family.',
+		'Sadness: He sits alone in his room, feeling a deep sense of sadness after the loss of his pet.',
+		"Anger: The loud noise outside makes her feel angry, and she can't concentrate on her work.",
+		'Surprise: He was taken by surprise when his friends threw him a surprise party.',
+		'Fear: As she walked through the dark alley, a feeling of fear washed over her.',
+		'Energized: After a refreshing run in the morning, he feels energized and ready to take on the day.',
+		'Contentment: She feels content as she sits by the fireplace, sipping hot cocoa on a cold winter night.'
+	];
 	let selectedView = $state() as Selected<string> | undefined;
 	let selectValues = [
-		{ value: '0', label: 'Ed Sheeran Songs' },
+		{ value: '0', label: 'Songs' },
 		{ value: '1', label: 'Tiere' },
-		{ value: '2', label: 'Eigene Labels' }
+		{ value: '2', label: 'Staatsformen' },
+		{ value: '3', label: 'Gefühle' },
+		{ value: '4', label: 'Neues Themenfeld' }
 	];
 
 	const { data } = $props();
+	console.log(data);
+
+	const MAX_INPUT_FIELDS = 7;
 
 	$effect(() => {
 		return handleReset;
@@ -76,6 +111,12 @@
 			inputValues = inputValues1;
 			output = {};
 		} else if (selectedView?.value === '2') {
+			inputValues = inputValues2;
+			output = {};
+		} else if (selectedView?.value === '3') {
+			inputValues = inputValues3;
+			output = {};
+		} else {
 			inputValues = ['', '', ''];
 			output = {};
 		}
@@ -104,10 +145,6 @@
 			default:
 				return `${i <= 5 ? 'Aber nicht mehr' : 'Und auch nicht mehr'} als ${i + 1} Eingaben`;
 		}
-	}
-
-	function handleConfirm() {
-		hasConfirmed = !hasConfirmed;
 	}
 
 	async function handlePress(event: KeyboardEvent) {
@@ -163,9 +200,10 @@
 			<Card.Description>
 				<p>
 					Wir befinden uns also im zweidimensionalen Raum und haben eine Menge von Punkten, die wir
-					untersuchen wollen. Die Frage, die wir uns stellen, ist, wie wir semantisch ähnliche
-					Punkte in die Nähe ähnlicher Punkte bringen. Dazu verwenden wir den t-SNE Algorithmus.
-					Wähle beliebige Wörter und Sätze aus und schaue dir die Visualisierung der Embeddings an.
+					untersuchen wollen. Die Frage, die wir uns stellen, ist, wie die Punkte in der Nähe
+					semantisch ähnlicher Punkte aussehen und zu Gruppen zusammengefasst werden könnten. Um das
+					zu veranschaulichen, verwenden wir den t-SNE Algorithmus. Wähle beliebige Wörter oder
+					ganze Sätze aus und schaue dir die Visualisierung der Embeddings an.
 				</p>
 			</Card.Description>
 		</Card.Header>
@@ -179,7 +217,7 @@
 					disabled={hasBeenClicked}
 				>
 					<Select.Trigger class="w-48">
-						<Select.Value placeholder="Themenfelder" />
+						<Select.Value placeholder="Thema auswählen" />
 					</Select.Trigger>
 					<Select.Content>
 						{#each selectValues as { value, label }}
@@ -196,7 +234,6 @@
 							id="text-{i}"
 							bind:value={inputValues[i]}
 							disabled={hasBeenClicked}
-							maxlength={256}
 							placeholder={getPlaceholder(i)}
 							onkeydown={handlePress}
 						/>
@@ -261,44 +298,79 @@
 	<div class="mt-6">
 		<Card.Root class="dark w-full">
 			<Card.Header class="p-1.5">
-				<div class="relative h-[525px] w-full rounded-md bg-muted/50 p-10 transition-all" id="grid">
+				<div
+					class="relative h-[525px] w-full rounded-md bg-muted/50 p-10 transition-all {hasBeenClicked &&
+						'coords'}"
+				>
 					{#if hasBeenClicked}
 						<div
+							id="grid"
 							class="relative h-full w-full"
 							in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}
 							out:fly={{ duration: 300, y: 10, opacity: 0, easing: quintOut }}
 						>
-							{#each output?.coordinates as { x, y, top, left }, i}
+							{#each output?.values?.coords as { x, y, top, left }, i}
 								<HoverCard.Root>
 									<HoverCard.Trigger
-										class="absolute h-4 w-4 cursor-pointer rounded-full bg-white hover:animate-pulse"
-										style="top: calc({top}% - 6px); left: calc({left}% - 6px);"
+										class="absolute z-10 h-4 w-4 cursor-pointer rounded-full bg-white hover:animate-pulse"
+										style="top: calc({top * 100}% - 8px); left: calc({left * 100}% - 8px);"
 									></HoverCard.Trigger>
-									<HoverCard.Content class="h-min w-min text-sm">
-										<span>{output.input[i]}</span>
+									<HoverCard.Content class="h-min w-min px-4 py-2 text-sm">
+										<p
+											class="w-full max-w-56 overflow-hidden text-ellipsis whitespace-nowrap font-bold"
+										>
+											{output.input[i]}
+										</p>
+										<div
+											class="mt-2 grid min-w-14 max-w-14 grid-cols-2 whitespace-nowrap font-mono text-sm"
+										>
+											<span>x:</span>
+											<span class="text-right">{Math.round(x)}</span>
+											<span>y:</span>
+											<span class="text-right">{Math.round(y)}</span>
+										</div>
 									</HoverCard.Content>
 								</HoverCard.Root>
 							{/each}
 						</div>
-					{:else}
+
+						<div
+							id="x-labels"
+							class="pointer-events-none -my-2 px-2"
+							in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}
+						>
+							<span class="text-sm text-muted-foreground"
+								>{Math.round(output?.values?.limes.x[0] * 1.16)}</span
+							>
+							<span class="text-sm text-muted-foreground"
+								>{Math.round(output?.values?.limes.x[1] * 1.16)}</span
+							>
+						</div>
+
+						<div
+							id="y-labels"
+							class="pointer-events-none px-2 py-2"
+							in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}
+						>
+							<span class="text-sm text-muted-foreground"
+								>{Math.round(output?.values?.limes.y[0] * 1.164)}</span
+							>
+							<span class="text-sm text-muted-foreground"
+								>{Math.round(output?.values?.limes.y[1] * 1.164)}</span
+							>
+						</div>
+					{:else if isFetching}
 						<LLMLoader
 							in={{ start: 0, opacity: 0, duration: 1000, cssDelay: 1200 }}
 							out={{ duration: 250 }}
 						/>
-					{/if}
-				</div>
-
-				<div class="flex h-16 w-full items-center justify-center">
-					{#if !hasBeenClicked}
-						<span class="font-regular select-none text-sm text-muted-foreground"
-							>Bitte gib erst deine Texte ein</span
-						>
 					{:else}
-						<Card.Title class="mx-auto w-full max-w-96 text-center">
-							<span class="inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap px-4"
-								>{contextValue}</span
-							>
-						</Card.Title>
+						<p
+							class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none text-muted-foreground"
+							in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}
+						>
+							Hier werden deine Wörter visualisiert
+						</p>
 					{/if}
 				</div>
 			</Card.Header>
@@ -311,7 +383,7 @@
 <Toaster position="bottom-right" />
 
 <style lang="scss">
-	#grid {
+	.coords {
 		position: relative;
 		&::before {
 			// this will be the vertical line through the center from top to bottom
@@ -321,8 +393,43 @@
 			left: 50%;
 			width: 1px;
 			height: 100%;
-			background-color: var(--color-muted-foreground);
-			z-index: 1;
+			z-index: 0;
+			@apply pointer-events-none bg-muted-foreground/40;
 		}
+
+		&::after {
+			// this will be the horizontal line through the center from left to right
+			content: '';
+			position: absolute;
+			top: 50%;
+			left: 0;
+			width: 100%;
+			height: 1px;
+			z-index: 0;
+			@apply pointer-events-none bg-muted-foreground/40;
+		}
+	}
+
+	#x-labels {
+		position: absolute;
+		top: calc(50% - 1rem);
+		left: 50%;
+		translate: -50% 0;
+		height: 1rem;
+		display: flex;
+		justify-content: space-between;
+		width: 100%;
+	}
+
+	#y-labels {
+		position: absolute;
+		height: 100%;
+		width: 15%;
+		left: 50%;
+		top: 50%;
+		translate: 0 -50%;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
 	}
 </style>

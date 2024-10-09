@@ -71,7 +71,8 @@ export const LINKS = [
 		available: false
 	},
 	{
-		innerText: 'Seed und Temperatur'
+		innerText: 'Seed und Temperatur',
+		href: '/sections/chapter-13'
 	},
 	{
 		innerText: 'Dialog Engineering'
@@ -105,10 +106,11 @@ export const LINKS = [
 		innerText: 'Textzusammenfassung'
 	},
 	{
+		// 
 		innerText: 'Textübersetzung'
 	},
 	{
-		// TODO: https://huggingface.co/dslim/bert-base-NER
+		// https://huggingface.co/dslim/bert-base-NER
 		innerText: 'Tokenklassifizierung'
 	},
 	{
