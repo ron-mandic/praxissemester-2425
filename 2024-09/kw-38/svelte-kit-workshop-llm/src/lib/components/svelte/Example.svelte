@@ -30,7 +30,6 @@
 		console.log(...formData);
 	}
 
-	$inspect(data).with(console.log);
 </script>
 
 <Card.Root class="w-[350px]">

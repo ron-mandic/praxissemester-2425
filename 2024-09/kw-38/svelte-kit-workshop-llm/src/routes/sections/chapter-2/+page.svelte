@@ -83,7 +83,6 @@
 		}, 1000);
 	}
 
-	$inspect(selectedWord).with(console.log);
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">

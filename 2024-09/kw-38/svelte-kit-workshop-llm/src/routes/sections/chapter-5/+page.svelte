@@ -27,7 +27,7 @@
 	import { Label } from '@/ui/label/index.js';
 	import Textarea from '@/ui/textarea/textarea.svelte';
 
-	let contextValue = $state('');
+	let contextValue = $state('Can\'t really complain, this tokenizer ain\'t that bad though! I am gonna try it out.');
 	let outputs = $state([] as string[]);
 	let outputsHistory = $state([] as { word: string; abs: number; rel: number }[]);
 	let hasBeenClicked = $state(false);
@@ -164,7 +164,7 @@
 				bind:value={contextValue}
 				class="max-h-72 min-h-36 w-full text-base"
 				id="text"
-				placeholder="Can't complain, this tokenizer ain't that bad though ..."
+				placeholder="Can't really complain, this tokenizer ain't that bad though!"
 				maxlength={512}
 				disabled={hasBeenClicked}
 				oninput={handleOnKeypress}

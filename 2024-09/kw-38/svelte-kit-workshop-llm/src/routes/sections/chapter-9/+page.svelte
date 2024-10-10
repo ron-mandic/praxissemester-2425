@@ -33,7 +33,9 @@
 	import { sparsevec } from 'drizzle-orm/pg-core';
 	import IconMistral from '@/svelte/IconMistral.svelte';
 
-	let contextValue = $state('');
+	let contextValue = $state(
+		'Der Hund und die Katze sind beliebte Haustiere. Hunde sind treu und gesellig, während Katzen oft unabhängig und neugierig sind.'
+	);
 	let outputEmbedding = $state({} as any);
 	let hasBeenClicked = $state(false);
 	let hasBeenReset = $state(false);
@@ -412,7 +414,7 @@
 							>Bitte gib erst einen Text ein</span
 						>
 					{:else}
-						<Card.Title class="w-full max-w-96 mx-auto text-center">
+						<Card.Title class="mx-auto w-full max-w-96 text-center">
 							<span class="inline-block w-full overflow-hidden text-ellipsis whitespace-nowrap px-4"
 								>{contextValue}</span
 							>

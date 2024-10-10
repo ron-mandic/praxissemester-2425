@@ -40,7 +40,6 @@
 	// TODO: Switch to UMAP one day
 	// TODO: Add similarity scores and metrics (like euclidean distance)
 
-	let contextValue = $state('');
 	let output = $state({} as any);
 	let hasBeenClicked = $state(false);
 	let hasBeenReset = $state(false);
@@ -177,7 +176,6 @@
 	}
 
 	function handleReset() {
-		contextValue = '';
 		hasBeenClicked = false;
 		hasBeenReset = false;
 		hasEnded = false;
@@ -187,8 +185,6 @@
 			hasBeenReset = false;
 		}, 1000);
 	}
-
-	$inspect(output);
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
@@ -366,10 +362,10 @@
 						/>
 					{:else}
 						<p
-							class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none text-muted-foreground"
+							class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none text-center text-muted-foreground md:text-center md:whitespace-nowrap"
 							in:fly={{ delay: 550, duration: 300, y: -10, opacity: 0, easing: quintOut }}
 						>
-							Hier werden deine Wörter visualisiert
+							Hier werden deine Eingaben visualisiert
 						</p>
 					{/if}
 				</div>
@@ -377,7 +373,7 @@
 		</Card.Root>
 	</div>
 
-	<LLMNext url={data.url} prev="Affixe" next="Generierung" />
+	<LLMNext url={data.url} prev="Generierung" next="Eliza" />
 </section>
 
 <Toaster position="bottom-right" />
@@ -394,7 +390,7 @@
 			width: 1px;
 			height: 100%;
 			z-index: 0;
-			@apply pointer-events-none bg-muted-foreground/40;
+			@apply pointer-events-none bg-muted-foreground/10;
 		}
 
 		&::after {
@@ -406,7 +402,7 @@
 			width: 100%;
 			height: 1px;
 			z-index: 0;
-			@apply pointer-events-none bg-muted-foreground/40;
+			@apply pointer-events-none bg-muted-foreground/10;
 		}
 	}
 

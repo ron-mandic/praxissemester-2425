@@ -73,7 +73,7 @@
 			{#each links as { innerText, href, heading, available = true }, i}
 				{#if heading}
 					<p
-						class="font-regular mb-1 mt-6 select-none px-4 text-sm text-muted-foreground/70 first:mt-0"
+						class="relative font-regular mb-1 mt-6 select-none px-4 text-sm text-muted-foreground/70 first:mt-0"
 					>
 						<span class="uppercase">{heading}</span>
 						{#if !available}

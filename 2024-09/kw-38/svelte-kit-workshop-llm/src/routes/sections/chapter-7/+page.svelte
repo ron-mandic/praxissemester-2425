@@ -30,7 +30,9 @@
 	import * as Accordion from '$lib/components/ui/accordion';
 	import { sparsevec } from 'drizzle-orm/pg-core';
 
-	let contextValue = $state('');
+	let contextValue = $state(
+		"The unkindest, most disrespectful comments can unintentionally hurt someone's feelings."
+	);
 	let selectedWord = $state('');
 	let outputsTokens = $state([] as { details: any; fragments: any; word: string; nltk: any }[]);
 	let hasBeenClicked = $state(false);
@@ -104,8 +106,6 @@
 			hasBeenReset = false;
 		}, 1000);
 	}
-
-	$inspect(selectedWord);
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">

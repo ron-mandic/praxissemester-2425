@@ -29,7 +29,7 @@
 	import type { Key } from 'lucide-svelte';
 	import { is } from 'drizzle-orm';
 
-	let contextValue = $state('');
+	let contextValue = $state('This prompt contains a lot, I mean a ton of punctuation. Can you handle it?! I\'m not sure, but I think you can. Let\'s see');
 	let selectedWord = $state('');
 	let outputsWordPunct = $state([] as string[]);
 	let outputsTreebankWord = $state([] as string[]);
@@ -123,7 +123,6 @@
 		}, 1000);
 	}
 
-	$inspect(selectedWord);
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
@@ -291,7 +290,7 @@
 				bind:value={contextValue}
 				class="max-h-72 min-h-36 w-full text-base"
 				id="text"
-				placeholder="This prompt contains a lot, I mean a ton of punctuation marks. Can you handle it?"
+				placeholder="This prompt contains a lot, I mean a ton of punctuation. Can you handle it?"
 				maxlength={512}
 				disabled={hasBeenClicked}
 				onkeypress={handlePress}

@@ -31,7 +31,7 @@
 	import * as Accordion from '$lib/components/ui/accordion';
 	import { sparsevec } from 'drizzle-orm/pg-core';
 
-	let contextValue = $state('');
+	let contextValue = $state('The small cat quickly sat on the wooliful mat in the mewiful corner of the room');
 	let currentView = $state('3');
 	let searchValueAll = $state('');
 	let searchValueOpen = $state('');
@@ -165,8 +165,6 @@
 			hasBeenReset = false;
 		}, 1000);
 	}
-
-	$inspect(outputsTokens);
 </script>
 
 <section class="h-full w-full max-md:max-w-[calc(100vw-16px)]">
@@ -381,7 +379,7 @@
 			</div>
 
 			<Label for="text" class="mb-2 mt-8 block">Regel</Label>
-			<div class="div flex h-20 w-full items-center justify-center rounded-md bg-muted/40">
+			<div class="div flex h-20 w-full items-center justify-center rounded-md bg-muted/30">
 				{#if outputsTokens?.rules && iterations}
 					{@const rule = outputsTokens?.rules[outputsTokens?.rules.length - 1]}
 					<HoverCard.Root>

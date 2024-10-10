@@ -39,7 +39,7 @@
 	});
 
 	let seed = $state(null as number | null);
-	let contextValue = $state('');
+	let contextValue = $state('im in love with');
 	let contextWords = $state(0);
 	let searchValueHistory = $state('');
 	let searchValueNgrams = $state('');
@@ -467,7 +467,7 @@
 				id="text"
 				class="w-full text-base {hasWobble ? 'animate-wobble' : 'animate-none'}"
 				type="text"
-				placeholder="im in love with ..."
+				placeholder="im in love with"
 				pattern="[\w\s]+"
 				maxlength={75}
 				disabled={hasBeenClicked || hasEnded}

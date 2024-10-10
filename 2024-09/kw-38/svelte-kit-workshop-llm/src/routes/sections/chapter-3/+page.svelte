@@ -22,7 +22,7 @@
 
 	const { data } = $props();
 
-	let contextValue = $state('');
+	let contextValue = $state('im in');
 	let searchValueHistory = $state('');
 	let searchValueBigrams = $state('');
 	let selectedWord = $state('');

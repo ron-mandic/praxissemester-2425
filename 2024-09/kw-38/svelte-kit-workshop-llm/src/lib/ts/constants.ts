@@ -67,18 +67,19 @@ export const LINKS = [
 		innerText: 'Mitsuku'
 	},
 	{
-		heading: 'Inferenz',
-		available: false
+		heading: 'Inferenz'
 	},
 	{
 		innerText: 'Seed und Temperatur',
 		href: '/sections/chapter-13'
 	},
 	{
-		innerText: 'Dialog Engineering'
+		innerText: 'Dialog Engineering',
+		available: false
 	},
 	{
-		innerText: 'Chatbot'
+		innerText: 'Chatbot',
+		available: false
 	},
 	{
 		heading: 'Beispiele',
@@ -106,7 +107,7 @@ export const LINKS = [
 		innerText: 'Textzusammenfassung'
 	},
 	{
-		// 
+		// ...
 		innerText: 'Textübersetzung'
 	},
 	{
