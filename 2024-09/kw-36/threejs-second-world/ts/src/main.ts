@@ -9,6 +9,9 @@ import {
 } from "./ts/constants";
 await RAPIER.init();
 
+// TODO: Try alpha or depth test for the plane material of the sprites
+// TODO: Also try depthWrite to specify if the sprites appear in the depth buffer
+
 const canvas = document.querySelector("#app canvas")! as HTMLCanvasElement;
 const experience = createExperience(canvas, RAPIER);
 const { renderer, camera, scene } = experience!;

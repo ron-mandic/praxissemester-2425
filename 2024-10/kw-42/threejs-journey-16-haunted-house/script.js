@@ -140,23 +140,33 @@ const doorRoughnessTexture = textureLoader.load("./door/roughness.webp");
 doorColorTexture.colorSpace = THREE.SRGBColorSpace;
 
 /**
+ * Difference between displacement and normal maps
+ *
+ * Displacement maps are used to actually displace the geometry of the object
+ * Normal maps are used to fake the lighting on the surface of the object
+ *
+ * Definitions:
+ * Normal (DX): The direction that a surface is facing at a particular point
+ * Normal (GL): The direction that a surface is facing at a particular point in OpenGL
+ */
+
+/**
  * House
  */
 // Floor
 const floor = new THREE.Mesh(
-	new THREE.PlaneGeometry(20, 20, 100, 100),
+	new THREE.PlaneGeometry(20, 20, 100, 100), // Creates a plane geometry with width, height, and segments
 	new THREE.MeshStandardMaterial({
-		alphaMap: floorAlphaTexture,
-		transparent: true,
-		map: floorColorTexture,
-		aoMap: floorARMTexture,
-		roughnessMap: floorARMTexture,
-		metalnessMap: floorARMTexture,
-		normalMap: floorNormalTexture,
-		displacementMap: floorDisplacementTexture,
-		displacementScale: 0.3,
-		displacementScale: 0.3,
-		displacementBias: -0.2,
+		alphaMap: floorAlphaTexture, // Texture for transparency
+		transparent: true, // Enables transparency
+		map: floorColorTexture, // Base color texture (generally called diffuse or albedo)
+		aoMap: floorARMTexture, // Ambient occlusion map i.e. shadows, making crevices darker
+		roughnessMap: floorARMTexture, // Roughness map for surface roughness
+		metalnessMap: floorARMTexture, // Metalness map for surface metalness
+		normalMap: floorNormalTexture, // Normal map for surface details and lighting
+		displacementMap: floorDisplacementTexture, // Displacement map for height variations
+		displacementScale: 0.3, // Scale of the displacement effect
+		displacementBias: -0.2, // Bias of the displacement effect
 	})
 );
 floor.rotation.x = -Math.PI * 0.5;
@@ -192,6 +202,8 @@ walls.position.y += 1.25;
 house.add(walls);
 
 // Roof
+// Problem: Cone Geometry has skewed UVs which is why the texture is skewed
+// Solution: We can either fix it using Blender or compute the UVs manually using computeVertexNormals() method
 const roof = new THREE.Mesh(
 	new THREE.ConeGeometry(3.5, 1.5, 4),
 	new THREE.MeshStandardMaterial({
@@ -240,7 +252,7 @@ const bushMaterial = new THREE.MeshStandardMaterial({
 const bush1 = new THREE.Mesh(bushGeometry, bushMaterial);
 bush1.scale.set(0.5, 0.5, 0.5);
 bush1.position.set(0.8, 0.2, 2.2);
-bush1.rotation.x = -0.75;
+bush1.rotation.x = -0.75; // set the rotation so that the sphere's top is hidden
 
 const bush2 = new THREE.Mesh(bushGeometry, bushMaterial);
 bush2.scale.set(0.25, 0.25, 0.25);
@@ -295,10 +307,12 @@ for (let i = 0; i < 30; i++) {
  * Lights
  */
 // Ambient light
+// just for the overall scene, but very dim and doesn't cast shadows
 const ambientLight = new THREE.AmbientLight("#86cdff", 0.275);
 scene.add(ambientLight);
 
 // Directional light
+// for the moon
 const directionalLight = new THREE.DirectionalLight("#86cdff", 1);
 directionalLight.position.set(3, 2, -8);
 scene.add(directionalLight);
