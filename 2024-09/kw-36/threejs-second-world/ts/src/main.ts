@@ -45,7 +45,35 @@ experience.loadGLTF("robot-blender.glb", (gltf) => {
 
 experience.onReady = function () {
 	initWorld(this, RAPIER_WORLD_BODIES);
-	initSprites(experience, RAPIER_WORLD_SPRITES);
+	// initSprites(experience, RAPIER_WORLD_SPRITES);
+
+	// Table football
+	const loader = new THREE.TextureLoader();
+	const mapA = loader.load("/images/png/sprite-table-football.png");
+	const materialA = new THREE.SpriteMaterial({
+		map: mapA,
+		sizeAttenuation: false,
+		transparent: true,
+		colorWrite: true,
+		depthWrite: true,
+	});
+	const spriteA = new THREE.Sprite(materialA);
+	spriteA.applyMatrix4(
+		new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+	);
+	spriteA.position.set(0, 0.5, 0);
+	spriteA.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
+	const boxA = new THREE.Box3().setFromObject(spriteA);
+	const boxAHelper = new THREE.Box3Helper(boxA, 0xff0000);
+
+	const spriteACenter = boxA.getCenter(new THREE.Vector3());
+	const spriteASize = boxA.getSize(new THREE.Vector3());
+
+	console.log("spriteACenter", spriteACenter);
+	console.log("spriteASize", spriteASize);
+
+	scene.add(spriteA);
+	scene.add(boxAHelper);
 
 	experience.renderer.setAnimationLoop(animate);
 };

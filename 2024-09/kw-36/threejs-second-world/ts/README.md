@@ -1,5 +1,11 @@
 # Digital Lab
 
+## Physics engine
+
+- Rapier
+- Cannon-es
+- Ammo.js / Physijs
+
 ## Resources
 
 - Three.js

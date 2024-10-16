@@ -566,7 +566,7 @@ export function createControls(
 	controls.dampingFactor = 0.25;
 	controls.enableZoom = true;
 	controls.enablePan = false;
-	controls.enableRotate = false;
+	// controls.enableRotate = false;
 	controls.autoRotate = false;
 	controls.zoomSpeed = 1;
 	controls.update();
@@ -577,14 +577,14 @@ export function createHelpers(
 ) {
 	const gridHelper = new THREE.GridHelper(3, 3, undefined, 0xcdcdcd);
 	scene.add(gridHelper);
-	// const axesHelper = new THREE.AxesHelper(100);
-	// scene.add(axesHelper);
+	const axesHelper = new THREE.AxesHelper(100);
+	scene.add(axesHelper);
 	// const cameraHelper = new THREE.CameraHelper(camera);
 	// scene.add(cameraHelper);
 }
 export function createLoaders(onLoad: () => void, onReady?: () => void) {
 	const manager = new THREE.LoadingManager(onLoad, (url, loaded, total) => {
-		console.log(`Loading ${url}: ${loaded} of ${total}`);
+		// console.log(`Loading ${url}: ${loaded} of ${total}`);
 
 		if (loaded === total) if (onReady) onReady();
 	});
@@ -759,7 +759,7 @@ export function createExperience(
 		this.world.step(experience.eventQueue);
 		this.eventQueue.drainCollisionEvents((_, __, started) => {
 			if (experience.setGrounded) experience.setGrounded(started);
-			console.log(_, __);
+			// console.log(_, __);
 		});
 
 		for (let i = 0, n = this.bodies.length; i < n; i++) {
@@ -800,16 +800,20 @@ export function createExperience(
 	};
 
 	experience.trackPlayer = function (delta: number) {
-		this.camera.position.x = lerp(
-			this.camera.position.x,
-			(this.player?.position?.x || 0) + 15,
-			delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
-		);
-		this.camera.position.z = lerp(
-			this.camera.position.z,
-			(this.player?.position?.z || 0) + 15,
-			delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
-		);
+
+		this.camera.position.x = (this.player?.position?.x || 0) + 15;
+		this.camera.position.z = (this.player?.position?.z || 0) + 15;
+
+		// this.camera.position.x = lerp(
+		// 	this.camera.position.x,
+		// 	(this.player?.position?.x || 0) + 15,
+		// 	delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
+		// );
+		// this.camera.position.z = lerp(
+		// 	this.camera.position.z,
+		// 	(this.player?.position?.z || 0) + 15,
+		// 	delta * (delta / RAPIER_WORLD_FRAME_RATE) * 2.75
+		// );
 	};
 
 	return experience;
