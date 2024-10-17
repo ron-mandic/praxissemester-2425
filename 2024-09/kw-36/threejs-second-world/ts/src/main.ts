@@ -49,31 +49,33 @@ experience.onReady = function () {
 
 	// Table football
 	const loader = new THREE.TextureLoader();
-	const mapA = loader.load("/images/png/sprite-shelf-full.png");
+	const mapA = loader.load("/images/png/sprite-armchair.png");
+	mapA.colorSpace = THREE.SRGBColorSpace;
 	const materialA = new THREE.SpriteMaterial({
 		map: mapA,
 		transparent: true,
 	});
 	const spriteA = new THREE.Sprite(materialA);
-	const a = 54.1 / 72;
-	const b = 128.7 / 72;
-	const SCALE_AB_CORRECTION = 0.8210986635220127;
+	const w = 67.2 / 72;
+	const h = 57.4 / 72;
+	const SCALE_WH_CORRECTION = 0.8174504883242477; // the mean of the x and z scale, custom ones might be assigned too
+	const SCALE_WH_CORRECTION_SWING = 0.8285714285714286; // Custom scale for the swing sprite
 	spriteA.applyMatrix4(
 		new THREE.Matrix4().set(
 			// x
-			a * SCALE_AB_CORRECTION,
+			w * SCALE_WH_CORRECTION,
 			0,
 			0,
 			0,
 			// y
 			0,
-			b * SCALE_AB_CORRECTION,
+			h * SCALE_WH_CORRECTION,
 			0,
 			0,
 			// z
 			0,
 			0,
-			a * SCALE_AB_CORRECTION,
+			w * SCALE_WH_CORRECTION,
 			0,
 			// w
 			0,
@@ -83,7 +85,7 @@ experience.onReady = function () {
 		)
 	);
 	spriteA.matrixWorldNeedsUpdate = true;
-	spriteA.position.set(-0.59, (b * SCALE_AB_CORRECTION) / 2, 0);
+	spriteA.position.set(0, (h * SCALE_WH_CORRECTION) / 2, 0);
 	spriteA.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
 	const boxA = new THREE.Box3().setFromObject(spriteA);
 	const boxAHelper = new THREE.Box3Helper(boxA, 0xff0000);
