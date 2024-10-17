@@ -49,19 +49,41 @@ experience.onReady = function () {
 
 	// Table football
 	const loader = new THREE.TextureLoader();
-	const mapA = loader.load("/images/png/sprite-table-football.png");
+	const mapA = loader.load("/images/png/sprite-shelf-full.png");
 	const materialA = new THREE.SpriteMaterial({
 		map: mapA,
-		sizeAttenuation: false,
 		transparent: true,
-		colorWrite: true,
-		depthWrite: true,
 	});
 	const spriteA = new THREE.Sprite(materialA);
+	const a = 54.1 / 72;
+	const b = 128.7 / 72;
+	const SCALE_AB_CORRECTION = 0.8210986635220127;
 	spriteA.applyMatrix4(
-		new THREE.Matrix4().set(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0)
+		new THREE.Matrix4().set(
+			// x
+			a * SCALE_AB_CORRECTION,
+			0,
+			0,
+			0,
+			// y
+			0,
+			b * SCALE_AB_CORRECTION,
+			0,
+			0,
+			// z
+			0,
+			0,
+			a * SCALE_AB_CORRECTION,
+			0,
+			// w
+			0,
+			0,
+			0,
+			1
+		)
 	);
-	spriteA.position.set(0, 0.5, 0);
+	spriteA.matrixWorldNeedsUpdate = true;
+	spriteA.position.set(-0.59, (b * SCALE_AB_CORRECTION) / 2, 0);
 	spriteA.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
 	const boxA = new THREE.Box3().setFromObject(spriteA);
 	const boxAHelper = new THREE.Box3Helper(boxA, 0xff0000);
@@ -69,6 +91,7 @@ experience.onReady = function () {
 	const spriteACenter = boxA.getCenter(new THREE.Vector3());
 	const spriteASize = boxA.getSize(new THREE.Vector3());
 
+	console.log(spriteA);
 	console.log("spriteACenter", spriteACenter);
 	console.log("spriteASize", spriteASize);
 
