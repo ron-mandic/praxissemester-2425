@@ -33,6 +33,11 @@ import {
 	Raycaster,
 } from "three";
 import { RapierDebugRenderer } from "./classes";
+import {
+	EffectComposer,
+	OutlinePass,
+	RenderPass,
+} from "three/examples/jsm/Addons.js";
 
 // Getters
 export function getAllDescendants(object: THREE.Object3D): THREE.Object3D[] {
@@ -506,18 +511,22 @@ export function initLoaders(
 		return material;
 	};
 }
-export function initStats(world: ReturnType<typeof createExperience>) {
-	document.body.appendChild(world.stats.dom);
+export function initStats(experience: ReturnType<typeof createExperience>) {
+	document.body.appendChild(experience.stats.dom);
 }
-export function initScene(world: ReturnType<typeof createExperience>) {
+export function initScene(experience: ReturnType<typeof createExperience>) {
 	const geometry = new THREE.BoxGeometry(...ptToM([216, 4.1, 216]), 4, 1, 4);
 	const material = new THREE.MeshBasicMaterial({
 		color: 0xfbfbfb,
 	});
 	const objFloor = new THREE.Mesh(geometry, material);
-
 	objFloor.position.set(0, -0.056944 / 2, 0);
-	world.scene.add(objFloor);
+
+	// TODO: Bake the edges into the geometry using Blender
+	// Source: https://www.youtube.com/watch?v=_6NgkWwCnhk
+
+	// EdgesGeometry
+	experience.scene.add(objFloor);
 }
 
 // Create
@@ -800,7 +809,6 @@ export function createExperience(
 	};
 
 	experience.trackPlayer = function (delta: number) {
-
 		this.camera.position.x = (this.player?.position?.x || 0) + 15;
 		this.camera.position.z = (this.player?.position?.z || 0) + 15;
 

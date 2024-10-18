@@ -49,15 +49,15 @@ experience.onReady = function () {
 
 	// Table football
 	const loader = new THREE.TextureLoader();
-	const mapA = loader.load("/images/png/sprite-armchair.png");
+	const mapA = loader.load("/images/png/sprite-stairs-left-person-mug.png");
 	mapA.colorSpace = THREE.SRGBColorSpace;
 	const materialA = new THREE.SpriteMaterial({
 		map: mapA,
 		transparent: true,
 	});
 	const spriteA = new THREE.Sprite(materialA);
-	const w = 67.2 / 72;
-	const h = 57.4 / 72;
+	const w = 174.7 / 72;
+	const h = 206.6 / 72;
 	const SCALE_WH_CORRECTION = 0.8174504883242477; // the mean of the x and z scale, custom ones might be assigned too
 	const SCALE_WH_CORRECTION_SWING = 0.8285714285714286; // Custom scale for the swing sprite
 	spriteA.applyMatrix4(
@@ -84,21 +84,30 @@ experience.onReady = function () {
 			1
 		)
 	);
-	spriteA.matrixWorldNeedsUpdate = true;
-	spriteA.position.set(0, (h * SCALE_WH_CORRECTION) / 2, 0);
+	spriteA.position.set(-0.57, (h * SCALE_WH_CORRECTION) / 2, 0);
 	spriteA.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
+
 	const boxA = new THREE.Box3().setFromObject(spriteA);
 	const boxAHelper = new THREE.Box3Helper(boxA, 0xff0000);
 
 	const spriteACenter = boxA.getCenter(new THREE.Vector3());
 	const spriteASize = boxA.getSize(new THREE.Vector3());
 
+	const { x, y, z } = spriteASize;
+	const plane = new THREE.Mesh(
+		new THREE.PlaneGeometry(Math.sqrt(x ** 2 + z ** 2), y),
+		new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
+	);
+	plane.position.copy(spriteACenter);
+	plane.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
+
 	console.log(spriteA);
 	console.log("spriteACenter", spriteACenter);
 	console.log("spriteASize", spriteASize);
 
 	scene.add(spriteA);
-	scene.add(boxAHelper);
+	// scene.add(boxAHelper);
+	scene.add(plane);
 
 	experience.renderer.setAnimationLoop(animate);
 };
