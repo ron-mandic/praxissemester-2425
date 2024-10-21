@@ -515,7 +515,12 @@ export function initStats(experience: ReturnType<typeof createExperience>) {
 	document.body.appendChild(experience.stats.dom);
 }
 export function initScene(experience: ReturnType<typeof createExperience>) {
-	const geometry = new THREE.BoxGeometry(...ptToM([216, 4.1, 216]), 4, 1, 4);
+	const geometry = new THREE.BoxGeometry(
+		...ptToM([216 * 1, 4.1, 216 * 1]),
+		4,
+		1,
+		4
+	);
 	const material = new THREE.MeshBasicMaterial({
 		color: 0xfbfbfb,
 	});

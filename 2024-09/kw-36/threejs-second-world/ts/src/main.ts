@@ -49,33 +49,42 @@ experience.onReady = function () {
 
 	// Table football
 	const loader = new THREE.TextureLoader();
-	const mapA = loader.load("/images/png/sprite-stairs-left-person-mug.png");
+	const mapA = loader.load("/images/png/test1.png");
+	const mapB = loader.load("/images/png/test2.png");
 	mapA.colorSpace = THREE.SRGBColorSpace;
+	mapB.colorSpace = THREE.SRGBColorSpace;
 	const materialA = new THREE.SpriteMaterial({
 		map: mapA,
 		transparent: true,
 	});
+	const materialB = new THREE.SpriteMaterial({
+		map: mapB,
+		transparent: true,
+	});
 	const spriteA = new THREE.Sprite(materialA);
-	const w = 174.7 / 72;
-	const h = 206.6 / 72;
+	const spriteB = new THREE.Sprite(materialB);
+	const wA = 645.8 / 72;
+	const hA = 553.3 / 72;
+	const wB = 40.5 / 72;
+	const hB = 118.2 / 72;
 	const SCALE_WH_CORRECTION = 0.8174504883242477; // the mean of the x and z scale, custom ones might be assigned too
 	const SCALE_WH_CORRECTION_SWING = 0.8285714285714286; // Custom scale for the swing sprite
 	spriteA.applyMatrix4(
 		new THREE.Matrix4().set(
 			// x
-			w * SCALE_WH_CORRECTION,
+			wA * SCALE_WH_CORRECTION,
 			0,
 			0,
 			0,
 			// y
 			0,
-			h * SCALE_WH_CORRECTION,
+			hA * SCALE_WH_CORRECTION,
 			0,
 			0,
 			// z
 			0,
 			0,
-			w * SCALE_WH_CORRECTION,
+			wA * SCALE_WH_CORRECTION,
 			0,
 			// w
 			0,
@@ -84,30 +93,73 @@ experience.onReady = function () {
 			1
 		)
 	);
-	spriteA.position.set(-0.57, (h * SCALE_WH_CORRECTION) / 2, 0);
+	spriteB.applyMatrix4(
+		new THREE.Matrix4().set(
+			// x
+			wB * SCALE_WH_CORRECTION,
+			0,
+			0,
+			0,
+			// y
+			0,
+			hB * SCALE_WH_CORRECTION,
+			0,
+			0,
+			// z
+			0,
+			0,
+			wB * SCALE_WH_CORRECTION,
+			0,
+			// w
+			0,
+			0,
+			0,
+			1
+		)
+	);
+	spriteA.position.set(-0.57, (hA * SCALE_WH_CORRECTION) / 2, 0);
 	spriteA.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
+	spriteB.position.set(0, (hB * SCALE_WH_CORRECTION) / 2, 0);
+	spriteB.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
 
 	const boxA = new THREE.Box3().setFromObject(spriteA);
 	const boxAHelper = new THREE.Box3Helper(boxA, 0xff0000);
+	const boxB = new THREE.Box3().setFromObject(spriteB);
+	const boxBHelper = new THREE.Box3Helper(boxB, 0xff0000);
 
 	const spriteACenter = boxA.getCenter(new THREE.Vector3());
 	const spriteASize = boxA.getSize(new THREE.Vector3());
+	const spriteBCenter = boxB.getCenter(new THREE.Vector3());
+	const spriteBSize = boxB.getSize(new THREE.Vector3());
 
-	const { x, y, z } = spriteASize;
-	const plane = new THREE.Mesh(
-		new THREE.PlaneGeometry(Math.sqrt(x ** 2 + z ** 2), y),
+	const planeA = new THREE.Mesh(
+		new THREE.PlaneGeometry(
+			Math.sqrt(spriteASize.x ** 2 + spriteASize.z ** 2),
+			spriteASize.y
+		),
 		new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
 	);
-	plane.position.copy(spriteACenter);
-	plane.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
+	planeA.position.copy(spriteACenter);
+	planeA.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
+	const planeB = new THREE.Mesh(
+		new THREE.PlaneGeometry(
+			Math.sqrt(spriteBSize.x ** 2 + spriteBSize.z ** 2),
+			spriteBSize.y
+		),
+		new THREE.MeshBasicMaterial({ color: 0xff0000, wireframe: true })
+	);
+	planeB.position.copy(spriteBCenter);
+	planeB.rotateOnAxis(new THREE.Vector3(0, 1, 0), Math.PI / 4);
 
 	console.log(spriteA);
 	console.log("spriteACenter", spriteACenter);
 	console.log("spriteASize", spriteASize);
 
 	scene.add(spriteA);
+	scene.add(spriteB);
 	// scene.add(boxAHelper);
-	scene.add(plane);
+	scene.add(planeA);
+	scene.add(planeB);
 
 	experience.renderer.setAnimationLoop(animate);
 };
