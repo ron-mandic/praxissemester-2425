@@ -21,7 +21,7 @@
 		<Button
 			variant="outline"
 			class="group flex flex-1 items-center justify-between gap-3 rounded-md px-5 py-6 transition-transform focus-visible:px-5 focus-visible:py-6 md:flex-initial"
-			href={url.replace(/(\d+)$/, (match: string) => `${+match - 1}`)}
+			href={!url.endsWith("") ? url.replace(/(\d+)$/, (match: string) => `${+match - 1}`) : "/"}
 		>
 			<ChevronLeft class="h-6 w-6 transition-transform ease-in-out group-hover:-translate-x-1" />
 			<span

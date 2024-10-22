@@ -24,9 +24,5 @@ export const LINKS = [
 	{
 		innerText: 'Thema 4',
 		href: '/topic-4'
-	},
-	{
-		innerText: 'Thema 5',
-		href: '/topic-5'
 	}
 ];

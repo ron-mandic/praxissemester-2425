@@ -11,6 +11,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Sheet from '$lib/components/ui/sheet/index.js';
 	import { backIn, backOut, circIn, circOut } from 'svelte/easing';
+	import Footer from '@/svelte/Footer.svelte';
 
 	// 1. back
 	// 2. circ
@@ -61,7 +62,7 @@
 </script>
 
 <div class="grid h-full max-h-screen w-full max-[319px]:hidden lg:grid-cols-[290px_1fr]">
-	<div class="relative hidden border-r bg-muted/40 lg:block">
+	<div class="bg-green relative hidden border-r lg:block">
 		<div class="fixed flex h-full w-[290px] flex-col gap-2">
 			<div class="relative flex h-[60px] items-center px-6">
 				<div class="flex items-center gap-2 font-semibold">
@@ -100,7 +101,7 @@
 			</Sheet.Root>
 		</header>
 		<main
-			class="relative mx-auto flex h-full min-h-screen flex-1 flex-col gap-6 px-2 pb-20 pt-10 lg:px-3 lg:pt-20"
+			class="relative mx-auto flex h-full min-h-screen flex-1 flex-col gap-6 px-2 pt-10 lg:px-3 lg:pt-20"
 		>
 			{#key data.url}
 				<div
@@ -110,6 +111,8 @@
 					{@render children()}
 				</div>
 			{/key}
+
+			<Footer />
 		</main>
 	</div>
 </div>
