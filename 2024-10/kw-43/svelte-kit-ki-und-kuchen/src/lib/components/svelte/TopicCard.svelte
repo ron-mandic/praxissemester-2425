@@ -6,12 +6,14 @@
 		imgSrc,
 		title,
 		paragraphs,
-		cta = 'Hier klicken'
+		cta = 'Hier klicken',
+		href = '#'
 	} = $props<{
 		imgSrc: string;
 		title: string;
 		paragraphs: string[];
 		cta?: string;
+		href?: string;
 	}>();
 </script>
 
@@ -30,7 +32,7 @@
 					</p>
 				{/each}
 
-				<Button class="mt-8 flex items-center gap-x-2">
+				<Button class="mt-8 flex items-center gap-x-2" {href}>
 					<span>{cta}</span>
 					<!-- <ExternalLink class="-mt-0.5 inline-block h-4 w-4" /> -->
 				</Button>

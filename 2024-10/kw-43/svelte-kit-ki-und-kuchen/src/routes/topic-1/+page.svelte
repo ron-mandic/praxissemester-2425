@@ -16,7 +16,7 @@
 			paragraphs: [
 				'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quam fuga nam beatae culpa quos, saepe esse magnam cum laboriosam sapiente vero consectetur, nemo labore sunt tempore.'
 			]
-		}
+		},
 	];
 </script>
 

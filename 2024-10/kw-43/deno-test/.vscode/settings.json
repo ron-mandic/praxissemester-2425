@@ -1,0 +1,5 @@
+{
+	// Ctrl + Shift + P > Deno: Initialize Workspace Configuration
+	"deno.enable": true,
+	"deno.lint": true
+}
