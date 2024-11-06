@@ -24,8 +24,8 @@
 				"undici-types"
 			]
 		},
-		"@types/node@22.8.5": {
-			"integrity": "sha512-5iYk6AMPtsMbkZqCO1UGF9W5L38twq11S2pYWkybGHH2ogPUvXWNlQqJBzuEZWKj/WRH+QTeiv6ySWqJtvIEgA==",
+		"@types/node@22.9.0": {
+			"integrity": "sha512-vuyHg81vvWA1Z1ELfvLko2c8f34gyA0zaic0+Rllc5lbCnbSyuvb2Oxpm6TAUAC/2xZN3QGqxBNggD1nNR2AfQ==",
 			"dependencies": [
 				"undici-types"
 			]
@@ -141,7 +141,7 @@
 			"dependencies": [
 				"@types/cookie",
 				"@types/cors",
-				"@types/node@22.8.5",
+				"@types/node@22.9.0",
 				"accepts",
 				"base64id",
 				"cookie@0.7.2",

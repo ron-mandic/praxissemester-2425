@@ -2,13 +2,14 @@
 import express from "npm:express@4.21.1";
 import { createServer } from "node:http";
 import { Server } from "npm:socket.io";
+import { SOCKET_SERVER_OPTIONS } from "./index.ts";
 
 // Source: https://github.com/denoland/examples/tree/main/with-express
 const app = express();
 
 // Source: https://socket.io/get-started/chat#integrating-socketio
 const server = createServer(app);
-const io = new Server(server);
+const io = new Server(server, SOCKET_SERVER_OPTIONS);
 
 // Web server
 app.get("/", (_req, res) => {
@@ -17,10 +18,51 @@ app.get("/", (_req, res) => {
 
 // Web socket
 io.on("connection", (socket) => {
-	console.log(`User connected: ${socket.id}`);
+	console.log(`%cUser connected: ${socket.id}`, "color: blue;");
+	// io.emit("message", "Hello to every single client out there!");
+
+	// Emitter
+	const userName = `User ${Math.round(Math.random() * 999999)}`;
+	socket.emit("name", userName);
+
+	// Event delegation to the client
+	socket.on("message", (message) => {
+		io.emit("message", {
+			from: userName,
+			message: message,
+			time: new Date().toLocaleString(),
+		});
+	});
+
+	socket.on("c:join", (id) => {
+		// Join a room
+		socket.join(id);
+
+		// Show entire room
+		const room = io.sockets.adapter.rooms.get(id);
+		console.log(room);
+	});
+
+	// Handle disconnection
+	socket.on("connect_timeout", (timeout) => {
+		console.log(
+			`%cUser ${socket.id} connect_timeout: ${timeout}\n`,
+			"color: red;"
+		);
+	});
+
+	socket.on("connect_error", (error) => {
+		console.log(
+			`%cUser ${socket.id} connect_error: ${error.message}\n`,
+			"color: red;"
+		);
+	});
 
 	socket.on("disconnect", (reason) => {
-		console.log("User disconnected:", reason);
+		console.log(
+			`%cUser ${socket.id} disconnected: ${reason}\n`,
+			"color: red;"
+		);
 	});
 });
 
