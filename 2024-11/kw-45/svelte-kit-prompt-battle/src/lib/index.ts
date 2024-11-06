@@ -9,7 +9,7 @@ export const SOCKET_CLIENT_OPTIONS = {
 	pingInterval: 10000,
 	pingTimeout: 5000,
 	query: {
-		'player-1': 'player-1',
-		'player-2': 'player-2'
+		'player-1': '1',
+		'player-2': '2'
 	}
 };

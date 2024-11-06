@@ -11,6 +11,17 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, SOCKET_SERVER_OPTIONS);
 
+const Lobby = [
+	{
+		socketId: null as string | null,
+		time: null as number | null,
+	},
+	{
+		socketId: null as string | null,
+		time: null as number | null,
+	},
+];
+
 // Web server
 app.get("/", (_req, res) => {
 	res.send("Hello World!");
@@ -35,12 +46,18 @@ io.on("connection", (socket) => {
 	});
 
 	socket.on("c:join", (id) => {
-		// Join a room
-		socket.join(id);
+		socket.join("Lobby");
+
+		// TODO: Complete the Lobby mechanism
+		Lobby[+id] = {
+			socketId: socket.id,
+			time: Date.now(),
+		};
 
 		// Show entire room
-		const room = io.sockets.adapter.rooms.get(id);
-		console.log(room);
+		const lobby = io.sockets.adapter.rooms.get("Lobby");
+		console.log(lobby);
+		console.log(Lobby);
 	});
 
 	// Handle disconnection
