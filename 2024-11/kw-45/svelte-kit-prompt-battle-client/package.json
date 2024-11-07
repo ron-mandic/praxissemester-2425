@@ -1,5 +1,5 @@
 {
-	"name": "svelte-kit-prompt-battle",
+	"name": "svelte-kit-prompt-battle-client",
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {

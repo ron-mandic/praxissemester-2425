@@ -1,0 +1,13 @@
+{
+	"extends": ["development"],
+	"hints": {
+		"axe/text-alternatives": [
+			"default",
+			{
+				"document-title": "off"
+			}
+		],
+		"no-inline-styles": "off",
+		"element_invalid_self_closing_tag": "off"
+	}
+}
