@@ -3,9 +3,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
 	plugins: [sveltekit()],
-	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
-	},
 	// Source: https://stackoverflow.com/a/79003101
 	css: {
 		preprocessorOptions: {
@@ -13,5 +10,8 @@ export default defineConfig({
 				api: 'modern-compiler'
 			}
 		}
+	},
+	test: {
+		include: ['src/**/*.{test,spec}.{js,ts}']
 	}
 });
