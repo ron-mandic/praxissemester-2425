@@ -3,6 +3,8 @@
 	import { PUBLIC_ID } from '$env/static/public';
 	import type { Socket } from 'socket.io-client';
 	import { CANVAS_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './lib';
+	import { isComplete } from '$lib/stores/timer-scribble';
+	import { promptScribble } from '$lib/stores/prompt-scribble';
 
 	let { socket } = $props<{
 		socket: Socket;
@@ -29,6 +31,12 @@
 				id: PUBLIC_ID,
 				data: arrLines
 			});
+		}
+	});
+
+	$effect(() => {
+		if ($isComplete) {
+			$promptScribble = refCanvas.toDataURL();
 		}
 	});
 
@@ -73,8 +81,8 @@
 <svelte:window on:resize={handleSize} />
 
 <canvas
-	class="z-10 cursor-crosshair"
-	style="border-color: #1c1f2240; border-width: 1px; border-style: solid;"
+	class="z-10 cursor-crosshair bg-transparent"
+	style="outline: 1px solid #0d0f10b8;"
 	bind:this={refCanvas}
 	width={CANVAS_WIDTH}
 	height={CANVAS_HEIGHT}

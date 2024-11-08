@@ -8,7 +8,6 @@
 	import InputScribble from '../../features/input-scribble/components/InputScribble.svelte';
 
 	const socket = useSocket();
-	let arrLines = $state<{ x1: number; y1: number; x2: number; y2: number }[]>([]);
 
 	$effect(() => {
 		socket.emit('c:requestEvent', 's:sendPromptBattle');
@@ -24,7 +23,7 @@
 	$effect(() => {
 		if ($isComplete) {
 			socket.emit('c:sendRoute/scribble', PUBLIC_ID);
-			// goto(`results?${$page.url.searchParams.toString()}`);
+			goto(`results?${$page.url.searchParams.toString()}`);
 		}
 	});
 </script>

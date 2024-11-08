@@ -23,10 +23,12 @@
 			strPlayerName0 = playerName0;
 			strPlayerName1 = playerName1;
 		});
+
 		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
 			numPlayer0Score = player0Score;
 			numPlayer1Score = player1Score;
 		});
+
 		socket.on('s:sendRoute/prompt', () => {
 			switch (strMode) {
 				case 'p':
@@ -39,6 +41,7 @@
 					break;
 			}
 		});
+
 		socket.on('s:sendRoute/scribble', () => {
 			setTimeout(() => {
 				goto(`admin/pchoose?${$page.url.searchParams.toString()}`);

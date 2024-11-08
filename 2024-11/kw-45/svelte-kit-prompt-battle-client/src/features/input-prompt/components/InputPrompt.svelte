@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { MAX_INPUT_LENGTH, UNKNOWN } from '$lib';
-	import { time, isComplete } from '$lib/stores/timer-prompt';
+	import { time, isComplete, isRunning } from '$lib/stores/timer-prompt';
 	import type { Socket } from 'socket.io-client';
 	import OutputFooter from '../../output-footer/components/OutputFooter.svelte';
 
@@ -17,7 +17,9 @@
 	let refTextarea: HTMLTextAreaElement;
 
 	$effect(() => {
-		refTextarea?.focus();
+		if ($isRunning) {
+			refTextarea?.focus();
+		}
 	});
 
 	function handleBlur() {
@@ -35,7 +37,7 @@
 		name="prompt"
 		class="relative h-full w-full p-6 focus:outline-none"
 		oninput={handleInput}
-		disabled={$isComplete}
+		disabled={!$isRunning || $isComplete}
 		maxlength={MAX_INPUT_LENGTH}
 		onblur={handleBlur}
 		bind:value={strPromptValue}

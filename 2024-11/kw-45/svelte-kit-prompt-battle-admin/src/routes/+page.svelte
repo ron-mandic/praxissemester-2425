@@ -181,7 +181,7 @@
 		all: unset;
 	}
 
-	button.disabled {
+	button:disabled {
 		cursor: not-allowed;
 		pointer-events: none;
 		opacity: 0.3;

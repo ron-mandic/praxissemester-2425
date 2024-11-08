@@ -3,8 +3,6 @@
 	import { page } from '$app/stores';
 	import { scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
-	import { Socket, io } from 'socket.io-client';
-	import { onMount } from 'svelte';
 	import ImageThumbnail from '../../../components/ImageThumbnail.svelte';
 	import IconCross from '../../../components/IconCross.svelte';
 	import IconCheck from '../../../components/IconCheck.svelte';
@@ -90,7 +88,7 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">{player0 || sessionStorage?.getItem('1')}</span>
+					<span class="relative px-4">...</span>
 					{#if boolA}
 						<div
 							class="absolute -left-24 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -145,7 +143,7 @@
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">{player1 || sessionStorage?.getItem('2')}</span>
+					<span class="relative px-4">...</span>
 					{#if boolB}
 						<div
 							class="absolute -right-24 top-1/2 -translate-y-1/2 translate-x-1/2"

@@ -83,7 +83,7 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative">{player0 || sessionStorage?.getItem('1')}</span>
+					<span class="relative">...</span>
 				</div>
 			</div>
 			<div id="player-score" class="mt-4 w-full self-start">
@@ -100,7 +100,7 @@
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative">{player1 || sessionStorage?.getItem('2')}</span>
+					<span class="relative">...</span>
 				</div>
 			</div>
 		</div>

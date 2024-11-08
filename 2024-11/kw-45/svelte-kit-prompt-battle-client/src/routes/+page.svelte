@@ -4,6 +4,7 @@
 	import { page } from '$app/stores';
 	import useSocket from '$lib/socket';
 	import InputTerminal from '../features/input-terminal/components/InputTerminal.svelte';
+	import { playerName } from '$lib/stores/player-name';
 
 	const socket = useSocket();
 
@@ -19,7 +20,8 @@
 			// Update URL
 			$page.url.searchParams.set('id', PUBLIC_ID);
 			$page.url.searchParams.set('uuid', socket.id!);
-			$page.url.searchParams.delete('mode');
+			// TODO: Change that by what the admin chooses to do
+			$page.url.searchParams.set('mode', 'ps');
 			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
@@ -44,7 +46,8 @@
 
 	// Listen for the start event to redirect to the prompt page
 	$effect(() => {
-		if (boolHasEntered && boolIsStarting && strMode) {
+		if (boolHasEntered) {
+			playerName.set(strPlayerName);
 			goto(`prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
 		}
 	});

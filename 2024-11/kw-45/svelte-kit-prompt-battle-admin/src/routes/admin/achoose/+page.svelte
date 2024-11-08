@@ -104,13 +104,15 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">{player0 || sessionStorage.getItem('1')}</span>
+					<span class="relative px-4">...</span>
 					<div class="absolute -left-24 top-1/2 -translate-x-1/2 -translate-y-1/2">
 						<IconCheck />
 					</div>
 				</div>
 				<div class="image-container mt-8 flex h-[420px] w-full items-center justify-center">
-					<div class="image" data-status="no" on:click|once={handleButtonA}>
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div class="image" data-status="no" onclick={handleButtonA}>
 						<img width="378" height="378" src={srcImageA} alt="" />
 					</div>
 				</div>
@@ -129,13 +131,15 @@
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">{player1 || sessionStorage.getItem('2')}</span>
+					<span class="relative px-4">...</span>
 					<div class="absolute -right-24 top-1/2 -translate-y-1/2 translate-x-1/2">
 						<IconCheck />
 					</div>
 				</div>
 				<div class="image-container mt-8 flex h-[420px] w-full items-center justify-center">
-					<div class="image" data-status="no" on:click|once={handleButtonB}>
+					<!-- svelte-ignore a11y_click_events_have_key_events -->
+					<!-- svelte-ignore a11y_no_static_element_interactions -->
+					<div class="image" data-status="no" onclick={handleButtonB}>
 						<img width="378" height="378" src={srcImageB} alt="" />
 					</div>
 				</div>

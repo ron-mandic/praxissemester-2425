@@ -64,7 +64,7 @@
 	<p>~/Player {strPlayerNumber} &gt; ./prompt-battle.sh</p>
 	<p>Prompt Battle is loading...</p>
 	<p>Loading complete!</p>
-	<p class="mt-16">Enter your name!</p>
+	<p class="mt-16">Please enter your name!</p>
 
 	<div
 		id="terminal-input"
@@ -73,7 +73,7 @@
 		bind:this={refTerminal}
 	>
 		<label>
-			<span>~/Player {strPlayerNumber} &gt;</span>
+			<span>Player {strPlayerNumber}: </span>
 			<input
 				type="text"
 				name="player"
@@ -164,7 +164,7 @@
 			content: '';
 			position: absolute;
 			top: 0;
-			left: calc(24.5rem + var(--offset, 0px));
+			left: calc(18.75rem + var(--offset, 0px));
 			display: inline-block;
 			background-color: #fff;
 			vertical-align: top;

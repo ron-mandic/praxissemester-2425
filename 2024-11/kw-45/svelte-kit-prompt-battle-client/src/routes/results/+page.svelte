@@ -4,7 +4,7 @@
 	import Loader from '../../components/Loader.svelte';
 	import Banner from '../../components/Banner.svelte';
 	import Counter from '../../components/Counter.svelte';
-	import { BATCH_SIZE } from '$lib';
+	import { BATCH_SIZE, NEGATIVE_PROMPT } from '$lib';
 	import { tick } from 'svelte';
 	import { scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
@@ -13,6 +13,8 @@
 	import { PUBLIC_ID } from '$env/static/public';
 	import OutputFooter from '../../features/output-footer/components/OutputFooter.svelte';
 	import { EBannerText } from '$lib/enums';
+	import { promptValue } from '$lib/stores/prompt-value';
+	import { promptScribble } from '$lib/stores/prompt-scribble';
 
 	const socket = useSocket();
 
@@ -22,19 +24,24 @@
 	let boolHasSelected = $state(false);
 	let boolIsVisible = $state(false);
 	let boolHasAwarded = $state(false);
-	let boolHaveWon = $state<undefined | -1 | 0 | 1>(undefined);
+	let boolHasWon = $state<undefined | -1 | 0 | 1>(undefined);
 	let boolIsRedirecting = $state(false);
 
 	$effect(() => {
+		if (!strMode) {
+			// TODO: Check the use of untrack for sychronizing state within the effect
+			strMode = $page.url.searchParams.get('mode')!;
+		}
+
 		socket.on('s:sendGameStats', (id) => {
 			setTimeout(() => {
 				switch (id) {
 					case undefined: {
-						boolHaveWon = -1;
+						boolHasWon = -1;
 						break;
 					}
 					default: {
-						boolHaveWon = id === PUBLIC_ID ? 1 : 0;
+						boolHasWon = id === PUBLIC_ID ? 1 : 0;
 						setTimeout(() => {
 							boolHasAwarded = true;
 						}, 6000);
@@ -65,6 +72,48 @@
 		const i = refElement.dataset.i!;
 		return i;
 	}
+
+	async function fetchImages(prompt: string, scribble: string, batchSize: number) {
+		const payload = {
+			prompt: prompt,
+			negative_prompt: NEGATIVE_PROMPT,
+			steps: 20,
+			cfg_scale: 6,
+			width: 512,
+			height: 512,
+			batch_size: batchSize + 1,
+			alwayson_scripts: {}
+		};
+
+		if (strMode && strMode === 'ps' && $promptScribble) {
+			payload.alwayson_scripts = {
+				controlnet: {
+					enabled: true,
+					args: [
+						{
+							input_image: scribble,
+							module: 'none',
+							model: 'control_v11p_sd15_scribble [d4ba51ff]'
+						}
+					]
+				}
+			};
+		}
+
+		let url = 'https://71d3b90f125d29c23f.gradio.live/sdapi/v1/txt2img';
+
+		// Make fetch request (POST)
+
+		const response = await fetch(url, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(payload)
+		});
+
+		return response.json();
+	}
 </script>
 
 <svelte:head>
@@ -92,14 +141,14 @@
 					}
 				}}
 			/>
-		{:else if boolHaveWon === undefined && !boolHasAwarded && !boolIsRedirecting}
-			{#await Promise.resolve([])}
+		{:else if boolHasWon === undefined && !boolHasAwarded && !boolIsRedirecting}
+			{#await fetchImages($promptValue, $promptScribble, BATCH_SIZE)}
 				{#each new Array(BATCH_SIZE) as _, i}
 					<div class="image loader flex items-center justify-center bg-black">
 						<Loader --delay={i} />
 					</div>
 				{/each}
-			{:then images}
+			{:then { images }}
 				{#if !boolHasSelected}
 					{@const args =
 						strMode === 'p'
@@ -167,6 +216,7 @@
 					{/if}
 					<div
 						class="image-large flex items-center justify-center bg-black"
+						style="translate: 0 3.675rem; transition: translate 0.5s ease-in-out;"
 						in:scale={{ duration: 500, delay: 150, opacity: 0.5, start: 0.5, easing: quintOut }}
 					>
 						<img
@@ -176,15 +226,15 @@
 					</div>
 				{/if}
 			{/await}
-		{:else if boolHaveWon === -1 && !boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHasWon === -1 && !boolHasAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.ROUND} />
-		{:else if boolHaveWon === 0 && !boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHasWon === 0 && !boolHasAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.LOSS} />
-		{:else if boolHaveWon === 1 && !boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHasWon === 1 && !boolHasAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.WIN} />
-		{:else if boolHaveWon === 0 && boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHasWon === 0 && boolHasAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.ROUND} />
-		{:else if boolHaveWon === 1 && boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHasWon === 1 && boolHasAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.ROUND} />
 		{/if}
 	</div>

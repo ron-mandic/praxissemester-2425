@@ -15,6 +15,11 @@
 	let strDataPrompt = $state('');
 
 	$effect(() => {
+		if (!strMode) {
+			// TODO: Check the use of untrack for sychronizing state within the effect
+			strMode = $page.url.searchParams.get('mode')!;
+		}
+
 		// socket.emit('c:requestEvent', 's:sendPromptBattle');
 
 		// socket.on('s:sendPromptBattle', ({ guuid, player0, player1, prompts, currentRound }) => {
@@ -45,6 +50,10 @@
 				}
 				case 'ps': {
 					goto(`scribble?${$page.url.searchParams.toString()}`, { replaceState: true });
+					break;
+				}
+				default: {
+					console.warn('Invalid mode:', strMode);
 					break;
 				}
 			}
