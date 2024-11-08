@@ -1,10 +1,11 @@
 <script lang="ts">
-	import '../app.scss';
+	import '../../app.scss';
 	import '@fontsource/jetbrains-mono/100.css';
 	import '@fontsource/jetbrains-mono/400.css';
 	import '@fontsource/jetbrains-mono/700.css';
 	import '@fontsource/jetbrains-mono/800.css';
 	import { fly } from 'svelte/transition';
+	import Marquee from '../../components/Marquee.svelte';
 
 	let { children, data } = $props();
 
@@ -22,9 +23,11 @@
 		in:fly={{ x: window.innerWidth / 4, duration: 300, delay: 300 }}
 		out:fly={{ x: -window.innerWidth / 4, duration: 300 }}
 	>
+		<Marquee />
 		<main class="flex h-full w-full items-center justify-center">
 			{@render children()}
 		</main>
+		<Marquee position="bottom" direction="right" />
 	</div>
 {/key}
 

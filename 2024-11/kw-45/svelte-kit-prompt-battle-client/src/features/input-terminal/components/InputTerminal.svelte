@@ -5,9 +5,9 @@
 		socket,
 		strPlayerNumber,
 		strPlayerName = $bindable(),
-		strMode = $bindable(),
+		strMode,
 		boolHasEntered = $bindable(),
-		boolIsStarting = $bindable()
+		boolIsStarting
 	} = $props<{
 		socket: Socket;
 		strPlayerNumber: string;
@@ -16,6 +16,7 @@
 		boolHasEntered: boolean;
 		boolIsStarting: boolean;
 	}>();
+
 	let refTerminal: HTMLDivElement;
 	let refInput: HTMLInputElement;
 
@@ -27,6 +28,10 @@
 	// Translate the fake cursor to the end of the input
 	function handleInput() {
 		refTerminal.style.setProperty('--offset', `${strPlayerName.length * 30}px`);
+		socket.emit('c:setPlayerName', {
+			id: strPlayerNumber,
+			name: strPlayerName
+		});
 	}
 
 	// Prevent the input from losing focus
@@ -53,6 +58,8 @@
 				name: strPlayerName,
 				ready: true
 			});
+
+			return;
 		}
 	}
 </script>
@@ -77,7 +84,7 @@
 			<input
 				type="text"
 				name="player"
-				maxlength="20"
+				maxlength={25}
 				autocomplete="off"
 				autocorrect="off"
 				onblur={handleBlur}
@@ -134,6 +141,7 @@
 			height: 66px;
 			padding: 0;
 			border: none;
+			width: 75%;
 
 			&.changed {
 				opacity: 0.75;
@@ -164,14 +172,14 @@
 			content: '';
 			position: absolute;
 			top: 0;
-			left: calc(18.75rem + var(--offset, 0px));
+			left: calc(19rem + var(--offset, 0px));
 			display: inline-block;
 			background-color: #fff;
 			vertical-align: top;
 			width: 27.5px;
 			height: 66px;
-			-webkit-animation: blink 1s step-end infinite;
-			animation: blink 1s step-end infinite;
+			-webkit-animation: blink 1.25s step-end infinite;
+			animation: blink 1.25s step-end infinite;
 			border: none;
 		}
 	}

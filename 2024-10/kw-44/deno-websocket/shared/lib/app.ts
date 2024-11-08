@@ -57,7 +57,7 @@ app.get("/", (_req, res) => {
 io.on("connection", (socket) => {
 	console.log(`%cUser connected: ${socket.id}`, "color: blue;");
 
-	socket.on("c:join", (id) => {
+	socket.on("c:joinLobby", (id) => {
 		socket.join("Lobby");
 
 		if (Number.isNaN(id)) {
@@ -83,14 +83,38 @@ io.on("connection", (socket) => {
 		console.log(Lobby);
 	});
 
-	socket.on("c:updateLobby", ({ id, name, ready }) => {
-		Lobby[+id].name = name;
-		Lobby[+id].ready = ready;
-		Lobby[+id].lastSeen = Date.now();
+	socket.on("c:updateLobby", ({ id, name }) => {
+		if (Lobby[id]) {
+			Lobby[id].name = name;
+			Lobby[id].ready = true;
+			Lobby[id].lastSeen = Date.now();
+		}
 
-		const lobby = io.sockets.adapter.rooms.get("Lobby");
-		console.log(lobby);
+		// const lobby = io.sockets.adapter.rooms.get("Lobby");
+		// console.log(lobby);
 		console.log(Lobby);
+
+		// Transmit the readiness of the player
+		if (Lobby[id].ready) io.emit("s:setPlayerReadiness", id);
+
+		// Start the game if both players are ready
+		if (Lobby["0"].ready && Lobby["1"].ready) {
+			io.emit("s:start");
+		}
+	});
+
+	socket.on("c:setPlayerName", ({ id, name }) => {
+		if (Lobby[id]) {
+			Lobby[id].name = name;
+		}
+		io.emit("s:setPlayerNames", {
+			player0: Lobby[0].name,
+			player1: Lobby[1].name,
+		});
+	});
+
+	socket.on("a:setMode", (mode) => {
+		io.emit("s:setMode", mode);
 	});
 
 	socket.on("disconnect", (reason) => {

@@ -70,7 +70,7 @@
 
 			overflow: hidden;
 			text-overflow: ellipsis;
-			white-space: nowrap;
+			white-space: pre;
 
 			&:not(.ready)::after {
 				content: '';

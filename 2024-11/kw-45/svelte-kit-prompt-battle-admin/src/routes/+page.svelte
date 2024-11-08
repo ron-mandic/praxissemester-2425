@@ -15,23 +15,22 @@
 
 	$effect(() => {
 		socket.on('connect', () => {
-			socket.emit('c:join', PUBLIC_TYPE_ADMIN);
+			socket.emit('c:joinLobby', PUBLIC_TYPE_ADMIN);
 			$page.url.searchParams.set('uuid', socket.id!);
 			$page.url.searchParams.delete('mode');
 
 			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
-		// socket.on('s:setPlayerNames', ({ player0, player1 }) => {
-		// 	player0 = strPlayerName0;
-		// 	player1 = strPlayerName1;
-		// });
-		// socket.on('s:setPlayerReadiness', (id) => {
-		// 	console.log('Player', id, 'is ready');
+		socket.on('s:setPlayerNames', ({ player0, player1 }) => {
+			strPlayerName0 = player0;
+			strPlayerName1 = player1;
+		});
 
-		// 	if (id == '0') player0IsReady = true;
-		// 	if (id == '1') player1IsReady = true;
-		// });
+		socket.on('s:setPlayerReadiness', (id) => {
+			if (id == '0') boolIsPlayer0Ready = true;
+			if (id == '1') boolIsPlayer1Ready = true;
+		});
 
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
@@ -42,22 +41,26 @@
 		};
 	});
 
+	$inspect(`'${strPlayerName0}'`);
+
 	$effect(() => {
 		if (boolHasStarted && strMode) {
 			socket.emit('a:setProjector/projector/');
 			$page.url.searchParams.set('mode', strMode);
+			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 
 			setTimeout(() => {
 				goto(`admin?${$page.url.searchParams.toString()}`);
-			}, 0); // 1000
+			}, 0);
 		}
 	});
 
 	function handleClick(e: MouseEvent) {
-		const dataset = (e.target as HTMLButtonElement).dataset!;
+		const dataset = (e.currentTarget as HTMLButtonElement).dataset!;
 		const mode = dataset.mode!;
+		strMode = mode;
 
-		socket.emit('a:setMode', { mode: dataset.mode!, isNew: true });
+		socket.emit('a:setMode', mode);
 		$page.url.searchParams.set('mode', mode);
 
 		boolHasStarted = true;
@@ -158,7 +161,7 @@
 
 			overflow: hidden;
 			text-overflow: ellipsis;
-			white-space: nowrap;
+			white-space: pre;
 
 			&:not(.ready)::after {
 				content: '';
@@ -172,7 +175,7 @@
 				-webkit-animation: blink 1s ease-in-out infinite;
 				animation: blink 1s ease-in-out infinite;
 				border: none;
-				translate: -0.5rem 0;
+				translate: -0.25rem 0;
 			}
 		}
 	}

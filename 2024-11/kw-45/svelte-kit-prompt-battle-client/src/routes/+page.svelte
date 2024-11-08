@@ -5,35 +5,37 @@
 	import useSocket from '$lib/socket';
 	import InputTerminal from '../features/input-terminal/components/InputTerminal.svelte';
 	import { playerName } from '$lib/stores/player-name';
+	import type { Socket } from 'socket.io-client';
+	import { onMount } from 'svelte';
 
-	const socket = useSocket();
+	const socket: Socket = useSocket();
 
 	let boolHasEntered = $state(false);
 	let boolIsStarting = $state(false);
 	let strPlayerName = $state('');
 	let strMode = $state('');
 
-	$effect(() => {
+	onMount(() => {
 		socket.on('connect', () => {
-			socket.emit('c:join', PUBLIC_ID);
+			socket.emit('c:joinLobby', PUBLIC_ID);
 
 			// Update URL
 			$page.url.searchParams.set('id', PUBLIC_ID);
 			$page.url.searchParams.set('uuid', socket.id!);
 			// TODO: Change that by what the admin chooses to do
-			$page.url.searchParams.set('mode', 'ps');
+			$page.url.searchParams.delete('mode');
 			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
-		// socket.on('s:start', () => {
-		// 	boolIsStarting = true;
-		// });
+		socket.on('s:setMode', (mode) => {
+			strMode = mode;
+			$page.url.searchParams.set('mode', strMode);
+			goto(`?${$page.url.searchParams.toString()}`);
+		});
 
-		// socket.on('s:setMode', (mode) => {
-		// 	strMode = mode;
-		// 	$page.url.searchParams.set('mode', strMode);
-		// 	goto(`?${$page.url.searchParams.toString()}`);
-		// });
+		socket.on('s:start', () => {
+			boolIsStarting = true;
+		});
 
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
@@ -46,7 +48,7 @@
 
 	// Listen for the start event to redirect to the prompt page
 	$effect(() => {
-		if (boolHasEntered) {
+		if (boolHasEntered && boolIsStarting && strMode) {
 			playerName.set(strPlayerName);
 			goto(`prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
 		}
@@ -62,8 +64,8 @@
 		{socket}
 		strPlayerNumber={PUBLIC_ID}
 		bind:strPlayerName
-		bind:strMode
+		{strMode}
 		bind:boolHasEntered
-		bind:boolIsStarting
+		{boolIsStarting}
 	/>
 </div>
