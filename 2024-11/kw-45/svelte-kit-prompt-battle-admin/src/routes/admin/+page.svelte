@@ -1,4 +1,58 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { UNKNOWN } from '$lib';
+	import useSocket from '$lib/socket';
+
+	const socket = useSocket('ADMIN');
+
+	let strPlayerName0 = $state('');
+	let numPlayer0Score = $state(0);
+	let boolIsPlayer0Ready = $state(false);
+	let strPlayerName1 = $state('');
+	let numPlayer1Score = $state(0);
+	let boolIsPlayer1Ready = $state(false);
+	let boolHasStarted = $state(false);
+	let strMode = $state<undefined | string>(undefined);
+	let strLabel = $state('Players are prompting');
+
+	$effect(() => {
+		socket.emit("a:requestEvent', 's:sendBattleData");
+
+		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
+			strPlayerName0 = playerName0;
+			strPlayerName1 = playerName1;
+		});
+		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
+			numPlayer0Score = player0Score;
+			numPlayer1Score = player1Score;
+		});
+		socket.on('s:sendRoute/prompt', () => {
+			switch (strMode) {
+				case 'p':
+					setTimeout(() => {
+						goto(`/admin/pchoose?${$page.url.searchParams.toString()}`);
+					}, 0); // 1000
+					break;
+				case 'ps':
+					strLabel = 'Players are scribbling';
+					break;
+			}
+		});
+		socket.on('s:sendRoute/scribble', () => {
+			setTimeout(() => {
+				goto(`admin/pchoose?${$page.url.searchParams.toString()}`);
+			}, 0); // 1000
+		});
+
+		socket.on('disconnect', () => {
+			console.log('Disconnected');
+		});
+
+		return () => {
+			socket?.removeAllListeners();
+		};
+	});
 </script>
 
 <svelte:head>
@@ -9,23 +63,27 @@
 	<div class="top flex flex-col items-start">
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0" class="player py-[25px]">
-				<span class="relative px-4">...</span>
+				<span class="relative px-4">{strPlayerName0}</span>
 			</div>
 			<div id="player-score" class="w-full">
 				<p>current score:</p>
 				<p class="flex w-full justify-between">
-					<span class="inline-block flex-[33%] flex-grow"></span>
+					<span class="inline-block flex-[33%] flex-grow"
+						>{numPlayer0Score === undefined ? UNKNOWN : numPlayer0Score}</span
+					>
 					<span class="inline-block flex-[33%] flex-grow">-</span>
-					<span class="inline-block flex-[33%] flex-grow"></span>
+					<span class="inline-block flex-[33%] flex-grow"
+						>{numPlayer1Score === undefined ? UNKNOWN : numPlayer1Score}</span
+					>
 				</p>
 			</div>
 			<div id="player-1" class="player py-[25px]">
-				<span class="relative px-4">...</span>
+				<span class="relative px-4">{strPlayerName1}</span>
 			</div>
 		</div>
 	</div>
 
-	<p id="system-status" class="absolute bottom-[174px] w-full text-center">Players are prompting</p>
+	<p id="system-status" class="absolute bottom-[174px] w-full text-center">{strLabel}</p>
 
 	<div class="footer absolute bottom-0 flex w-full items-center justify-between">
 		<button id="btn-restart">restart round</button>

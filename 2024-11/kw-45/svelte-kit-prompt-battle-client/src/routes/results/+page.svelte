@@ -1,4 +1,70 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import Loader from '../../components/Loader.svelte';
+	import Banner from '../../components/Banner.svelte';
+	import Counter from '../../components/Counter.svelte';
+	import { BATCH_SIZE } from '$lib';
+	import { tick } from 'svelte';
+	import { scale } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
+	import { Confetti } from 'svelte-confetti';
+	import useSocket from '$lib/socket';
+	import { PUBLIC_ID } from '$env/static/public';
+	import OutputFooter from '../../features/output-footer/components/OutputFooter.svelte';
+	import { EBannerText } from '$lib/enums';
+
+	const socket = useSocket();
+
+	let numSelectedIndex = $state<null | number>(null);
+	let strMode = $state('');
+	let strMessage = $state('');
+	let boolHasSelected = $state(false);
+	let boolIsVisible = $state(false);
+	let boolHasAwarded = $state(false);
+	let boolHaveWon = $state<undefined | -1 | 0 | 1>(undefined);
+	let boolIsRedirecting = $state(false);
+
+	$effect(() => {
+		socket.on('s:sendGameStats', (id) => {
+			setTimeout(() => {
+				switch (id) {
+					case undefined: {
+						boolHaveWon = -1;
+						break;
+					}
+					default: {
+						boolHaveWon = id === PUBLIC_ID ? 1 : 0;
+						setTimeout(() => {
+							boolHasAwarded = true;
+						}, 6000);
+						break;
+					}
+				}
+			}, 2000);
+		});
+
+		socket.on('s:prepareClient', (message) => {
+			strMessage = message;
+			boolIsRedirecting = true;
+		});
+
+		setTimeout(() => {
+			document.querySelectorAll('.marquee').forEach((marquee) => {
+				marquee.classList.add('fade');
+			});
+		}, 0);
+
+		return () => {
+			socket?.removeAllListeners();
+		};
+	});
+
+	function handleImageClick(event: MouseEvent) {
+		const refElement = event.currentTarget! as HTMLButtonElement;
+		const i = refElement.dataset.i!;
+		return i;
+	}
 </script>
 
 <svelte:head>
@@ -6,14 +72,124 @@
 </svelte:head>
 
 <div id="results" class="relative">
-	<div id="prompt-results" class="relative flex items-center justify-center"></div>
-	<div id="prompt-footer" class="flex items-end justify-between">
-		<div id="prompt-clock" class="flex flex-col justify-center">
-			<p>time remaining:</p>
-			<p>--:--</p>
-		</div>
-		<div id="prompter" class="px-2">...</div>
+	<div id="prompt-results" class="relative flex items-center justify-center" class:boolHasSelected>
+		{#if boolIsRedirecting}
+			<Counter
+				seconds={3}
+				end={strMessage === 'round=current' ? 'Carry on!' : "Let's go!"}
+				onEnd={() => {
+					switch (strMessage) {
+						case 'round=current': {
+							goto(`/prompt?${$page.url.searchParams.toString()}`);
+							break;
+						}
+						case 'round=new': {
+							goto('/');
+							break;
+						}
+						default:
+							break;
+					}
+				}}
+			/>
+		{:else if boolHaveWon === undefined && !boolHasAwarded && !boolIsRedirecting}
+			{#await Promise.resolve([])}
+				{#each new Array(BATCH_SIZE) as _, i}
+					<div class="image loader flex items-center justify-center bg-black">
+						<Loader --delay={i} />
+					</div>
+				{/each}
+			{:then images}
+				{#if !boolHasSelected}
+					{@const args =
+						strMode === 'p'
+							? images.slice(0, images.length - 1)
+							: images.slice(0, images.length - 2)}
+					{#each args as image, i}
+						<button
+							class="image flex items-center justify-center bg-black"
+							data-i={i}
+							onclick={(e) => {
+								numSelectedIndex = +handleImageClick(e);
+								boolHasSelected = true;
+
+								// Order is highly important otherwise the requests get cut off
+								socket
+									.emit('c:sendImageInfo/results', {
+										PUBLIC_ID,
+										imageIndex: i
+									})
+									.emit('c:sendImage/results', {
+										PUBLIC_ID,
+										image
+									});
+
+								setTimeout(async () => {
+									boolIsVisible = true;
+									await tick();
+
+									setTimeout(() => {
+										boolIsVisible = false;
+									}, 3500);
+								}, 1500);
+							}}
+						>
+							{#if images.length}
+								<img
+									class="h-full w-full"
+									src={`data:image/png;base64,${image}`}
+									alt={`${prompt} (${i})`}
+									in:scale={{
+										duration: 500,
+										delay: 500,
+										opacity: 0.5,
+										start: 0.5,
+										easing: quintOut
+									}}
+								/>
+							{/if}
+						</button>
+					{/each}
+				{:else}
+					{#if boolIsVisible}
+						<div id="confetti" class="pointer-events-none">
+							<Confetti
+								x={[-5, 5]}
+								y={[-5, 5]}
+								xSpread={0.125}
+								size={30}
+								duration={3500}
+								amount={250}
+								fallDistance="400px"
+								colorArray={['#ED3A4F', '#0091B5', '#FDB913']}
+							/>
+						</div>
+					{/if}
+					<div
+						class="image-large flex items-center justify-center bg-black"
+						in:scale={{ duration: 500, delay: 150, opacity: 0.5, start: 0.5, easing: quintOut }}
+					>
+						<img
+							src={`data:image/png;base64,${images[numSelectedIndex!]}`}
+							alt={`Image ${numSelectedIndex}`}
+						/>
+					</div>
+				{/if}
+			{/await}
+		{:else if boolHaveWon === -1 && !boolHasAwarded && !boolIsRedirecting}
+			<Banner innerText={EBannerText.ROUND} />
+		{:else if boolHaveWon === 0 && !boolHasAwarded && !boolIsRedirecting}
+			<Banner innerText={EBannerText.LOSS} />
+		{:else if boolHaveWon === 1 && !boolHasAwarded && !boolIsRedirecting}
+			<Banner innerText={EBannerText.WIN} />
+		{:else if boolHaveWon === 0 && boolHasAwarded && !boolIsRedirecting}
+			<Banner innerText={EBannerText.ROUND} />
+		{:else if boolHaveWon === 1 && boolHasAwarded && !boolIsRedirecting}
+			<Banner innerText={EBannerText.ROUND} />
+		{/if}
 	</div>
+
+	<OutputFooter boolWithLength={false} />
 </div>
 
 <style lang="scss">

@@ -1,22 +1,67 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
 	import { PUBLIC_TYPE_ADMIN } from '$env/static/public';
 	import useSocket from '$lib/socket';
 
-	const io = useSocket('ADMIN');
+	const socket = useSocket('ADMIN');
+
+	let strPlayerName0 = $state('');
+	let boolIsPlayer0Ready = $state(false);
+	let strPlayerName1 = $state('');
+	let boolIsPlayer1Ready = $state(false);
+	let strMode = $state<undefined | string>(undefined);
+	let boolHasStarted = $state(false);
 
 	$effect(() => {
-		io.on('connect', () => {
-			console.log('Connected');
+		socket.on('connect', () => {
+			socket.emit('c:join', PUBLIC_TYPE_ADMIN);
+			$page.url.searchParams.set('uuid', socket.id!);
+			$page.url.searchParams.delete('mode');
+
+			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
-		io.on('disconnect', () => {
+		// socket.on('s:setPlayerNames', ({ player0, player1 }) => {
+		// 	player0 = strPlayerName0;
+		// 	player1 = strPlayerName1;
+		// });
+		// socket.on('s:setPlayerReadiness', (id) => {
+		// 	console.log('Player', id, 'is ready');
+
+		// 	if (id == '0') player0IsReady = true;
+		// 	if (id == '1') player1IsReady = true;
+		// });
+
+		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
 
 		return () => {
-			io?.removeAllListeners();
+			socket?.removeAllListeners();
 		};
 	});
+
+	$effect(() => {
+		if (boolHasStarted && strMode) {
+			socket.emit('a:setProjector/projector/');
+			$page.url.searchParams.set('mode', strMode);
+
+			setTimeout(() => {
+				goto(`admin?${$page.url.searchParams.toString()}`);
+			}, 0); // 1000
+		}
+	});
+
+	function handleClick(e: MouseEvent) {
+		const dataset = (e.target as HTMLButtonElement).dataset!;
+		const mode = dataset.mode!;
+
+		socket.emit('a:setMode', { mode: dataset.mode!, isNew: true });
+		$page.url.searchParams.set('mode', mode);
+
+		boolHasStarted = true;
+	}
 </script>
 
 <svelte:head>
@@ -30,22 +75,35 @@
 		</h1>
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0" class="player py-[25px]">
-				<span class="relative px-4">...</span>
+				<span class="relative px-4" class:ready={boolIsPlayer0Ready}>{strPlayerName0}</span>
 			</div>
 			<div class="vs">vs</div>
 			<div id="player-1" class="player py-[25px]">
-				<span class="relative px-4">...</span>
+				<span class="relative px-4" class:ready={boolIsPlayer1Ready}>{strPlayerName1}</span>
 			</div>
 		</div>
 	</div>
+
 	<div class="bottom flex flex-col items-center gap-[28px]">
-		<button class="link-button flex flex-col">
+		<button
+			class="link-button flex flex-col"
+			class:opacity-30={strMode && strMode === 'ps'}
+			data-mode="p"
+			disabled={!boolIsPlayer0Ready || !boolIsPlayer1Ready}
+			onclick={handleClick}
+		>
 			<div class="mt-[8px] flex flex-col items-center">
 				<span class="text">start</span>
 				<span class="text-addition">(Prompt only)</span>
 			</div>
 		</button>
-		<button class="link-button flex flex-col">
+		<button
+			class="link-button flex flex-col"
+			class:opacity-30={strMode && strMode === 'p'}
+			data-mode="ps"
+			disabled={!boolIsPlayer0Ready || !boolIsPlayer1Ready}
+			onclick={handleClick}
+		>
 			<div class="mt-[8px] flex flex-col items-center">
 				<span class="text">start</span>
 				<span class="text-addition">(Prompt & Scribble)</span>

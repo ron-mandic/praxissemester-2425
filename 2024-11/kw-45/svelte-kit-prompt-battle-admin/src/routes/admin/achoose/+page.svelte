@@ -1,4 +1,98 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { Socket, io } from 'socket.io-client';
+	import IconCheck from '../../../components/IconCheck.svelte';
+	import { onMount } from 'svelte';
+	import { UNKNOWN } from '$lib';
+	import useSocket from '$lib/socket';
+
+	const socket = useSocket('ADMIN');
+
+	let player0: string;
+	let player0Score: string;
+	let player1: string;
+	let player1Score: string;
+
+	let dataGUUID: string;
+	let mode: string;
+	let srcImageA: string | undefined;
+	let srcImageB: string | undefined;
+
+	let haveChosen = false;
+
+	$effect(() => {
+		mode = $page.url.searchParams.get('mode')!;
+
+		socket.on('connect', () => {
+			socket
+				.emit('c:initClient', 'ADMIN')
+				.emit('a:requestEvent', 's:sendBattleData')
+				.emit('a:requestEvent', 's:sendImage/results');
+		});
+		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
+			player0 = playerName0;
+			player1 = playerName1;
+		});
+		socket.on(
+			's:sendBattleData',
+			({ player0Score: _player0Score, player1Score: _player1Score, guuid }) => {
+				player0Score = _player0Score;
+				player1Score = _player1Score;
+				dataGUUID = guuid;
+			}
+		);
+		socket.on('s:sendImage/results', ({ player0Image, player1Image }) => {
+			srcImageA = 'data:image/png;base64,' + player0Image;
+			srcImageB = 'data:image/png;base64,' + player1Image;
+		});
+
+		return () => {
+			// TODO: Reset all variables or just keep it as is? Or in onDestroy()?
+			// srcImageA = undefined;
+			// srcImageB = undefined;
+			// haveChosen = false;
+			socket.disconnect();
+		};
+	});
+
+	function handleButtonA(e: MouseEvent) {
+		if (haveChosen) return;
+
+		const target = e.currentTarget! as HTMLDivElement;
+		target.dataset!.status = 'yes';
+		haveChosen = true;
+
+		socket.emit('a:sendBattleData/admin/achoose', {
+			player0Score: (+player0Score + 1).toString(),
+			player1Score
+		});
+		socket.emit('a:sendImageChoice', '1');
+		player0Score = (+player0Score + 1).toString();
+
+		setTimeout(() => {
+			goto(`/admin/next?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
+		}, 0); // 2000
+	}
+
+	function handleButtonB(e: MouseEvent) {
+		if (haveChosen) return;
+
+		const target = e.currentTarget! as HTMLDivElement;
+		target.dataset!.status = 'yes';
+		haveChosen = true;
+
+		socket.emit('a:sendBattleData/admin/achoose', {
+			player0Score,
+			player1Score: (+player1Score + 1).toString()
+		});
+		socket.emit('a:sendImageChoice', '2');
+		player1Score = (+player1Score + 1).toString();
+
+		setTimeout(() => {
+			goto(`/admin/next?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
+		}, 0); // 2000
+	}
 </script>
 
 <svelte:head>
@@ -10,38 +104,46 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4"></span>
-					<div class="absolute -left-24 top-1/2 -translate-x-1/2 -translate-y-1/2"></div>
+					<span class="relative px-4">{player0 || sessionStorage.getItem('1')}</span>
+					<div class="absolute -left-24 top-1/2 -translate-x-1/2 -translate-y-1/2">
+						<IconCheck />
+					</div>
 				</div>
 				<div class="image-container mt-8 flex h-[420px] w-full items-center justify-center">
-					<div class="image" data-status="no">
-						<img width="378" height="378" src={''} alt="" />
+					<div class="image" data-status="no" on:click|once={handleButtonA}>
+						<img width="378" height="378" src={srcImageA} alt="" />
 					</div>
 				</div>
 			</div>
 			<div id="player-score" class="mt-4 w-full self-start">
 				<p>current score:</p>
 				<p class="flex w-full justify-between">
-					<span class="inline-block flex-[33%] flex-grow"></span>
+					<span class="inline-block flex-[33%] flex-grow"
+						>{player0Score === undefined ? UNKNOWN : player0Score}</span
+					>
 					<span class="inline-block flex-[33%] flex-grow">-</span>
-					<span class="inline-block flex-[33%] flex-grow"></span>
+					<span class="inline-block flex-[33%] flex-grow"
+						>{player1Score === undefined ? UNKNOWN : player1Score}</span
+					>
 				</p>
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">...</span>
-					<div class="absolute -right-24 top-1/2 -translate-y-1/2 translate-x-1/2"></div>
+					<span class="relative px-4">{player1 || sessionStorage.getItem('2')}</span>
+					<div class="absolute -right-24 top-1/2 -translate-y-1/2 translate-x-1/2">
+						<IconCheck />
+					</div>
 				</div>
 				<div class="image-container mt-8 flex h-[420px] w-full items-center justify-center">
-					<div class="image" data-status="no">
-						<img width="378" height="378" src={''} alt="" />
+					<div class="image" data-status="no" on:click|once={handleButtonB}>
+						<img width="378" height="378" src={srcImageB} alt="" />
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	{#if true}
+	{#if !haveChosen}
 		<p id="system-status" class="absolute bottom-[174px] w-full text-center">
 			Audience is choosing
 		</p>

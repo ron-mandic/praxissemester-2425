@@ -1,18 +1,18 @@
 <script lang="ts">
-	import { EBannerText } from '$lib/ts/enums';
+	import { EBannerText } from '$lib/enums';
 	import Confetti from 'svelte-confetti';
 
 	export let innerText: EBannerText;
 </script>
 
-<div id="banner" class="relative flex justify-center items-center w-[774px] text-center font-bold">
+<div id="banner" class="relative flex w-[774px] items-center justify-center text-center font-bold">
 	<span
-		class="text-center w-full"
+		class="w-full text-center"
 		class:win={innerText === EBannerText.WIN}
 		class:loss={innerText === EBannerText.LOSS}>{innerText}</span
 	>
 	{#if innerText === EBannerText.WIN}
-		<div id="confetti" class="absolute w-24 h-24 top-1/2 left-1/2 -translate-y-1/2">
+		<div id="confetti" class="absolute left-1/2 top-1/2 h-24 w-24 -translate-y-1/2">
 			<Confetti
 				x={[-4, 4]}
 				y={[-3, 3]}

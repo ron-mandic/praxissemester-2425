@@ -13,3 +13,5 @@ export const SOCKET_CLIENT_OPTIONS = {
 		'player-2': '2'
 	}
 };
+
+export const UNKNOWN = '?';
