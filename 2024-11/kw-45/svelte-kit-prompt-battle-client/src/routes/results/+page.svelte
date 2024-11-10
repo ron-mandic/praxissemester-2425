@@ -3,9 +3,10 @@
 	import { page } from '$app/stores';
 	import Loader from '../../components/Loader.svelte';
 	import Banner from '../../components/Banner.svelte';
+	// @ts-expect-error Module ... te-kit-prompt-battle-client/src/components/Counter.d.svelte.ts', but '--allowArbitraryExtensions' is not set.ts(6263)
 	import Counter from '../../components/Counter.svelte';
 	import { BATCH_SIZE, NEGATIVE_PROMPT } from '$lib';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import { scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { Confetti } from 'svelte-confetti';
@@ -27,34 +28,11 @@
 	let boolHasWon = $state<undefined | -1 | 0 | 1>(undefined);
 	let boolIsRedirecting = $state(false);
 
-	$effect(() => {
+	onMount(() => {
 		if (!strMode) {
 			// TODO: Check the use of untrack for sychronizing state within the effect
 			strMode = $page.url.searchParams.get('mode')!;
 		}
-
-		socket.on('s:sendGameStats', (id) => {
-			setTimeout(() => {
-				switch (id) {
-					case undefined: {
-						boolHasWon = -1;
-						break;
-					}
-					default: {
-						boolHasWon = id === PUBLIC_ID ? 1 : 0;
-						setTimeout(() => {
-							boolHasAwarded = true;
-						}, 6000);
-						break;
-					}
-				}
-			}, 2000);
-		});
-
-		socket.on('s:prepareClient', (message) => {
-			strMessage = message;
-			boolIsRedirecting = true;
-		});
 
 		setTimeout(() => {
 			document.querySelectorAll('.marquee').forEach((marquee) => {
@@ -62,9 +40,7 @@
 			});
 		}, 0);
 
-		return () => {
-			socket?.removeAllListeners();
-		};
+		return () => {};
 	});
 
 	function handleImageClick(event: MouseEvent) {

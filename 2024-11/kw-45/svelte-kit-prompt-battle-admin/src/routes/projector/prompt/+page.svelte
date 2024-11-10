@@ -7,38 +7,49 @@
 	import { UNKNOWN } from '$lib';
 	import { time, timer, isComplete, isRunning, resetTimer } from '$lib/stores/timer-prompt';
 	import Counter from '../../../components/Counter.svelte';
+	import type { Socket } from 'socket.io-client';
 
 	const socket = useSocket('PROJECTOR');
 
 	let boolHasStarted = $state(false);
 	let strDataPrompt = $state('');
+
 	let strPlayerName0 = $state('');
 	let numPlayerScore0 = $state();
+	let strPlayerPrompt0 = $state('');
+
 	let strPlayerName1 = $state('');
 	let numPlayerScore1 = $state();
-	let strPlayerPrompt0 = $state('');
 	let strPlayerPrompt1 = $state('');
 
 	let strMode = $state<undefined | string>(undefined);
 
 	onMount(() => {
-		socket.emit('p:requestEvent', 's:sendPromptBattle').emit('p:requestEvent', 's:sendMode');
+		strMode = $page.url.searchParams.get('mode') || undefined;
 
-		socket.on('s:setPlayerNames', ({ player0, player1 }) => {
-			strPlayerName0 = player0;
-			strPlayerName1 = player1;
+		if (socket.connected) {
+			socket.emit('acp:getBattleData');
+		}
+
+		socket.on('s:getBattleData', (battle) => {
+			strDataPrompt = battle.challenge;
+			strPlayerName0 = battle['0'].name;
+			numPlayerScore0 = battle['0'].score;
+			numPlayerScore1 = battle['1'].score;
+			strPlayerName1 = battle['1'].name;
 		});
 
-		socket.on('s:sendMode', (mode) => {
-			strMode = mode;
-			$page.url.searchParams.set('mode', mode);
-			goto(`?${$page.url.searchParams.toString()}`); // ...?mode=...
-		});
-
-		socket.on('s:setProjector/projector/', () => {
-			setTimeout(() => {
-				goto('/projector/prompt/');
-			}, 0); // 1000
+		socket.on('s:sendPrompt', ({ id, value }) => {
+			switch (id) {
+				case '0':
+					strPlayerPrompt0 = value;
+					break;
+				case '1':
+					strPlayerPrompt1 = value;
+					break;
+				default:
+					break;
+			}
 		});
 
 		socket.on('disconnect', () => {
@@ -53,7 +64,10 @@
 			$isRunning = false;
 			$isComplete = false;
 			resetTimer();
-			socket?.removeAllListeners();
+
+			socket.off('s:getBattleData');
+			socket.off('s:sendPrompt');
+			socket.off('disconnect');
 		};
 	});
 
@@ -61,12 +75,12 @@
 		if ($isComplete) {
 			setTimeout(async () => {
 				switch (strMode) {
-					case 'ps': {
-						goto(`/projector/scribble?${$page.url.searchParams.toString()}`);
-						break;
-					}
 					case 'p': {
 						goto(`/projector/results?${$page.url.searchParams.toString()}`);
+						break;
+					}
+					case 'ps': {
+						goto(`/projector/scribble?${$page.url.searchParams.toString()}`);
 						break;
 					}
 				}
@@ -80,14 +94,16 @@
 </svelte:head>
 
 {#if boolHasStarted}
-	<!-- TODO: Leave enough time for both projector and client to display prompt challenge -->
+	<!-- CHANGE: 15 -->
 	<Counter
-		t0={15}
+		t0={3}
 		onEnd={() => {
-			timer.start();
-			document.querySelectorAll('.marquee').forEach((marquee) => {
-				marquee.classList.add('fade');
-			});
+			setTimeout(() => {
+				timer.start();
+				document.querySelectorAll('.marquee').forEach((marquee) => {
+					marquee.classList.add('fade');
+				});
+			}, 1000);
 		}}
 	/>
 {/if}

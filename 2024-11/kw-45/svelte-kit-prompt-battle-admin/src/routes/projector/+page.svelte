@@ -2,7 +2,8 @@
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import useSocket from '$lib/socket';
-	import { onMount } from 'svelte';
+	import type { Socket } from 'socket.io-client';
+	import { onDestroy, onMount } from 'svelte';
 
 	const socket = useSocket('PROJECTOR');
 
@@ -10,14 +11,14 @@
 	let boolIsPlayer0Ready = $state(false);
 	let strPlayerName1 = $state('');
 	let boolIsPlayer1Ready = $state(false);
+	let strMode = $state('');
+	let boolIsStarting = $state(false);
 
 	onMount(() => {
 		socket.on('connect', () => {
 			socket.emit('c:joinLobby', 'PROJECTOR');
 
 			$page.url.searchParams.set('uuid', socket.id!);
-			$page.url.searchParams.delete('mode');
-
 			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
@@ -31,19 +32,34 @@
 			if (id == '1') boolIsPlayer1Ready = true;
 		});
 
-		socket.on('s:setProjector/projector/', () => {
-			setTimeout(() => {
-				goto('/projector/prompt/');
-			}, 0); // 1000
+		socket.on('s:setMode', (mode) => {
+			strMode = mode;
+			$page.url.searchParams.set('mode', strMode);
+			goto(`?${$page.url.searchParams.toString()}`);
+		});
+
+		socket.on('s:start', () => {
+			boolIsStarting = true;
 		});
 
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
 
-		return () => {
-			socket?.removeAllListeners();
+		return async () => {
+			socket.off('connect');
+			socket.off('s:setPlayerNames');
+			socket.off('s:setPlayerReadiness');
+			socket.off('s:setMode');
+			socket.off('s:start');
+			socket.off('disconnect');
 		};
+	});
+
+	$effect(() => {
+		if (boolIsStarting && strMode) {
+			goto(`projector/prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
+		}
 	});
 </script>
 

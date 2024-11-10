@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { playerName } from '$lib/stores/player-name';
 	import type { Socket } from 'socket.io-client';
 
 	let {
@@ -52,6 +53,7 @@
 			if (strPlayerName === '') return;
 
 			boolHasEntered = true;
+			$playerName = strPlayerName;
 
 			socket.emit('c:updateLobby', {
 				id: strPlayerNumber,

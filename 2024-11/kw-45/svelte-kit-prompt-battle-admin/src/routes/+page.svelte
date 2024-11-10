@@ -11,7 +11,7 @@
 	let strPlayerName1 = $state('');
 	let boolIsPlayer1Ready = $state(false);
 	let strMode = $state<undefined | string>(undefined);
-	let boolHasStarted = $state(false);
+	let boolIsStarting = $state(false);
 
 	$effect(() => {
 		socket.on('connect', () => {
@@ -32,38 +32,38 @@
 			if (id == '1') boolIsPlayer1Ready = true;
 		});
 
+		socket.on('s:start', () => {
+			boolIsStarting = true;
+		});
+
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
 
 		return () => {
-			socket?.removeAllListeners();
+			socket.off('connect');
+			socket.off('s:setPlayerNames');
+			socket.off('s:setPlayerReadiness');
+			socket.off('s:start');
+			socket.off('disconnect');
 		};
 	});
 
-	$inspect(`'${strPlayerName0}'`);
-
 	$effect(() => {
-		if (boolHasStarted && strMode) {
-			socket.emit('a:setProjector/projector/');
-			$page.url.searchParams.set('mode', strMode);
-			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
-
+		if (boolIsStarting && strMode) {
 			setTimeout(() => {
-				goto(`admin?${$page.url.searchParams.toString()}`);
+				goto(`admin?${$page.url.searchParams.toString()}`, { replaceState: true });
 			}, 0);
 		}
 	});
 
 	function handleClick(e: MouseEvent) {
 		const dataset = (e.currentTarget as HTMLButtonElement).dataset!;
-		const mode = dataset.mode!;
-		strMode = mode;
+		strMode = dataset.mode!;
+		$page.url.searchParams.set('mode', strMode);
+		goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 
-		socket.emit('a:setMode', mode);
-		$page.url.searchParams.set('mode', mode);
-
-		boolHasStarted = true;
+		socket.emit('a:setMode', strMode);
 	}
 </script>
 
@@ -88,11 +88,12 @@
 	</div>
 
 	<div class="bottom flex flex-col items-center gap-[28px]">
+		<!-- CHANGE !boolIsPlayer0Ready || !boolIsPlayer1Ready -->
 		<button
 			class="link-button flex flex-col"
 			class:opacity-30={strMode && strMode === 'ps'}
 			data-mode="p"
-			disabled={!boolIsPlayer0Ready || !boolIsPlayer1Ready}
+			disabled={!boolIsPlayer0Ready}
 			onclick={handleClick}
 		>
 			<div class="mt-[8px] flex flex-col items-center">
@@ -100,11 +101,12 @@
 				<span class="text-addition">(Prompt only)</span>
 			</div>
 		</button>
+		<!-- CHANGE !boolIsPlayer0Ready || !boolIsPlayer1Ready -->
 		<button
 			class="link-button flex flex-col"
 			class:opacity-30={strMode && strMode === 'p'}
 			data-mode="ps"
-			disabled={!boolIsPlayer0Ready || !boolIsPlayer1Ready}
+			disabled={!boolIsPlayer0Ready}
 			onclick={handleClick}
 		>
 			<div class="mt-[8px] flex flex-col items-center">

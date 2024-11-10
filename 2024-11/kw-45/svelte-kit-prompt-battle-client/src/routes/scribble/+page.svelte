@@ -4,25 +4,32 @@
 	import { PUBLIC_ID } from '$env/static/public';
 	import useSocket from '$lib/socket';
 	import { timer, isComplete, isRunning, resetTimer } from '$lib/stores/timer-scribble';
+	import { onMount } from 'svelte';
+	// @ts-expect-error Module ... te-kit-prompt-battle-client/src/components/Counter.d.svelte.ts', but '--allowArbitraryExtensions' is not set.ts(6263)
 	import Counter from '../../components/Counter.svelte';
 	import InputScribble from '../../features/input-scribble/components/InputScribble.svelte';
 
 	const socket = useSocket();
 
-	$effect(() => {
-		socket.emit('c:requestEvent', 's:sendPromptBattle');
+	onMount(() => {
+		socket.on('disconnect', () => {
+			console.log('Disconnected');
+		});
 
 		return () => {
 			$isRunning = false;
 			$isComplete = false;
 			resetTimer();
-			socket?.removeAllListeners();
+
+			socket.off('disconnect');
 		};
 	});
 
 	$effect(() => {
 		if ($isComplete) {
-			socket.emit('c:sendRoute/scribble', PUBLIC_ID);
+			// Tell the admin to now switch to the results page
+			socket.emit('c:sendRoute/scribble');
+
 			goto(`results?${$page.url.searchParams.toString()}`);
 		}
 	});

@@ -110,10 +110,12 @@
 		t0={3}
 		end="Scribble!"
 		onEnd={() => {
-			timer.start();
-			document.querySelectorAll('.marquee').forEach((marquee) => {
-				marquee.classList.add('fade');
-			});
+			setTimeout(() => {
+				timer.start();
+				document.querySelectorAll('.marquee').forEach((marquee) => {
+					marquee.classList.add('fade');
+				});
+			}, 1000);
 		}}
 	/>
 {/if}

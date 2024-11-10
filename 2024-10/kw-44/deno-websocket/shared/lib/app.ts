@@ -2,7 +2,7 @@
 import express from "npm:express@4.21.1";
 import { createServer } from "node:http";
 import { Server, ServerOptions } from "npm:socket.io";
-import { SOCKET_SERVER_OPTIONS } from "./index.ts";
+import { CHALLENGES, SOCKET_SERVER_OPTIONS } from "./index.ts";
 
 // Source: https://github.com/denoland/examples/tree/main/with-express
 const app = express();
@@ -48,6 +48,20 @@ const Lobby: Record<string, LobbyClient> = {
 	},
 };
 
+const Battle = {
+	index: 0,
+	challenge: null as null | string,
+	maxRounds: 3,
+	"0": {
+		name: null as null | string,
+		score: 0,
+	},
+	"1": {
+		name: null as null | string,
+		score: 0,
+	},
+};
+
 // Web server
 app.get("/", (_req, res) => {
 	res.send("Hello World!");
@@ -57,7 +71,7 @@ app.get("/", (_req, res) => {
 io.on("connection", (socket) => {
 	console.log(`%cUser connected: ${socket.id}`, "color: blue;");
 
-	socket.on("c:joinLobby", (id) => {
+	socket.on("c:joinLobby", (id: string) => {
 		socket.join("Lobby");
 
 		if (Number.isNaN(id)) {
@@ -98,7 +112,7 @@ io.on("connection", (socket) => {
 		if (Lobby[id].ready) io.emit("s:setPlayerReadiness", id);
 
 		// Start the game if both players are ready
-		if (Lobby["0"].ready && Lobby["1"].ready) {
+		if (Lobby["0"].ready /* CHANGE && Lobby["1"].ready*/) {
 			io.emit("s:start");
 		}
 	});
@@ -113,8 +127,37 @@ io.on("connection", (socket) => {
 		});
 	});
 
-	socket.on("a:setMode", (mode) => {
+	socket.on("a:setMode", (mode: string) => {
 		io.emit("s:setMode", mode);
+	});
+
+	socket.on("c:sendPrompt", (obj: { id: string; value: string }) => {
+		io.emit("s:sendPrompt", obj);
+	});
+
+	socket.on("acp:getBattleData", () => {
+		// First initialize the challenge if it's not already set
+		if (Battle.challenge === null) {
+			Battle.challenge = CHALLENGES[Battle.index];
+		}
+
+		// Check if the names are set
+		if (Battle["0"].name === null) {
+			Battle["0"].name = Lobby[0].name!;
+		}
+		if (Battle["1"].name === null) {
+			Battle["1"].name = Lobby[1].name!;
+		}
+
+		io.emit("s:getBattleData", Battle);
+	});
+
+	socket.on("c:sendRoute/prompt", (mode: string) => {
+		io.emit("s:sendRoute/prompt", mode);
+	});
+
+	socket.on("c:sendRoute/scribble", () => {
+		io.emit("s:sendRoute/scribble");
 	});
 
 	socket.on("disconnect", (reason) => {
@@ -122,6 +165,19 @@ io.on("connection", (socket) => {
 			`%cUser ${socket.id} disconnected: ${reason}\n`,
 			"color: red;"
 		);
+
+		for (const id in Lobby) {
+			if (Lobby[id].uuid === socket.id) {
+				Lobby[id].uuid = null;
+				Lobby[id].lastSeen = Date.now();
+				if (id !== "ADMIN" && id !== "PROJECTOR") {
+					Lobby[id].name = "";
+					Lobby[id].ready = false;
+				}
+			}
+		}
+
+		console.log(Lobby);
 	});
 });
 

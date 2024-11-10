@@ -3,6 +3,10 @@
 	import { time, isComplete, isRunning } from '$lib/stores/timer-prompt';
 	import type { Socket } from 'socket.io-client';
 	import OutputFooter from '../../output-footer/components/OutputFooter.svelte';
+	import { PUBLIC_ID } from '$env/static/public';
+	import { onMount } from 'svelte';
+
+	let loop: number;
 
 	let {
 		socket,
@@ -16,10 +20,14 @@
 
 	let refTextarea: HTMLTextAreaElement;
 
-	$effect(() => {
+	onMount(() => {
 		if ($isRunning) {
 			refTextarea?.focus();
 		}
+
+		return () => {
+			clearInterval(loop);
+		};
 	});
 
 	function handleBlur() {
@@ -27,7 +35,7 @@
 	}
 
 	function handleInput() {
-		// socket.emit('c:sendClientPrompt', { id: PUBLIC_ID, value: strPromptValue });
+		(socket as Socket).emit('c:sendPrompt', { id: PUBLIC_ID, value: strPromptValue });
 	}
 </script>
 

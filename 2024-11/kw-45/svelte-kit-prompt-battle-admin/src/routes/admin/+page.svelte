@@ -8,53 +8,69 @@
 	const socket = useSocket('ADMIN');
 
 	let strPlayerName0 = $state('');
-	let numPlayer0Score = $state(0);
+	let numPlayerScore0 = $state(0);
 	let boolIsPlayer0Ready = $state(false);
 	let strPlayerName1 = $state('');
-	let numPlayer1Score = $state(0);
+	let numPlayerScore1 = $state(0);
 	let boolIsPlayer1Ready = $state(false);
+
 	let boolHasStarted = $state(false);
 	let strMode = $state<undefined | string>(undefined);
-	let strLabel = $state('Players are prompting');
+	let strLabel = $state('Players will start soon');
 
 	onMount(() => {
-		socket.emit("a:requestEvent', 's:sendBattleData");
+		if (!strMode) {
+			strMode = $page.url.searchParams.get('mode')!;
+		}
 
-		socket.on('s:setPlayerNames', ({ player0, player1 }) => {
-			strPlayerName0 = player0;
-			strPlayerName1 = player1;
+		if (socket.connected) {
+			socket.emit('acp:getBattleData');
+		}
+
+		socket.on('s:getBattleData', (battle) => {
+			strPlayerName0 = battle['0'].name;
+			numPlayerScore0 = battle['0'].score;
+			numPlayerScore1 = battle['1'].score;
+			strPlayerName1 = battle['1'].name;
 		});
 
-		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
-			numPlayer0Score = player0Score;
-			numPlayer1Score = player1Score;
-		});
+		socket.on('s:sendRoute/prompt', (mode) => {
+			// Make sure to obtan a valid copy of the mode
+			strMode = strMode || mode;
 
-		socket.on('s:sendRoute/prompt', () => {
 			switch (strMode) {
-				case 'p':
-					setTimeout(() => {
-						goto(`/admin/pchoose?${$page.url.searchParams.toString()}`);
-					}, 0); // 1000
+				case 'p': {
+					goto(`/admin/pchoose?${$page.url.searchParams.toString()}`, { replaceState: true });
 					break;
-				case 'ps':
+				}
+				case 'ps': {
 					strLabel = 'Players are scribbling';
 					break;
+				}
+				default: {
+					console.warn('Invalid mode:', strMode);
+					break;
+				}
 			}
 		});
 
 		socket.on('s:sendRoute/scribble', () => {
-			setTimeout(() => {
-				goto(`admin/pchoose?${$page.url.searchParams.toString()}`);
-			}, 0); // 1000
+			goto(`/admin/pchoose?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
+
+		setTimeout(() => {
+			strLabel = 'Players are prompting';
+		}, 4500 /* CHANGE: 16500 */); // 15 seconds + animation duration
 
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
 
 		return () => {
-			socket?.removeAllListeners();
+			socket.off('s:getBattleData');
+			socket.off('s:sendRoute/prompt');
+			socket.off('s:sendRoute/scribble');
+			socket.off('disconnect');
 		};
 	});
 </script>
@@ -73,11 +89,11 @@
 				<p>current score:</p>
 				<p class="flex w-full justify-between">
 					<span class="inline-block flex-[33%] flex-grow"
-						>{numPlayer0Score === undefined ? UNKNOWN : numPlayer0Score}</span
+						>{numPlayerScore0 === undefined ? UNKNOWN : numPlayerScore0}</span
 					>
 					<span class="inline-block flex-[33%] flex-grow">-</span>
 					<span class="inline-block flex-[33%] flex-grow"
-						>{numPlayer1Score === undefined ? UNKNOWN : numPlayer1Score}</span
+						>{numPlayerScore1 === undefined ? UNKNOWN : numPlayerScore1}</span
 					>
 				</p>
 			</div>

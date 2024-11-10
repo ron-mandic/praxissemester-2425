@@ -22,8 +22,6 @@
 			// Update URL
 			$page.url.searchParams.set('id', PUBLIC_ID);
 			$page.url.searchParams.set('uuid', socket.id!);
-			// TODO: Change that by what the admin chooses to do
-			$page.url.searchParams.set('mode', 'ps');
 			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
@@ -42,14 +40,16 @@
 		});
 
 		return () => {
-			socket?.removeAllListeners();
+			socket.off('connect');
+			socket.off('s:setMode');
+			socket.off('s:start');
+			socket.off('disconnect');
 		};
 	});
 
 	// Listen for the start event to redirect to the prompt page
 	$effect(() => {
-		if (boolHasEntered) {
-			playerName.set(strPlayerName);
+		if (boolHasEntered && boolIsStarting && strMode) {
 			goto(`prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
 		}
 	});
