@@ -1,4 +1,189 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { Confetti } from 'svelte-confetti';
+	import useSocket from '$lib/socket';
+	import Loader from '../../../components/Loader.svelte';
+	import Autoscroll from '../../../components/Autoscroll.svelte';
+	import { UNKNOWN } from '$lib';
+	import Counter from '../../../components/Counter.svelte';
+	import { EBannerText } from '$lib/enums';
+	import Banner from '../../../components/Banner.svelte';
+
+	const socket = useSocket('PROJECTOR');
+
+	const MAX_ROUNDS = 3;
+	let boolAreChoosing = $state(false);
+	let boolIsVotable = $state(false);
+	let boolIsRegistered = true;
+
+	let boolShowOverlay = $state(false);
+	let boolShowOverlayFinal = $state(false);
+	let boolShowNextRound = $state(false);
+
+	let strPlayerName0 = $state('');
+	let strPlayerScore0 = $state<undefined | number>();
+	let strPlayerImage0 = $state('');
+	let boolIsVisible0 = $state(false);
+
+	let strPlayerName1 = $state('');
+	let numPlayerScore1 = $state<undefined | number>();
+	let strPlayerImage1 = $state('');
+	let boolIsVisible1 = $state(false);
+
+	let numImageIndex = $state<null | 0 | 1>(null);
+
+	let strDataPrompt = $state('');
+	let numMaxRounds = $state<undefined | number>();
+	let strMode = $state('');
+
+	const getWinner = () => {
+		if (+strPlayerScore0! > +numPlayerScore1!) {
+			return strPlayerName0;
+		} else if (+numPlayerScore1! > +strPlayerScore0!) {
+			return strPlayerName1;
+		}
+	};
+
+	onMount(() => {
+		socket.emit('p:requestEvent', 's:sendPromptBattle').emit('p:requestEvent', 's:sendMode');
+
+		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
+			strPlayerName0 = playerName0;
+			strPlayerName1 = playerName1;
+		});
+
+		socket.on('s:sendMode', (_mode) => {
+			strMode = _mode;
+			$page.url.searchParams.set('mode', strMode);
+			goto(`?${$page.url.searchParams.toString()}`); // ...?mode=...
+		});
+		socket.on(
+			's:sendPromptBattle',
+			({
+				player0: name0,
+				player1: name1,
+				player0Score: score0,
+				player1Score: score1,
+				prompts,
+				currentRound,
+				maxRounds: _maxRounds
+			}) => {
+				strPlayerName0 = name0;
+				strPlayerName1 = name1;
+				strPlayerScore0 = score0;
+				numPlayerScore1 = score1;
+				strDataPrompt = prompts[currentRound - 1];
+				numMaxRounds = _maxRounds;
+			}
+		);
+		socket.on('s:sendImage/results', ({ player0Image, player1Image }) => {
+			if (player0Image !== undefined) strPlayerImage0 = 'data:image/png;base64,' + player0Image;
+			if (player1Image !== undefined) strPlayerImage1 = 'data:image/png;base64,' + player1Image;
+
+			if (strPlayerImage0 && strPlayerImage1) {
+				boolIsVotable = true;
+
+				setTimeout(() => {
+					boolAreChoosing = true;
+					document.querySelectorAll('.marquee').forEach((marquee) => {
+						marquee.classList.add('fade');
+					});
+				}, 1500); // 3500
+			}
+		});
+		socket.on('s:sendImageChoice', (id) => {
+			switch (id) {
+				case '1': {
+					numImageIndex = 0;
+					break;
+				}
+				case '2': {
+					numImageIndex = 1;
+					break;
+				}
+				default: {
+					break;
+				}
+			}
+		});
+		socket.on('s:prepareProjector', (message) => {
+			setTimeout(() => {
+				switch (message) {
+					case 'round=current': {
+						goto(`/projector/prompt?${$page.url.searchParams.toString()}`);
+						break;
+					}
+					case 'round=new': {
+						goto('/projector');
+						break;
+					}
+					default:
+						break;
+				}
+			}, 4000);
+		});
+
+		return () => {
+			// TODO: Resetting values necessary or is it reliable most of the time?
+			numImageIndex = null;
+			strPlayerImage0 = '';
+			strPlayerImage1 = '';
+			socket.removeAllListeners();
+		};
+	});
+
+	$effect(() => {
+		if (strPlayerImage0 && numImageIndex === 0 && !boolIsVisible0) {
+			setTimeout(() => {
+				boolIsVisible0 = true;
+				setTimeout(() => {
+					boolShowOverlay = true;
+					setTimeout(() => {
+						strPlayerScore0 = +strPlayerScore0! + 1;
+					}, 3000);
+				}, 3000);
+			}, 3000);
+		}
+	});
+
+	$effect(() => {
+		if (strPlayerImage1 && numImageIndex === 1 && !boolIsVisible1) {
+			setTimeout(() => {
+				boolIsVisible1 = true;
+				setTimeout(() => {
+					boolShowOverlay = true;
+					setTimeout(() => {
+						numPlayerScore1 = +numPlayerScore1! + 1;
+					}, 3000);
+				}, 3000);
+			}, 3000);
+		}
+	});
+
+	$effect(() => {
+		if (boolShowOverlay) {
+			setTimeout(() => {
+				let isDecided = +strPlayerScore0! + +numPlayerScore1! === numMaxRounds;
+
+				if (isDecided) {
+					boolShowOverlayFinal = true;
+					setTimeout(() => {
+						boolShowNextRound = true;
+					}, 6000);
+				} else {
+					setTimeout(() => {
+						boolShowNextRound = true;
+					}, 3000);
+				}
+			}, 6000);
+		}
+	});
+
+	$effect(() => {
+		if (boolShowNextRound) socket.emit('p:sendAdminReadiness');
+	});
 </script>
 
 <svelte:head>
@@ -11,41 +196,207 @@
 >
 	<div class="grid h-full w-full">
 		<div class="main relative">
-			<div class="col-left pointer-events-none relative"></div>
+			<div
+				class="col-left pointer-events-none relative"
+				class:opacity-30={numImageIndex === 1 && !boolShowOverlay}
+				class:opacity-0={numImageIndex === 1 && boolShowOverlay}
+			>
+				{#if !strPlayerImage0}
+					<div class="loader absolute">
+						<Loader />
+					</div>
+				{:else}
+					<img src={strPlayerImage0} width="792" height="792" alt="792" />
+					{#if boolIsVisible0}
+						<div
+							class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+						>
+							<Confetti
+								x={[-3, 3]}
+								y={[-5, 5]}
+								xSpread={0.25}
+								size={30}
+								duration={3500}
+								amount={250}
+								fallDistance="400px"
+								colorArray={['#ED3A4F', '#0091B5', '#FDB913']}
+							/>
+						</div>
+					{/if}
+				{/if}
+			</div>
 			<div class="col-mid flex flex-col items-center justify-between">
-				<div id="prompt-prompt" class="flex flex-col items-start overflow-hidden">
+				<div
+					id="prompt-prompt"
+					class="flex flex-col items-start overflow-hidden"
+					class:opacity-0={numImageIndex !== null}
+				>
 					<div class="prompter overflow-hidden">
-						<!-- <Autoscroll route="results" innerText={dataPrompt || UNKNOWN} disableScrollbar /> -->
+						<Autoscroll route="results" innerText={strDataPrompt || UNKNOWN} disableScrollbar />
 					</div>
 					<div class="label h-[16px] w-full">Challenge</div>
 				</div>
-				{#if !true}
-					<div id="prompt-clock" class="mt-[6px] flex flex-col justify-center">
+				{#if !boolAreChoosing}
+					<div
+						id="prompt-clock"
+						class="mt-[6px] flex flex-col justify-center"
+						class:opacity-0={numImageIndex !== null}
+					>
 						<p>time remaining:</p>
-						<p class="complete">00:00</p>
+						<p>--:--</p>
 					</div>
 				{:else}
-					<div id="prompt-command" class="mt-[6px] flex flex-col justify-center">
+					<div
+						id="prompt-command"
+						class="mt-[6px] flex flex-col justify-center"
+						class:opacity-0={numImageIndex !== null}
+					>
 						<span class="block w-full text-center">Choose!</span>
 					</div>
 				{/if}
-				<div id="player-score" class="mt-4 w-full self-start">
+				<div
+					id="player-score"
+					class="mt-4 w-full self-start"
+					class:opacity-30={numImageIndex !== null && !boolShowOverlay}
+					class:opacity-0={numImageIndex !== null && boolShowOverlay}
+					class:translate-a={numImageIndex !== null &&
+						boolShowOverlay &&
+						boolShowOverlayFinal &&
+						!boolShowNextRound}
+					class:translate-b={numImageIndex !== null && boolShowOverlay && boolShowNextRound}
+					class:mid-overlay={numImageIndex !== null &&
+						boolShowOverlay &&
+						(boolShowOverlayFinal || boolShowNextRound)}
+				>
 					<p>current score:</p>
 					<p class="flex w-full justify-between">
-						<span class="inline-block flex-[33%] flex-grow"></span>
+						<span class="inline-block flex-[33%] flex-grow"
+							>{strPlayerScore0 === undefined ? UNKNOWN : strPlayerScore0}</span
+						>
 						<span class="inline-block flex-[33%] flex-grow">-</span>
-						<span class="inline-block flex-[33%] flex-grow"></span>
+						<span class="inline-block flex-[33%] flex-grow"
+							>{numPlayerScore1 === undefined ? UNKNOWN : numPlayerScore1}</span
+						>
 					</p>
 				</div>
 			</div>
-			<div class="col-right pointer-events-none relative"></div>
+			<div
+				class="col-right pointer-events-none relative"
+				class:opacity-30={numImageIndex === 0 && !boolShowOverlay}
+				class:opacity-0={numImageIndex === 0 && boolShowOverlay}
+			>
+				{#if !strPlayerImage1}
+					<div class="loader absolute">
+						<Loader --delay={0.5} />
+					</div>
+				{:else}
+					<img src={strPlayerImage1} width="792" height="792" alt="792" />
+					{#if boolIsVisible1}
+						<div
+							class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+						>
+							<Confetti
+								x={[-3, 3]}
+								y={[-5, 5]}
+								xSpread={0.25}
+								size={30}
+								duration={3500}
+								amount={250}
+								fallDistance="400px"
+								colorArray={['#ED3A4F', '#0091B5', '#FDB913']}
+							/>
+						</div>
+					{/if}
+				{/if}
+			</div>
 			<div class="footer">
-				<div class="player-0 absolute bottom-[2px] left-[2px] px-2">...</div>
-				<div class="player-1 absolute bottom-[2px] right-[2px] px-2">...</div>
+				<div
+					class="player-0 absolute bottom-[2px] left-[2px] px-2"
+					class:opacity-30={numImageIndex === 1 && !boolShowOverlay}
+					class:opacity-0={numImageIndex === 1 && boolShowOverlay}
+				>
+					{strPlayerName0 || UNKNOWN}
+				</div>
+				<div
+					class="player-1 absolute bottom-[2px] right-[2px] px-2"
+					class:opacity-30={numImageIndex === 0 && !boolShowOverlay}
+					class:opacity-0={numImageIndex === 0 && boolShowOverlay}
+				>
+					{strPlayerName1 || UNKNOWN}
+				</div>
 			</div>
 		</div>
 	</div>
 </div>
+
+<div
+	class:opacity-0={!boolShowOverlay}
+	class="fixed h-screen w-screen"
+	style="background: rgba(0, 0, 0, 0.875);"
+></div>
+
+{#if boolAreChoosing}
+	<Counter t0={0} tN={-2} --width="1632px">
+		<p class="counter-p-1" slot="noblink">Audience:</p>
+		<p class="counter-p-2" slot="blink">Choose!</p>
+	</Counter>
+{/if}
+
+{#if boolShowOverlay && !boolShowOverlayFinal && !boolShowNextRound}
+	<div id="prompt-overlay" class="fixed flex h-screen w-screen items-center justify-center">
+		<div class="row flex items-center justify-between">
+			<div class="player player-0 flex items-center justify-center px-4">
+				<span class="w-full">{strPlayerName0}</span>
+			</div>
+			<div id="player-score" class="overlay w-full self-start" class:score={boolIsRegistered}>
+				<p class="h-[60px] pt-[15px]">current score:</p>
+				<p class="flex w-full justify-between">
+					<span class="inline-block flex-[33%] flex-grow">{strPlayerScore0}</span>
+					<span class="inline-block flex-[33%] flex-grow">-</span>
+					<span class="inline-block flex-[33%] flex-grow">{numPlayerScore1}</span>
+				</p>
+			</div>
+			<div class="player player-0 flex items-center justify-center px-4">
+				<span class="w-full">{strPlayerName1}</span>
+			</div>
+		</div>
+	</div>
+{/if}
+
+{#if boolShowOverlay && boolShowOverlayFinal && !boolShowNextRound}
+	<Counter
+		t0={0}
+		tN={-1000}
+		--width="1632px"
+		--height="573px"
+		--translate-y="-95px"
+		--background-overlay="transparent"
+	>
+		<p class="counter-p-1 uppercase" style="font-size: 100px; color: white;" slot="noblink">
+			Winner:
+		</p>
+		<p class="counter-p-2 overflow-hidden text-ellipsis whitespace-nowrap uppercase" slot="blink">
+			<span class="w-full px-12">{getWinner()}</span>
+		</p>
+	</Counter>
+	<div class="fixed flex h-screen w-screen items-center justify-center" style="z-index: 1000;">
+		<Confetti
+			x={[-5, 5]}
+			y={[-5, 5]}
+			xSpread={0.25}
+			delay={[0, 1000, 2000]}
+			size={30}
+			duration={3500}
+			amount={250}
+			fallDistance="400px"
+			colorArray={['#ED3A4F', '#0091B5', '#FDB913']}
+		/>
+	</div>
+{/if}
+
+{#if boolShowNextRound}
+	<Banner innerText={EBannerText.ROUND} --background-overlay="transparent" />
+{/if}
 
 <style lang="scss">
 	#prompt-screen .grid {

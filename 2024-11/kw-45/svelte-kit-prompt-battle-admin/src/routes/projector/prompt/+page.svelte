@@ -1,42 +1,149 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import useSocket from '$lib/socket';
+	import { onMount } from 'svelte';
+	import Autoscroll from '../../../components/Autoscroll.svelte';
+	import { UNKNOWN } from '$lib';
+	import { time, timer, isComplete, isRunning, resetTimer } from '$lib/stores/timer-prompt';
+	import Counter from '../../../components/Counter.svelte';
+
+	const socket = useSocket('PROJECTOR');
+
+	let boolHasStarted = $state(false);
+	let strDataPrompt = $state('');
+	let strPlayerName0 = $state('');
+	let numPlayerScore0 = $state();
+	let strPlayerName1 = $state('');
+	let numPlayerScore1 = $state();
+	let strPlayerPrompt0 = $state('');
+	let strPlayerPrompt1 = $state('');
+
+	let strMode = $state<undefined | string>(undefined);
+
+	onMount(() => {
+		socket.emit('p:requestEvent', 's:sendPromptBattle').emit('p:requestEvent', 's:sendMode');
+
+		socket.on('s:setPlayerNames', ({ player0, player1 }) => {
+			strPlayerName0 = player0;
+			strPlayerName1 = player1;
+		});
+
+		socket.on('s:sendMode', (mode) => {
+			strMode = mode;
+			$page.url.searchParams.set('mode', mode);
+			goto(`?${$page.url.searchParams.toString()}`); // ...?mode=...
+		});
+
+		socket.on('s:setProjector/projector/', () => {
+			setTimeout(() => {
+				goto('/projector/prompt/');
+			}, 0); // 1000
+		});
+
+		socket.on('disconnect', () => {
+			console.log('Disconnected');
+		});
+
+		setTimeout(() => {
+			boolHasStarted = true;
+		}, 0);
+
+		return () => {
+			$isRunning = false;
+			$isComplete = false;
+			resetTimer();
+			socket?.removeAllListeners();
+		};
+	});
+
+	$effect(() => {
+		if ($isComplete) {
+			setTimeout(async () => {
+				switch (strMode) {
+					case 'ps': {
+						goto(`/projector/scribble?${$page.url.searchParams.toString()}`);
+						break;
+					}
+					case 'p': {
+						goto(`/projector/results?${$page.url.searchParams.toString()}`);
+						break;
+					}
+				}
+			}, 0); // 2000
+		}
+	});
 </script>
 
 <svelte:head>
 	<title>Projector - Prompt</title>
 </svelte:head>
 
+{#if boolHasStarted}
+	<!-- TODO: Leave enough time for both projector and client to display prompt challenge -->
+	<Counter
+		t0={15}
+		onEnd={() => {
+			timer.start();
+			document.querySelectorAll('.marquee').forEach((marquee) => {
+				marquee.classList.add('fade');
+			});
+		}}
+	/>
+{/if}
+
 <div
 	id="prompt-screen"
 	class="m-auto flex h-full w-full flex-col justify-between pb-[103px] pt-[84px]"
 >
 	<div class="grid h-full w-full">
-		<div class="header relative">
+		<div class="header relative" class:opacity-0={!boolHasStarted}>
+			<Autoscroll
+				route="prompt-header"
+				innerText={strDataPrompt || UNKNOWN}
+				disableScrollbar
+				constrainOverflowBy={46}
+				--padding="20px 20px 56px"
+			/>
 			<div class="label absolute bottom-0 left-0">Challenge</div>
 		</div>
 		<div class="main relative">
 			<div class="col-left">
-				<!-- <Autoscroll route="prompt-main" innerText={player0Prompt} --padding-bottom="56px" /> -->
+				<Autoscroll route="prompt-main" innerText={strPlayerPrompt0} --padding-bottom="56px" />
 			</div>
 			<div class="col-mid flex flex-col items-center justify-between">
 				<div id="prompt-clock" class="flex flex-col justify-center">
 					<p>time remaining:</p>
-					<p>...</p>
+					<p
+						class:completing={+$time.slice(3) <= 10 && $time[1] !== '1'}
+						class:complete={$isComplete}
+					>
+						{$time}
+					</p>
 				</div>
 				<div id="player-score" class="mt-4 w-full self-start">
 					<p>current score:</p>
 					<p class="flex w-full justify-between">
-						<span class="inline-block flex-[33%] flex-grow"></span>
+						<span class="inline-block flex-[33%] flex-grow"
+							>{numPlayerScore0 === undefined ? UNKNOWN : numPlayerScore0}</span
+						>
 						<span class="inline-block flex-[33%] flex-grow">-</span>
-						<span class="inline-block flex-[33%] flex-grow"></span>
+						<span class="inline-block flex-[33%] flex-grow"
+							>{numPlayerScore1 === undefined ? UNKNOWN : numPlayerScore1}</span
+						>
 					</p>
 				</div>
 			</div>
 			<div class="col-right">
-				<!-- <Autoscroll route="prompt-main" innerText={player1Prompt} --padding-bottom="56px" /> -->
+				<Autoscroll route="prompt-main" innerText={strPlayerPrompt1} --padding-bottom="56px" />
 			</div>
 			<div class="footer">
-				<div class="absolute bottom-0 left-0 px-2">...</div>
-				<div class="absolute bottom-0 right-0 px-2">...</div>
+				<div class="absolute bottom-0 left-0 px-2">
+					{strPlayerName0 || UNKNOWN}
+				</div>
+				<div class="absolute bottom-0 right-0 px-2">
+					{strPlayerName1 || UNKNOWN}
+				</div>
 			</div>
 		</div>
 	</div>

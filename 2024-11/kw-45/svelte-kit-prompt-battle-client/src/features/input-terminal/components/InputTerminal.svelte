@@ -68,7 +68,7 @@
 	<span class="font-bold">Prompt</span>Battle
 </h1>
 <section id="terminal" class="p-2">
-	<p>~/Player {strPlayerNumber} &gt; ./prompt-battle.sh</p>
+	<p>~/Player {+strPlayerNumber + 1} &gt; ./prompt-battle.sh</p>
 	<p>Prompt Battle is loading...</p>
 	<p>Loading complete!</p>
 	<p class="mt-16">Please enter your name!</p>
@@ -80,7 +80,7 @@
 		bind:this={refTerminal}
 	>
 		<label>
-			<span>Player {strPlayerNumber}: </span>
+			<span>Player {+strPlayerNumber + 1}: </span>
 			<input
 				type="text"
 				name="player"

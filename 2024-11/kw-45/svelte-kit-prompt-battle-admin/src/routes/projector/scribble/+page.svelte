@@ -1,9 +1,122 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import { onMount } from 'svelte';
+	import { timer, time, isRunning, isComplete, resetTimer } from '$lib/stores/timer-scribble';
+	import useSocket from '$lib/socket';
+	import Counter from '../../../components/Counter.svelte';
+	import { UNKNOWN } from '$lib';
+	import LiveCanvas from '../../../components/LiveCanvas.svelte';
+
+	const socket = useSocket('PROJECTOR');
+
+	let boolHasStarted = $state(false);
+	let strDataPrompt = $state('');
+	let strPlayerName0 = $state('');
+	let numPlayerScore0 = $state();
+	let strPlayerName1 = $state('');
+	let numPlayerScore1 = $state();
+
+	let strMode = $state('');
+
+	let strCanvas0 = $state<undefined | string>();
+	let strCanvas1 = $state<undefined | string>();
+	let arrLines0 = $state<{ x1: number; y1: number; x2: number; y2: number }[] | undefined>();
+	let arrLines1 = $state<{ x1: number; y1: number; x2: number; y2: number }[] | undefined>();
+
+	onMount(() => {
+		socket.emit('p:requestEvent', 's:sendPromptBattle').emit('p:requestEvent', 's:sendMode');
+
+		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
+			strPlayerName0 = playerName0;
+			strPlayerName1 = playerName1;
+		});
+
+		socket.on('s:sendMode', (mode) => {
+			strMode = mode;
+			$page.url.searchParams.set('mode', strMode);
+			goto(`?${$page.url.searchParams.toString()}`); // ...?mode=...
+		});
+		socket.on(
+			's:sendPromptBattle',
+			({
+				player0: name0,
+				player1: name1,
+				player0Score: score0,
+				player1Score: score1,
+				prompts,
+				currentRound
+			}) => {
+				strPlayerName0 = name0;
+				strPlayerName1 = name1;
+				numPlayerScore0 = score0;
+				numPlayerScore1 = score1;
+				strDataPrompt = prompts[currentRound - 1];
+			}
+		);
+		socket.on('s:sendCanvasData', ({ id, data }) => {
+			console.log(id, data);
+
+			if (id == '0' && !strCanvas0) {
+				strCanvas0 = id;
+			}
+			if (id == '1' && !strCanvas1) {
+				strCanvas1 = id;
+			}
+
+			if (id == '0') {
+				arrLines0 = data;
+			}
+			if (id == '1') {
+				arrLines1 = data;
+			}
+		});
+
+		socket.on('disconnect', () => {
+			console.log('Disconnected');
+		});
+
+		setTimeout(() => {
+			boolHasStarted = true;
+		}, 0); // 2000
+
+		return () => {
+			strCanvas0 = undefined;
+			strCanvas1 = undefined;
+			arrLines0 = undefined;
+			arrLines1 = undefined;
+			$isRunning = false;
+			$isComplete = false;
+			resetTimer();
+			socket.disconnect();
+		};
+	});
+
+	$effect(() => {
+		if ($isComplete) {
+			setTimeout(async () => {
+				goto(`/projector/results?${$page.url.searchParams.toString()}`);
+			}, 0); // 2000
+		}
+	});
 </script>
 
 <svelte:head>
 	<title>Projector - Scribble</title>
 </svelte:head>
+
+{#if boolHasStarted}
+	<Counter
+		t0={3}
+		end="Scribble!"
+		onEnd={() => {
+			timer.start();
+			document.querySelectorAll('.marquee').forEach((marquee) => {
+				marquee.classList.add('fade');
+			});
+		}}
+	/>
+{/if}
 
 <div
 	id="prompt-screen"
@@ -11,41 +124,50 @@
 >
 	<div class="grid h-full w-full">
 		<div class="header relative line-clamp-2">
-			<p>...</p>
+			<p>{strDataPrompt || UNKNOWN}</p>
 			<div class="label absolute bottom-0 left-0">Challenge</div>
 		</div>
-		<div class="main relative">
+		<div class="main relative" class:opacity-125={!boolHasStarted}>
 			<div class="col-left pointer-events-none flex items-center justify-center">
-				{#if !true}
-					<canvas width="512" height="512" />
+				{#if !strCanvas0}
+					<canvas width="512" height="512"></canvas>
 				{:else}
-					<!-- <LiveCanvas id={canvas0Id} lines={data0} /> -->
+					<LiveCanvas id={strCanvas0} lines={arrLines0} />
 				{/if}
 			</div>
 			<div class="col-mid flex flex-col items-center justify-between">
 				<div id="prompt-clock" class="flex flex-col justify-center">
 					<p>time remaining:</p>
-					<p></p>
+					<p
+						class:completing={+$time.slice(3) <= 10 && $time[1] !== '1'}
+						class:complete={$isComplete}
+					>
+						{$time}
+					</p>
 				</div>
 				<div id="player-score" class="mt-4 w-full self-start">
 					<p>current score:</p>
 					<p class="flex w-full justify-between">
-						<span class="inline-block flex-[33%] flex-grow"> </span>
+						<span class="inline-block flex-[33%] flex-grow"
+							>{numPlayerScore0 === undefined ? UNKNOWN : numPlayerScore0}</span
+						>
 						<span class="inline-block flex-[33%] flex-grow">-</span>
-						<span class="inline-block flex-[33%] flex-grow"> </span>
+						<span class="inline-block flex-[33%] flex-grow"
+							>{numPlayerScore1 === undefined ? UNKNOWN : numPlayerScore1}</span
+						>
 					</p>
 				</div>
 			</div>
 			<div class="col-right pointer-events-none flex items-center justify-center">
-				{#if !true}
-					<canvas width="512" height="512" />
+				{#if !strCanvas1}
+					<canvas width="512" height="512"></canvas>
 				{:else}
-					<!-- <LiveCanvas id={canvas1Id} lines={data1} /> -->
+					<LiveCanvas id={strCanvas1} lines={arrLines1} />
 				{/if}
 			</div>
 			<div class="footer">
-				<div class="absolute bottom-0 left-0 px-2">...</div>
-				<div class="absolute bottom-0 right-0 px-2">...</div>
+				<div class="absolute bottom-0 left-0 px-2">{strPlayerName0 || UNKNOWN}</div>
+				<div class="absolute bottom-0 right-0 px-2">{strPlayerName1 || UNKNOWN}</div>
 			</div>
 		</div>
 	</div>

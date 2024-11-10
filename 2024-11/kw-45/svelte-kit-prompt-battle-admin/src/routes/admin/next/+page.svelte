@@ -3,56 +3,49 @@
 	import { page } from '$app/stores';
 	import { UNKNOWN } from '$lib';
 	import useSocket from '$lib/socket';
-	import { Socket, io } from 'socket.io-client';
 	import { onMount } from 'svelte';
 
 	const socket = useSocket('ADMIN');
 
-	let player0: string;
-	let player0Score: string;
-	let player1: string;
-	let player1Score: string;
+	let strPlayerName0 = $state('');
+	let numPlayerScore0 = $state('');
+	let strPlayerName1 = $state('');
+	let numPlayerScore1 = $state('');
 
-	let message: string | undefined;
-	let hasDisabledClick = true;
+	let strMessage = $state<undefined | string>();
+	let boolIsDisabled = $state(true);
 
 	onMount(() => {
-		socket.on('connect', () => {
-			socket
-				.emit('c:initClient', 'ADMIN')
-				.emit('a:requestEvent', 's:sendBattleData')
-				.emit('a:requestEvent', 's:prepareNextRound');
-		});
+		socket.emit('a:requestEvent', 's:sendBattleData').emit('a:requestEvent', 's:prepareNextRound');
+
 		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			player0 = playerName0;
-			player1 = playerName1;
+			strPlayerName0 = playerName0;
+			strPlayerName1 = playerName1;
 		});
-		socket.on(
-			's:sendBattleData',
-			({ player0Score: _player0Score, player1Score: _player1Score }) => {
-				player0Score = _player0Score;
-				player1Score = _player1Score;
-			}
-		);
-		socket.on('s:prepareNextRound', (_message) => {
-			message = _message;
-			console.log(message);
+		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
+			numPlayerScore0 = player0Score;
+			numPlayerScore1 = player1Score;
+		});
+		socket.on('s:prepareNextRound', (message) => {
+			strMessage = message;
+			console.log(strMessage);
 		});
 		socket.on('s:sendAdminReadiness', () => {
-			hasDisabledClick = false;
+			boolIsDisabled = false;
 		});
 
 		return () => {
-			message = undefined;
-			hasDisabledClick = true;
-			socket.disconnect();
+			strMessage = undefined;
+			boolIsDisabled = true;
+			socket?.removeAllListeners();
 		};
 	});
 
 	function handleButtonClick() {
+		alert('The next round will start in 4 seconds.');
 		setTimeout(() => {
 			// for the admin
-			switch (message) {
+			switch (strMessage) {
 				case 'round=current': {
 					goto(`/admin?${$page.url.searchParams.toString()}`);
 					break;
@@ -67,10 +60,9 @@
 		}, 4000);
 
 		// for the client, redirected by the server
-		socket.emit('a:prepareNextRound', message);
-
+		socket.emit('a:prepareNextRound', strMessage);
 		// for the projector, redirected by the server
-		socket.emit('a:prepareNextRoundProjector', message);
+		socket.emit('a:prepareNextRoundProjector', strMessage);
 	}
 </script>
 
@@ -83,32 +75,32 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative">...</span>
+					<span class="relative">{strPlayerName0 || UNKNOWN}</span>
 				</div>
 			</div>
 			<div id="player-score" class="mt-4 w-full self-start">
 				<p>current score:</p>
 				<p class="flex w-full justify-between">
 					<span class="inline-block flex-[33%] flex-grow"
-						>{player0Score === undefined ? UNKNOWN : player0Score}</span
+						>{numPlayerScore0 === undefined ? UNKNOWN : numPlayerScore0}</span
 					>
 					<span class="inline-block flex-[33%] flex-grow">-</span>
 					<span class="inline-block flex-[33%] flex-grow"
-						>{player1Score === undefined ? UNKNOWN : player1Score}</span
+						>{numPlayerScore1 === undefined ? UNKNOWN : numPlayerScore1}</span
 					>
 				</p>
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative">...</span>
+					<span class="relative">{strPlayerName1 || UNKNOWN}</span>
 				</div>
 			</div>
 		</div>
 		<div class="mt-[181px] flex h-auto w-full justify-center">
 			<button
 				class="link-button flex flex-col"
-				class:disabled={hasDisabledClick}
-				on:click={handleButtonClick}
+				disabled={boolIsDisabled}
+				onclick={handleButtonClick}
 			>
 				<div class="mt-[8px] flex flex-col items-center">
 					<span class="text">start</span>
@@ -157,7 +149,7 @@
 		all: unset;
 	}
 
-	button.disabled {
+	button:disabled {
 		cursor: not-allowed;
 		pointer-events: none;
 		opacity: 0.3;

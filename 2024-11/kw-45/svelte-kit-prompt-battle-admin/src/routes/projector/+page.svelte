@@ -1,3 +1,52 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import useSocket from '$lib/socket';
+	import { onMount } from 'svelte';
+
+	const socket = useSocket('PROJECTOR');
+
+	let strPlayerName0 = $state('');
+	let boolIsPlayer0Ready = $state(false);
+	let strPlayerName1 = $state('');
+	let boolIsPlayer1Ready = $state(false);
+
+	onMount(() => {
+		socket.on('connect', () => {
+			socket.emit('c:joinLobby', 'PROJECTOR');
+
+			$page.url.searchParams.set('uuid', socket.id!);
+			$page.url.searchParams.delete('mode');
+
+			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
+		});
+
+		socket.on('s:setPlayerNames', ({ player0, player1 }) => {
+			strPlayerName0 = player0;
+			strPlayerName1 = player1;
+		});
+
+		socket.on('s:setPlayerReadiness', (id) => {
+			if (id == '0') boolIsPlayer0Ready = true;
+			if (id == '1') boolIsPlayer1Ready = true;
+		});
+
+		socket.on('s:setProjector/projector/', () => {
+			setTimeout(() => {
+				goto('/projector/prompt/');
+			}, 0); // 1000
+		});
+
+		socket.on('disconnect', () => {
+			console.log('Disconnected');
+		});
+
+		return () => {
+			socket?.removeAllListeners();
+		};
+	});
+</script>
+
 <svelte:head>
 	<title>Projector - Main page</title>
 </svelte:head>
@@ -9,11 +58,11 @@
 		</h1>
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0" class="player py-[25px]">
-				<span class="relative px-4">...</span>
+				<span class="relative px-4" class:ready={boolIsPlayer0Ready}>{strPlayerName0 || ''}</span>
 			</div>
 			<div class="vs">vs</div>
 			<div id="player-1" class="player py-[25px]">
-				<span class="relative px-4">...</span>
+				<span class="relative px-4" class:ready={boolIsPlayer1Ready}>{strPlayerName1 || ''}</span>
 			</div>
 		</div>
 	</div>

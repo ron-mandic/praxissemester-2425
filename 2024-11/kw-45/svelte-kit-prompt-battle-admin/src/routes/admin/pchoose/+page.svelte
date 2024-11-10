@@ -8,70 +8,59 @@
 	import IconCheck from '../../../components/IconCheck.svelte';
 	import { UNKNOWN } from '$lib';
 	import useSocket from '$lib/socket';
+	import { onMount } from 'svelte';
 
 	const socket = useSocket('ADMIN');
 
-	let player0: string;
-	let player0Score: string;
-	let player1: string;
-	let player1Score: string;
-	let dataGUUID: string;
+	let strPlayerName0 = $state('');
+	let numPlayerScore0 = $state('');
+	let strPlayerNumber0 = $state<undefined | string>();
+	let strImageIndex0 = $state<undefined | string>();
 
-	let mode: string;
-	let playerNumberA: string | undefined;
-	let playerNumberB: string | undefined;
-	let imageIndexA: string | undefined;
-	let imageIndexB: string | undefined;
-	let boolA = false;
-	let boolB = false;
+	let strPlayerName1 = $state('');
+	let numPlayerScore1 = $state('');
+	let strPlayerNumber1 = $state<undefined | string>();
+	let strImageIndex1 = $state<undefined | string>();
 
-	$effect(() => {
-		mode = $page.url.searchParams.get('mode')!;
+	let strMode = $state('');
+	let boolHasChosen0 = $state(false);
+	let boolHasChosen1 = $state(false);
 
-		socket.on('connect', () => {
-			socket.emit('c:initClient', 'ADMIN').emit('a:requestEvent', 's:sendBattleData');
-		});
+	onMount(() => {
+		strMode = $page.url.searchParams.get('mode')!;
+
+		socket.emit('a:requestEvent', 's:sendBattleData');
+
 		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			player0 = playerName0;
-			player1 = playerName1;
+			strPlayerName0 = playerName0;
+			strPlayerName1 = playerName1;
 		});
-		socket.on(
-			's:sendBattleData',
-			({ player0Score: _player0Score, player1Score: _player1Score, guuid }) => {
-				player0Score = _player0Score;
-				player1Score = _player1Score;
-				dataGUUID = guuid;
+		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
+			numPlayerScore0 = player0Score;
+			numPlayerScore1 = player1Score;
 
-				$page.url.searchParams.set('guuid', dataGUUID);
-				goto(`?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
-			}
-		);
-		socket.on('s:sendImageInfo/results', ({ id, imageIndex: _imageIndex }) => {
+			goto(`?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
+		});
+		socket.on('s:sendImageInfo/results', ({ id, imageIndex }) => {
 			if (id === '1') {
-				playerNumberA = id;
-				imageIndexA = _imageIndex;
-				boolA = true;
+				strPlayerNumber0 = id;
+				strImageIndex0 = imageIndex;
+				boolHasChosen0 = true;
 			}
 			if (id === '2') {
-				playerNumberB = id;
-				imageIndexB = _imageIndex;
-				boolB = true;
+				strPlayerNumber1 = id;
+				strImageIndex1 = imageIndex;
+				boolHasChosen1 = true;
 			}
 		});
 
 		return () => {
-			playerNumberA = undefined;
-			playerNumberB = undefined;
-			imageIndexA = undefined;
-			imageIndexB = undefined;
-			boolA = false;
-			boolB = false;
-			socket.disconnect();
+			socket?.removeAllListeners();
 		};
 	});
 
 	$effect(() => {
-		if (boolA && boolB) {
+		if (boolHasChosen0 && boolHasChosen1) {
 			setTimeout(() => {
 				goto(`/admin/achoose?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
 			}, 0); // 1000
@@ -88,8 +77,8 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">...</span>
-					{#if boolA}
+					<span class="relative px-4">{strPlayerName0 || UNKNOWN}</span>
+					{#if boolHasChosen0}
 						<div
 							class="absolute -left-24 top-1/2 -translate-x-1/2 -translate-y-1/2"
 							transition:scale={{
@@ -119,13 +108,19 @@
 				</div>
 				<div class="image-thumbnails flex items-center justify-between pt-16">
 					<ImageThumbnail
-						chosen={playerNumberA === '1' && imageIndexA !== undefined && +imageIndexA === 0}
+						chosen={strPlayerNumber0 === '0' &&
+							strImageIndex0 !== undefined &&
+							+strImageIndex0 === 0}
 					/>
 					<ImageThumbnail
-						chosen={playerNumberA === '1' && imageIndexA !== undefined && +imageIndexA === 1}
+						chosen={strPlayerNumber0 === '0' &&
+							strImageIndex0 !== undefined &&
+							+strImageIndex0 === 1}
 					/>
 					<ImageThumbnail
-						chosen={playerNumberA === '1' && imageIndexA !== undefined && +imageIndexA === 2}
+						chosen={strPlayerNumber0 === '0' &&
+							strImageIndex0 !== undefined &&
+							+strImageIndex0 === 2}
 					/>
 				</div>
 			</div>
@@ -133,18 +128,18 @@
 				<p>current score:</p>
 				<p class="flex w-full justify-between">
 					<span class="inline-block flex-[33%] flex-grow"
-						>{player0Score === undefined ? UNKNOWN : player0Score}</span
+						>{numPlayerScore0 === undefined ? UNKNOWN : numPlayerScore0}</span
 					>
 					<span class="inline-block flex-[33%] flex-grow">-</span>
 					<span class="inline-block flex-[33%] flex-grow"
-						>{player1Score === undefined ? UNKNOWN : player1Score}</span
+						>{numPlayerScore1 === undefined ? UNKNOWN : numPlayerScore1}</span
 					>
 				</p>
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">...</span>
-					{#if boolB}
+					<span class="relative px-4">{strPlayerName1 || UNKNOWN}</span>
+					{#if boolHasChosen1}
 						<div
 							class="absolute -right-24 top-1/2 -translate-y-1/2 translate-x-1/2"
 							transition:scale={{
@@ -174,13 +169,19 @@
 				</div>
 				<div class="image-thumbnails flex items-center justify-between pt-16">
 					<ImageThumbnail
-						chosen={playerNumberB === '2' && imageIndexB !== undefined && +imageIndexB === 0}
+						chosen={strPlayerNumber1 === '1' &&
+							strImageIndex1 !== undefined &&
+							+strImageIndex1 === 0}
 					/>
 					<ImageThumbnail
-						chosen={playerNumberB === '2' && imageIndexB !== undefined && +imageIndexB === 1}
+						chosen={strPlayerNumber1 === '1' &&
+							strImageIndex1 !== undefined &&
+							+strImageIndex1 === 1}
 					/>
 					<ImageThumbnail
-						chosen={playerNumberB === '2' && imageIndexB !== undefined && +imageIndexB === 2}
+						chosen={strPlayerNumber1 === '1' &&
+							strImageIndex1 !== undefined &&
+							+strImageIndex1 === 2}
 					/>
 				</div>
 			</div>

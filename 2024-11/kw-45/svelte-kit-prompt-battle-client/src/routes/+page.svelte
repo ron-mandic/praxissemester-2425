@@ -23,7 +23,7 @@
 			$page.url.searchParams.set('id', PUBLIC_ID);
 			$page.url.searchParams.set('uuid', socket.id!);
 			// TODO: Change that by what the admin chooses to do
-			$page.url.searchParams.delete('mode');
+			$page.url.searchParams.set('mode', 'ps');
 			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
@@ -48,7 +48,7 @@
 
 	// Listen for the start event to redirect to the prompt page
 	$effect(() => {
-		if (boolHasEntered && boolIsStarting && strMode) {
+		if (boolHasEntered) {
 			playerName.set(strPlayerName);
 			goto(`prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
 		}

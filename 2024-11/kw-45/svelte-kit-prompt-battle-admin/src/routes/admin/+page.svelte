@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { UNKNOWN } from '$lib';
 	import useSocket from '$lib/socket';
+	import { onMount } from 'svelte';
 
 	const socket = useSocket('ADMIN');
 
@@ -16,12 +17,12 @@
 	let strMode = $state<undefined | string>(undefined);
 	let strLabel = $state('Players are prompting');
 
-	$effect(() => {
+	onMount(() => {
 		socket.emit("a:requestEvent', 's:sendBattleData");
 
-		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			strPlayerName0 = playerName0;
-			strPlayerName1 = playerName1;
+		socket.on('s:setPlayerNames', ({ player0, player1 }) => {
+			strPlayerName0 = player0;
+			strPlayerName1 = player1;
 		});
 
 		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
@@ -116,7 +117,7 @@
 
 			overflow: hidden;
 			text-overflow: ellipsis;
-			white-space: nowrap;
+			white-space: pre;
 		}
 	}
 

@@ -9,66 +9,56 @@
 
 	const socket = useSocket('ADMIN');
 
-	let player0: string;
-	let player0Score: string;
-	let player1: string;
-	let player1Score: string;
+	let strPlayerName0 = $state('');
+	let numPlayerScore0 = $state('');
+	let strPlayerName1 = $state('');
+	let numPlayerScore1 = $state('');
 
-	let dataGUUID: string;
-	let mode: string;
-	let srcImageA: string | undefined;
-	let srcImageB: string | undefined;
+	let strMode = $state('');
+	let strSourceImage0 = $state<undefined | string>();
+	let strSourceImage1 = $state<undefined | string>();
 
-	let haveChosen = false;
+	let boolHaveChosen = $state(false);
 
 	$effect(() => {
-		mode = $page.url.searchParams.get('mode')!;
+		strMode = $page.url.searchParams.get('mode')!;
 
-		socket.on('connect', () => {
-			socket
-				.emit('c:initClient', 'ADMIN')
-				.emit('a:requestEvent', 's:sendBattleData')
-				.emit('a:requestEvent', 's:sendImage/results');
-		});
+		socket.emit('a:requestEvent', 's:sendBattleData').emit('a:requestEvent', 's:sendImage/results');
+
 		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			player0 = playerName0;
-			player1 = playerName1;
+			strPlayerName0 = playerName0;
+			strPlayerName1 = playerName1;
 		});
-		socket.on(
-			's:sendBattleData',
-			({ player0Score: _player0Score, player1Score: _player1Score, guuid }) => {
-				player0Score = _player0Score;
-				player1Score = _player1Score;
-				dataGUUID = guuid;
-			}
-		);
+		socket.on('s:sendBattleData', ({ player0Score, player1Score, guuid }) => {
+			player0Score = player0Score;
+			player1Score = player1Score;
+		});
 		socket.on('s:sendImage/results', ({ player0Image, player1Image }) => {
-			srcImageA = 'data:image/png;base64,' + player0Image;
-			srcImageB = 'data:image/png;base64,' + player1Image;
+			strSourceImage0 = 'data:image/png;base64,' + player0Image;
+			strSourceImage1 = 'data:image/png;base64,' + player1Image;
 		});
 
 		return () => {
-			// TODO: Reset all variables or just keep it as is? Or in onDestroy()?
-			// srcImageA = undefined;
-			// srcImageB = undefined;
-			// haveChosen = false;
-			socket.disconnect();
+			strSourceImage0 = undefined;
+			strSourceImage1 = undefined;
+			boolHaveChosen = false;
+			socket?.removeAllListeners();
 		};
 	});
 
 	function handleButtonA(e: MouseEvent) {
-		if (haveChosen) return;
+		if (boolHaveChosen) return;
 
 		const target = e.currentTarget! as HTMLDivElement;
 		target.dataset!.status = 'yes';
-		haveChosen = true;
+		boolHaveChosen = true;
 
 		socket.emit('a:sendBattleData/admin/achoose', {
-			player0Score: (+player0Score + 1).toString(),
-			player1Score
+			player0Score: (+numPlayerScore0 + 1).toString(),
+			player1Score: numPlayerScore1
 		});
 		socket.emit('a:sendImageChoice', '1');
-		player0Score = (+player0Score + 1).toString();
+		numPlayerScore0 = (+numPlayerScore0 + 1).toString();
 
 		setTimeout(() => {
 			goto(`/admin/next?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
@@ -76,18 +66,18 @@
 	}
 
 	function handleButtonB(e: MouseEvent) {
-		if (haveChosen) return;
+		if (boolHaveChosen) return;
 
 		const target = e.currentTarget! as HTMLDivElement;
 		target.dataset!.status = 'yes';
-		haveChosen = true;
+		boolHaveChosen = true;
 
 		socket.emit('a:sendBattleData/admin/achoose', {
-			player0Score,
-			player1Score: (+player1Score + 1).toString()
+			player0Score: numPlayerScore0,
+			player1Score: (+numPlayerScore1 + 1).toString()
 		});
 		socket.emit('a:sendImageChoice', '2');
-		player1Score = (+player1Score + 1).toString();
+		numPlayerScore1 = (+numPlayerScore1 + 1).toString();
 
 		setTimeout(() => {
 			goto(`/admin/next?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
@@ -104,7 +94,7 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">...</span>
+					<span class="relative px-4">{strPlayerName0 || UNKNOWN}</span>
 					<div class="absolute -left-24 top-1/2 -translate-x-1/2 -translate-y-1/2">
 						<IconCheck />
 					</div>
@@ -113,7 +103,7 @@
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div class="image" data-status="no" onclick={handleButtonA}>
-						<img width="378" height="378" src={srcImageA} alt="" />
+						<img width="378" height="378" src={strSourceImage0} alt="" />
 					</div>
 				</div>
 			</div>
@@ -121,17 +111,17 @@
 				<p>current score:</p>
 				<p class="flex w-full justify-between">
 					<span class="inline-block flex-[33%] flex-grow"
-						>{player0Score === undefined ? UNKNOWN : player0Score}</span
+						>{numPlayerScore0 === undefined ? UNKNOWN : numPlayerScore0}</span
 					>
 					<span class="inline-block flex-[33%] flex-grow">-</span>
 					<span class="inline-block flex-[33%] flex-grow"
-						>{player1Score === undefined ? UNKNOWN : player1Score}</span
+						>{numPlayerScore1 === undefined ? UNKNOWN : numPlayerScore1}</span
 					>
 				</p>
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">...</span>
+					<span class="relative px-4">{strPlayerName1 || UNKNOWN}</span>
 					<div class="absolute -right-24 top-1/2 -translate-y-1/2 translate-x-1/2">
 						<IconCheck />
 					</div>
@@ -140,14 +130,14 @@
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
 					<div class="image" data-status="no" onclick={handleButtonB}>
-						<img width="378" height="378" src={srcImageB} alt="" />
+						<img width="378" height="378" src={strSourceImage1} alt="" />
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
-	{#if !haveChosen}
+	{#if !boolHaveChosen}
 		<p id="system-status" class="absolute bottom-[174px] w-full text-center">
 			Audience is choosing
 		</p>
