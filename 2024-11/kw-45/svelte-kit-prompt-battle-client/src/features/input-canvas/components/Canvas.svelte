@@ -5,6 +5,7 @@
 	import { CANVAS_COLOR, CANVAS_HEIGHT, CANVAS_WIDTH } from './lib';
 	import { isComplete } from '$lib/stores/timer-scribble';
 	import { promptScribble } from '$lib/stores/prompt-scribble';
+	import { onMount } from 'svelte';
 
 	let { socket } = $props<{
 		socket: Socket;
@@ -18,7 +19,7 @@
 	let ctx: CanvasRenderingContext2D;
 	let t: number, l: number;
 
-	$effect(() => {
+	onMount(() => {
 		ctx = refCanvas.getContext('2d')!;
 		ctx.strokeStyle = CANVAS_COLOR;
 		ctx.lineWidth = 3;

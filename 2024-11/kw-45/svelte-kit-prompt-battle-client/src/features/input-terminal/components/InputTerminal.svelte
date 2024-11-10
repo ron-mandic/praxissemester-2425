@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { playerName } from '$lib/stores/player-name';
 	import type { Socket } from 'socket.io-client';
+	import { onMount } from 'svelte';
 
 	let {
 		socket,
@@ -22,7 +23,7 @@
 	let refInput: HTMLInputElement;
 
 	// Immediately focus on the input
-	$effect(() => {
+	onMount(() => {
 		refInput?.focus();
 	});
 

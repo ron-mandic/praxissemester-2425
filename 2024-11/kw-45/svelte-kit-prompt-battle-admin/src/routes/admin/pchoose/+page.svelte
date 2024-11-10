@@ -27,35 +27,37 @@
 	let boolHasChosen1 = $state(false);
 
 	onMount(() => {
-		strMode = $page.url.searchParams.get('mode')!;
+		if (!strMode) {
+			strMode = $page.url.searchParams.get('mode')!;
+		}
 
-		socket.emit('a:requestEvent', 's:sendBattleData');
+		if (socket.connected) {
+			socket.emit('acp:getBattleData');
+		}
 
-		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			strPlayerName0 = playerName0;
-			strPlayerName1 = playerName1;
+		socket.on('s:getBattleData', (battle) => {
+			strPlayerName0 = battle['0'].name;
+			numPlayerScore0 = battle['0'].score;
+			strPlayerName1 = battle['1'].name;
+			numPlayerScore1 = battle['1'].score;
 		});
-		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
-			numPlayerScore0 = player0Score;
-			numPlayerScore1 = player1Score;
 
-			goto(`?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
-		});
-		socket.on('s:sendImageInfo/results', ({ id, imageIndex }) => {
-			if (id === '1') {
+		socket.on('s:sendImage/pchoose', ({ id, index }) => {
+			if (id == '0') {
 				strPlayerNumber0 = id;
-				strImageIndex0 = imageIndex;
+				strImageIndex0 = index;
 				boolHasChosen0 = true;
 			}
-			if (id === '2') {
+			if (id == '1') {
 				strPlayerNumber1 = id;
-				strImageIndex1 = imageIndex;
+				strImageIndex1 = index;
 				boolHasChosen1 = true;
 			}
 		});
 
 		return () => {
-			socket?.removeAllListeners();
+			socket.off('s:getBattleData');
+			socket.off('s:sendImage/pchoose');
 		};
 	});
 

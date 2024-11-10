@@ -111,6 +111,10 @@ io.on("connection", (socket) => {
 		// Transmit the readiness of the player
 		if (Lobby[id].ready) io.emit("s:setPlayerReadiness", id);
 
+		// Prepare the battle names
+		if (Lobby["0"].name) Battle["0"].name = Lobby["0"].name!;
+		if (Lobby["1"].name) Battle["1"].name = Lobby["1"].name!;
+
 		// Start the game if both players are ready
 		if (Lobby["0"].ready /* CHANGE && Lobby["1"].ready*/) {
 			io.emit("s:start");
@@ -141,14 +145,6 @@ io.on("connection", (socket) => {
 			Battle.challenge = CHALLENGES[Battle.index];
 		}
 
-		// Check if the names are set
-		if (Battle["0"].name === null) {
-			Battle["0"].name = Lobby[0].name!;
-		}
-		if (Battle["1"].name === null) {
-			Battle["1"].name = Lobby[1].name!;
-		}
-
 		io.emit("s:getBattleData", Battle);
 	});
 
@@ -160,7 +156,27 @@ io.on("connection", (socket) => {
 		io.emit("s:sendRoute/scribble");
 	});
 
-	socket.on("disconnect", (reason) => {
+	socket.on(
+		"c:sendCanvasData",
+		(obj: {
+			id: string;
+			data: { x1: number; y1: number; x2: number; y2: number }[];
+		}) => {
+			io.emit("s:sendCanvasData", obj);
+		}
+	);
+
+	// Image data for admin
+	socket.on("c:sendImage/pchoose", (obj: { id: string; index: number }) => {
+		io.emit("s:sendImage/pchoose", obj);
+	});
+
+	// Image data for projector
+	socket.on("c:sendImage/results", (obj: { id: string; dataURI: string }) => {
+		io.emit("s:sendImage/results", obj);
+	});
+
+	socket.on("disconnect", (reason: string) => {
 		console.log(
 			`%cUser ${socket.id} disconnected: ${reason}\n`,
 			"color: red;"

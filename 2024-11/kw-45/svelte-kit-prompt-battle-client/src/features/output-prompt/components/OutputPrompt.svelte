@@ -4,7 +4,7 @@
 </script>
 
 <div id="prompt-text" class="relative h-[152px] w-full p-4">
-	<p>{$promptValue || UNKNOWN}</p>
+	<p>{$promptValue || ''}</p>
 	<div class="absolute bottom-0 left-0">Prompt</div>
 </div>
 
@@ -22,6 +22,7 @@
 		user-select: none;
 		max-width: 1824px;
 		overflow: hidden;
+		z-index: 999;
 
 		&::before {
 			content: '';

@@ -2,6 +2,7 @@
 	import { isComplete } from '$lib/stores/timer-scribble';
 	import type { Socket } from 'socket.io-client';
 	import Canvas from './Canvas.svelte';
+	import { onMount } from 'svelte';
 
 	let { socket } = $props<{
 		socket: Socket;
@@ -10,7 +11,7 @@
 	let numInterval: number;
 	let boolIsWobbling = $state(false);
 
-	$effect(() => {
+	onMount(() => {
 		numInterval = setInterval(() => {
 			boolIsWobbling = !boolIsWobbling;
 		}, 6500);

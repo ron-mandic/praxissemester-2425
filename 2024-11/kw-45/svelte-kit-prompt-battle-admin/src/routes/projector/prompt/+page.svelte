@@ -22,10 +22,12 @@
 	let numPlayerScore1 = $state();
 	let strPlayerPrompt1 = $state('');
 
-	let strMode = $state<undefined | string>(undefined);
+	let strMode = $state('');
 
 	onMount(() => {
-		strMode = $page.url.searchParams.get('mode') || undefined;
+		if (!strMode) {
+			strMode = $page.url.searchParams.get('mode')!;
+		}
 
 		if (socket.connected) {
 			socket.emit('acp:getBattleData');
@@ -35,8 +37,8 @@
 			strDataPrompt = battle.challenge;
 			strPlayerName0 = battle['0'].name;
 			numPlayerScore0 = battle['0'].score;
-			numPlayerScore1 = battle['1'].score;
 			strPlayerName1 = battle['1'].name;
+			numPlayerScore1 = battle['1'].score;
 		});
 
 		socket.on('s:sendPrompt', ({ id, value }) => {

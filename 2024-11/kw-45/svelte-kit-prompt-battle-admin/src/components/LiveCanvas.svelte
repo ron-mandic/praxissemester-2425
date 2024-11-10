@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onDestroy, onMount } from 'svelte';
 
-	export let id: string;
 	export let lines: {
 		x1: number;
 		y1: number;
@@ -24,6 +23,7 @@
 
 	function drawLines() {
 		ctx.clearRect(0, 0, 512, 512);
+		if (!lines) return;
 		lines.forEach(drawLine);
 	}
 
@@ -46,7 +46,7 @@
 	}
 </script>
 
-<canvas bind:this={canvas} width="512" height="512" />
+<canvas bind:this={canvas} width="512" height="512"></canvas>
 
 <style>
 	canvas {

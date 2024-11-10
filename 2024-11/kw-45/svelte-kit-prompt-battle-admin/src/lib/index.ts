@@ -4,7 +4,7 @@ export const SOCKET_SERVER_URL = 'http://localhost:8080';
 export const SOCKET_CLIENT_OPTIONS = {
 	transports: ['websocket', 'polling'],
 	reconnection: false,
-	reconnectionAttempts: Infinity,
+	reconnectionAttempts: 3,
 	reconnectionDelay: 2000,
 	pingInterval: 10000,
 	pingTimeout: 15000
@@ -18,5 +18,5 @@ export const NEGATIVE_PROMPT =
 
 export const SD_SERVER_URL = 'https://71d3b90f125d29c23f.gradio.live'; // NOTE: Without / at the end
 export const UNKNOWN = '?';
-export const TIMER_PROMPT_SECONDS = 10;
+export const TIMER_PROMPT_SECONDS = 5;
 export const TIMER_SCRIBBLE_SECONDS = 10;

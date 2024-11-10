@@ -10,6 +10,8 @@
 	import Counter from '../../../components/Counter.svelte';
 	import { EBannerText } from '$lib/enums';
 	import Banner from '../../../components/Banner.svelte';
+	import { fly, scale } from 'svelte/transition';
+	import { backOut } from 'svelte/easing';
 
 	const socket = useSocket('PROJECTOR');
 
@@ -23,7 +25,7 @@
 	let boolShowNextRound = $state(false);
 
 	let strPlayerName0 = $state('');
-	let strPlayerScore0 = $state<undefined | number>();
+	let numPlayerScore0 = $state<undefined | number>();
 	let strPlayerImage0 = $state('');
 	let boolIsVisible0 = $state(false);
 
@@ -39,48 +41,37 @@
 	let strMode = $state('');
 
 	const getWinner = () => {
-		if (+strPlayerScore0! > +numPlayerScore1!) {
+		if (+numPlayerScore0! > +numPlayerScore1!) {
 			return strPlayerName0;
-		} else if (+numPlayerScore1! > +strPlayerScore0!) {
+		} else if (+numPlayerScore1! > +numPlayerScore0!) {
 			return strPlayerName1;
 		}
 	};
 
 	onMount(() => {
-		socket.emit('p:requestEvent', 's:sendPromptBattle').emit('p:requestEvent', 's:sendMode');
+		if (!strMode) {
+			strMode = $page.url.searchParams.get('mode')!;
+		}
 
-		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			strPlayerName0 = playerName0;
-			strPlayerName1 = playerName1;
+		if (socket.connected) {
+			socket.emit('acp:getBattleData');
+		}
+
+		socket.on('s:getBattleData', (battle) => {
+			strDataPrompt = battle.challenge;
+			strPlayerName0 = battle['0'].name;
+			numPlayerScore0 = battle['0'].score;
+			strPlayerName1 = battle['1'].name;
+			numPlayerScore1 = battle['1'].score;
 		});
 
-		socket.on('s:sendMode', (_mode) => {
-			strMode = _mode;
-			$page.url.searchParams.set('mode', strMode);
-			goto(`?${$page.url.searchParams.toString()}`); // ...?mode=...
-		});
-		socket.on(
-			's:sendPromptBattle',
-			({
-				player0: name0,
-				player1: name1,
-				player0Score: score0,
-				player1Score: score1,
-				prompts,
-				currentRound,
-				maxRounds: _maxRounds
-			}) => {
-				strPlayerName0 = name0;
-				strPlayerName1 = name1;
-				strPlayerScore0 = score0;
-				numPlayerScore1 = score1;
-				strDataPrompt = prompts[currentRound - 1];
-				numMaxRounds = _maxRounds;
+		socket.on('s:sendImage/results', ({ id, dataURI }) => {
+			if (id == '0') {
+				strPlayerImage0 = 'data:image/png;base64,' + dataURI;
 			}
-		);
-		socket.on('s:sendImage/results', ({ player0Image, player1Image }) => {
-			if (player0Image !== undefined) strPlayerImage0 = 'data:image/png;base64,' + player0Image;
-			if (player1Image !== undefined) strPlayerImage1 = 'data:image/png;base64,' + player1Image;
+			if (id == '1') {
+				strPlayerImage1 = 'data:image/png;base64,' + dataURI;
+			}
 
 			if (strPlayerImage0 && strPlayerImage1) {
 				boolIsVotable = true;
@@ -93,6 +84,7 @@
 				}, 1500); // 3500
 			}
 		});
+
 		socket.on('s:sendImageChoice', (id) => {
 			switch (id) {
 				case '1': {
@@ -108,6 +100,7 @@
 				}
 			}
 		});
+
 		socket.on('s:prepareProjector', (message) => {
 			setTimeout(() => {
 				switch (message) {
@@ -126,11 +119,14 @@
 		});
 
 		return () => {
-			// TODO: Resetting values necessary or is it reliable most of the time?
 			numImageIndex = null;
 			strPlayerImage0 = '';
 			strPlayerImage1 = '';
-			socket.removeAllListeners();
+
+			socket.off('s:getBattleData');
+			socket.off('s:sendImage/results');
+			socket.off('s:sendImageChoice');
+			socket.off('s:prepareProjector');
 		};
 	});
 
@@ -141,7 +137,7 @@
 				setTimeout(() => {
 					boolShowOverlay = true;
 					setTimeout(() => {
-						strPlayerScore0 = +strPlayerScore0! + 1;
+						numPlayerScore0 = +numPlayerScore0! + 1;
 					}, 3000);
 				}, 3000);
 			}, 3000);
@@ -165,7 +161,7 @@
 	$effect(() => {
 		if (boolShowOverlay) {
 			setTimeout(() => {
-				let isDecided = +strPlayerScore0! + +numPlayerScore1! === numMaxRounds;
+				let isDecided = +numPlayerScore0! + +numPlayerScore1! === numMaxRounds;
 
 				if (isDecided) {
 					boolShowOverlayFinal = true;
@@ -202,11 +198,17 @@
 				class:opacity-0={numImageIndex === 1 && boolShowOverlay}
 			>
 				{#if !strPlayerImage0}
-					<div class="loader absolute">
+					<div class="loader absolute" out:scale={{ duration: 100, easing: backOut, opacity: 0 }}>
 						<Loader />
 					</div>
 				{:else}
-					<img src={strPlayerImage0} width="792" height="792" alt="792" />
+					<img
+						src={strPlayerImage0}
+						width="792"
+						height="792"
+						alt="792"
+						in:scale={{ duration: 300, easing: backOut, delay: 100, opacity: 0 }}
+					/>
 					{#if boolIsVisible0}
 						<div
 							class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -271,7 +273,7 @@
 					<p>current score:</p>
 					<p class="flex w-full justify-between">
 						<span class="inline-block flex-[33%] flex-grow"
-							>{strPlayerScore0 === undefined ? UNKNOWN : strPlayerScore0}</span
+							>{numPlayerScore0 === undefined ? UNKNOWN : numPlayerScore0}</span
 						>
 						<span class="inline-block flex-[33%] flex-grow">-</span>
 						<span class="inline-block flex-[33%] flex-grow"
@@ -351,7 +353,7 @@
 			<div id="player-score" class="overlay w-full self-start" class:score={boolIsRegistered}>
 				<p class="h-[60px] pt-[15px]">current score:</p>
 				<p class="flex w-full justify-between">
-					<span class="inline-block flex-[33%] flex-grow">{strPlayerScore0}</span>
+					<span class="inline-block flex-[33%] flex-grow">{numPlayerScore0}</span>
 					<span class="inline-block flex-[33%] flex-grow">-</span>
 					<span class="inline-block flex-[33%] flex-grow">{numPlayerScore1}</span>
 				</p>

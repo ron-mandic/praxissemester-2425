@@ -7,7 +7,7 @@
 	import Counter from '../../components/Counter.svelte';
 	import { BATCH_SIZE, NEGATIVE_PROMPT } from '$lib';
 	import { onMount, tick } from 'svelte';
-	import { scale } from 'svelte/transition';
+	import { fly, scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
 	import { Confetti } from 'svelte-confetti';
 	import useSocket from '$lib/socket';
@@ -17,7 +17,107 @@
 	import { promptValue } from '$lib/stores/prompt-value';
 	import { promptScribble } from '$lib/stores/prompt-scribble';
 
+	interface Parameters {
+		prompt: string;
+		negative_prompt: string;
+		styles: string[] | null;
+		seed: number;
+		subseed: number;
+		subseed_strength: number;
+		seed_resize_from_h: number;
+		seed_resize_from_w: number;
+		sampler_name: string | null;
+		scheduler: string | null;
+		batch_size: number;
+		n_iter: number;
+		steps: number;
+		cfg_scale: number;
+		width: number;
+		height: number;
+		restore_faces: boolean | null;
+		tiling: boolean | null;
+		do_not_save_samples: boolean;
+		do_not_save_grid: boolean;
+		eta: number | null;
+		denoising_strength: number | null;
+		s_min_uncond: number | null;
+		s_churn: number | null;
+		s_tmax: number | null;
+		s_tmin: number | null;
+		s_noise: number | null;
+		override_settings: Record<string, unknown> | null;
+		override_settings_restore_afterwards: boolean;
+		refiner_checkpoint: string | null;
+		refiner_switch_at: number | null;
+		disable_extra_networks: boolean;
+		firstpass_image: string | null;
+		comments: string | null;
+		enable_hr: boolean;
+		firstphase_width: number;
+		firstphase_height: number;
+		hr_scale: number;
+		hr_upscaler: string | null;
+		hr_second_pass_steps: number;
+		hr_resize_x: number;
+		hr_resize_y: number;
+		hr_checkpoint_name: string | null;
+		hr_sampler_name: string | null;
+		hr_scheduler: string | null;
+		hr_prompt: string;
+		hr_negative_prompt: string;
+		force_task_id: string | null;
+		sampler_index: string;
+		script_name: string | null;
+		script_args: unknown[];
+		send_images: boolean;
+		save_images: boolean;
+		alwayson_scripts: Record<string, unknown>;
+		infotext: string | null;
+	}
+
+	interface Info {
+		prompt: string;
+		all_prompts: string[];
+		negative_prompt: string;
+		all_negative_prompts: string[];
+		seed: number;
+		all_seeds: number[];
+		subseed: number;
+		all_subseeds: number[];
+		subseed_strength: number;
+		width: number;
+		height: number;
+		sampler_name: string;
+		cfg_scale: number;
+		steps: number;
+		batch_size: number;
+		restore_faces: boolean;
+		face_restoration_model: string | null;
+		sd_model_name: string;
+		sd_model_hash: string;
+		sd_vae_name: string | null;
+		sd_vae_hash: string | null;
+		seed_resize_from_w: number;
+		seed_resize_from_h: number;
+		denoising_strength: number | null;
+		extra_generation_params: Record<string, unknown>;
+		index_of_first_image: number;
+		infotexts: string[];
+		styles: string[];
+		job_timestamp: string;
+		clip_skip: number;
+		is_using_inpainting_conditioning: boolean;
+		version: string;
+	}
+
+	interface DataType {
+		images: string[];
+		parameters: Parameters;
+		info: string | Info;
+	}
+
 	const socket = useSocket();
+	let response = $state<Promise<DataType>>();
 
 	let numSelectedIndex = $state<null | number>(null);
 	let strMode = $state('');
@@ -30,9 +130,11 @@
 
 	onMount(() => {
 		if (!strMode) {
-			// TODO: Check the use of untrack for sychronizing state within the effect
 			strMode = $page.url.searchParams.get('mode')!;
 		}
+
+		// Just fetch it incompletely for now so we can resolve it later
+		response = fetchImages($promptValue, $promptScribble, BATCH_SIZE);
 
 		setTimeout(() => {
 			document.querySelectorAll('.marquee').forEach((marquee) => {
@@ -49,7 +151,11 @@
 		return i;
 	}
 
-	async function fetchImages(prompt: string, scribble: string, batchSize: number) {
+	async function fetchImages(
+		prompt: string,
+		scribble: string,
+		batchSize: number
+	): Promise<DataType> {
 		const payload = {
 			prompt: prompt,
 			negative_prompt: NEGATIVE_PROMPT,
@@ -118,59 +224,59 @@
 				}}
 			/>
 		{:else if boolHasWon === undefined && !boolHasAwarded && !boolIsRedirecting}
-			{#await fetchImages($promptValue, $promptScribble, BATCH_SIZE)}
+			{#await response as Promise<DataType>}
 				{#each new Array(BATCH_SIZE) as _, i}
 					<div class="image loader flex items-center justify-center bg-black">
 						<Loader --delay={i} />
 					</div>
 				{/each}
-			{:then { images }}
+			{:then data}
+				<!-- TODO: Remove unnecessary function -->
+				{@const { images } = (() => {
+					console.log(data);
+					return data;
+				})()}
 				{#if !boolHasSelected}
 					{@const args =
 						strMode === 'p'
 							? images.slice(0, images.length - 1)
 							: images.slice(0, images.length - 2)}
-					{#each args as image, i}
+					{#each args as dataURI, index}
 						<button
 							class="image flex items-center justify-center bg-black"
-							data-i={i}
+							data-i={index}
 							onclick={(e) => {
 								numSelectedIndex = +handleImageClick(e);
 								boolHasSelected = true;
 
 								// Order is highly important otherwise the requests get cut off
 								socket
-									.emit('c:sendImageInfo/results', {
-										PUBLIC_ID,
-										imageIndex: i
+									// This is the request for the admin
+									.emit('c:sendImage/pchoose', {
+										id: PUBLIC_ID,
+										index
 									})
+									// This is the request for the projector
 									.emit('c:sendImage/results', {
-										PUBLIC_ID,
-										image
+										id: PUBLIC_ID,
+										dataURI
 									});
 
-								setTimeout(async () => {
+								setTimeout(() => {
 									boolIsVisible = true;
-									await tick();
-
-									setTimeout(() => {
-										boolIsVisible = false;
-									}, 3500);
+									tick().then(() => {
+										setTimeout(() => {
+											boolIsVisible = false;
+										}, 3500);
+									});
 								}, 1500);
 							}}
 						>
 							{#if images.length}
 								<img
 									class="h-full w-full"
-									src={`data:image/png;base64,${image}`}
-									alt={`${prompt} (${i})`}
-									in:scale={{
-										duration: 500,
-										delay: 500,
-										opacity: 0.5,
-										start: 0.5,
-										easing: quintOut
-									}}
+									src={`data:image/png;base64,${dataURI}`}
+									alt={`(${index})`}
 								/>
 							{/if}
 						</button>

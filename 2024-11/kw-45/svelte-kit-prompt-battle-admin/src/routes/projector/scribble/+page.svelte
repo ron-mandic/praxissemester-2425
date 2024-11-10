@@ -21,49 +21,27 @@
 
 	let strCanvas0 = $state<undefined | string>();
 	let strCanvas1 = $state<undefined | string>();
-	let arrLines0 = $state<{ x1: number; y1: number; x2: number; y2: number }[] | undefined>();
-	let arrLines1 = $state<{ x1: number; y1: number; x2: number; y2: number }[] | undefined>();
+	let arrLines0 = $state<{ x1: number; y1: number; x2: number; y2: number }[]>([]);
+	let arrLines1 = $state<{ x1: number; y1: number; x2: number; y2: number }[]>([]);
 
 	onMount(() => {
-		socket.emit('p:requestEvent', 's:sendPromptBattle').emit('p:requestEvent', 's:sendMode');
+		if (!strMode) {
+			strMode = $page.url.searchParams.get('mode')!;
+		}
 
-		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			strPlayerName0 = playerName0;
-			strPlayerName1 = playerName1;
+		if (socket.connected) {
+			socket.emit('acp:getBattleData');
+		}
+
+		socket.on('s:getBattleData', (battle) => {
+			strDataPrompt = battle.challenge;
+			strPlayerName0 = battle['0'].name;
+			numPlayerScore0 = battle['0'].score;
+			strPlayerName1 = battle['1'].name;
+			numPlayerScore1 = battle['1'].score;
 		});
 
-		socket.on('s:sendMode', (mode) => {
-			strMode = mode;
-			$page.url.searchParams.set('mode', strMode);
-			goto(`?${$page.url.searchParams.toString()}`); // ...?mode=...
-		});
-		socket.on(
-			's:sendPromptBattle',
-			({
-				player0: name0,
-				player1: name1,
-				player0Score: score0,
-				player1Score: score1,
-				prompts,
-				currentRound
-			}) => {
-				strPlayerName0 = name0;
-				strPlayerName1 = name1;
-				numPlayerScore0 = score0;
-				numPlayerScore1 = score1;
-				strDataPrompt = prompts[currentRound - 1];
-			}
-		);
 		socket.on('s:sendCanvasData', ({ id, data }) => {
-			console.log(id, data);
-
-			if (id == '0' && !strCanvas0) {
-				strCanvas0 = id;
-			}
-			if (id == '1' && !strCanvas1) {
-				strCanvas1 = id;
-			}
-
 			if (id == '0') {
 				arrLines0 = data;
 			}
@@ -81,14 +59,15 @@
 		}, 0); // 2000
 
 		return () => {
-			strCanvas0 = undefined;
-			strCanvas1 = undefined;
-			arrLines0 = undefined;
-			arrLines1 = undefined;
+			arrLines0 = [];
+			arrLines1 = [];
 			$isRunning = false;
 			$isComplete = false;
 			resetTimer();
-			socket.disconnect();
+
+			socket.off('s:getBattleData');
+			socket.off('s:sendCanvasData');
+			socket.off('disconnect');
 		};
 	});
 
@@ -131,11 +110,7 @@
 		</div>
 		<div class="main relative" class:opacity-125={!boolHasStarted}>
 			<div class="col-left pointer-events-none flex items-center justify-center">
-				{#if !strCanvas0}
-					<canvas width="512" height="512"></canvas>
-				{:else}
-					<LiveCanvas id={strCanvas0} lines={arrLines0} />
-				{/if}
+				<LiveCanvas lines={arrLines0} />
 			</div>
 			<div class="col-mid flex flex-col items-center justify-between">
 				<div id="prompt-clock" class="flex flex-col justify-center">
@@ -161,11 +136,7 @@
 				</div>
 			</div>
 			<div class="col-right pointer-events-none flex items-center justify-center">
-				{#if !strCanvas1}
-					<canvas width="512" height="512"></canvas>
-				{:else}
-					<LiveCanvas id={strCanvas1} lines={arrLines1} />
-				{/if}
+				<LiveCanvas lines={arrLines1} />
 			</div>
 			<div class="footer">
 				<div class="absolute bottom-0 left-0 px-2">{strPlayerName0 || UNKNOWN}</div>
