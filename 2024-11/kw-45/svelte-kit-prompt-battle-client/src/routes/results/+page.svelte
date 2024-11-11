@@ -5,7 +5,7 @@
 	import Banner from '../../components/Banner.svelte';
 	// @ts-expect-error Module ... te-kit-prompt-battle-client/src/components/Counter.d.svelte.ts', but '--allowArbitraryExtensions' is not set.ts(6263)
 	import Counter from '../../components/Counter.svelte';
-	import { BATCH_SIZE, NEGATIVE_PROMPT, SD_SERVER_URL } from '$lib';
+	import { BATCH_SIZE, CONTROL_NET_MODEL, NEGATIVE_PROMPT, SD_SERVER_URL } from '$lib';
 	import { onMount, tick } from 'svelte';
 	import { fly, scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
@@ -215,12 +215,12 @@
 		if (strMode && strMode === 'ps' && scribble !== '') {
 			payload.alwayson_scripts = {
 				controlnet: {
-					enabled: true,
 					args: [
 						{
-							input_image: scribble,
-							module: 'none',
-							model: 'control_v11p_sd15_scribble [d4ba51ff]'
+							enabled: true,
+							image: scribble,
+							module: 'None',
+							model: CONTROL_NET_MODEL
 						}
 					]
 				}

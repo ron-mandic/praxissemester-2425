@@ -15,6 +15,7 @@ export const SOCKET_CLIENT_OPTIONS = {
 };
 
 export const MAX_INPUT_LENGTH = 1500;
+export const CONTROL_NET_MODEL = 'control_v11p_sd15_scribble [d4ba51ff]';
 
 export const BATCH_SIZE = 3;
 export const NEGATIVE_PROMPT =
