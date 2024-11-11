@@ -5,7 +5,7 @@
 	import Banner from '../../components/Banner.svelte';
 	// @ts-expect-error Module ... te-kit-prompt-battle-client/src/components/Counter.d.svelte.ts', but '--allowArbitraryExtensions' is not set.ts(6263)
 	import Counter from '../../components/Counter.svelte';
-	import { BATCH_SIZE, NEGATIVE_PROMPT } from '$lib';
+	import { BATCH_SIZE, NEGATIVE_PROMPT, SD_SERVER_URL } from '$lib';
 	import { onMount, tick } from 'svelte';
 	import { fly, scale } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
@@ -227,7 +227,7 @@
 			};
 		}
 
-		let url = 'https://71d3b90f125d29c23f.gradio.live/sdapi/v1/txt2img';
+		let url = SD_SERVER_URL + '/sdapi/v1/txt2img';
 
 		// Make fetch request (POST)
 
