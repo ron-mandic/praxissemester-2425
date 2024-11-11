@@ -16,21 +16,25 @@
 	let boolIsDisabled = $state(true);
 
 	onMount(() => {
-		socket.emit('a:requestEvent', 's:sendBattleData').emit('a:requestEvent', 's:prepareNextRound');
+		if (socket.connected) {
+			// Cannot load images via WS due to 431 (Request Header Fields Too Large)
+			socket.emit('acp:getBattleData');
+		}
 
-		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			strPlayerName0 = playerName0;
-			strPlayerName1 = playerName1;
+		socket.on('s:getBattleData', (battle) => {
+			strPlayerName0 = battle['0'].name;
+			numPlayerScore0 = battle['0'].score;
+			strPlayerName1 = battle['1'].name;
+			numPlayerScore1 = battle['1'].score;
 		});
-		socket.on('s:sendBattleData', ({ player0Score, player1Score }) => {
-			numPlayerScore0 = player0Score;
-			numPlayerScore1 = player1Score;
-		});
+
 		socket.on('s:prepareNextRound', (message) => {
 			strMessage = message;
 			console.log(strMessage);
 		});
-		socket.on('s:sendAdminReadiness', () => {
+
+		// see projector/results
+		socket.on('s:prepareAdmin', () => {
 			boolIsDisabled = false;
 		});
 
@@ -42,7 +46,6 @@
 	});
 
 	function handleButtonClick() {
-		alert('The next round will start in 4 seconds.');
 		setTimeout(() => {
 			// for the admin
 			switch (strMessage) {
@@ -60,9 +63,10 @@
 		}, 4000);
 
 		// for the client, redirected by the server
-		socket.emit('a:prepareNextRound', strMessage);
+		socket.emit('a:prepareClient', strMessage);
+
 		// for the projector, redirected by the server
-		socket.emit('a:prepareNextRoundProjector', strMessage);
+		socket.emit('a:prepareProjector', strMessage);
 	}
 </script>
 

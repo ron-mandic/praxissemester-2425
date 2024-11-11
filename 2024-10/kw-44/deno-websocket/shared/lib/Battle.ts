@@ -4,7 +4,8 @@ import { resetLobby } from "./Lobby.ts";
 const Battle = {
 	index: 0,
 	challenge: null as null | string,
-	maxRounds: MAX_ROUNDS,
+	maxRounds: MAX_ROUNDS <= 9 ? MAX_ROUNDS : 9,
+	hasEnded: false,
 	"0": {
 		name: null as null | string,
 		dataURI: null as null | string,
@@ -16,6 +17,22 @@ const Battle = {
 		score: 0,
 	},
 };
+
+export function resetBattle(all = false) {
+	if (all) {
+		Battle.hasEnded = false;
+
+		Battle["0"].name = null;
+		Battle["0"].score = 0;
+
+		Battle["1"].name = null;
+		Battle["1"].score = 0;
+	}
+
+	// If all is false, only reset the dataURI
+	Battle["0"].dataURI = null;
+	Battle["1"].dataURI = null;
+}
 
 export function updateBattle(
 	id: string,
@@ -40,23 +57,18 @@ export function updateBattle(
 
 	// The battle is still going on
 	if (!hasWon) {
-		// Reset dataURI for the next round
-		Battle["0"].dataURI = null;
-		Battle["1"].dataURI = null;
-	} else {
-		// Reset the Battle data
-		Battle["0"] = {
-			name: null,
-			dataURI: null,
-			score: 0,
-		};
-		Battle["1"] = {
-			name: null,
-			dataURI: null,
-			score: 0,
-		};
+		// Reset dataURI regardless of the winner
+		resetBattle();
+	}
 
-		// Reset the Lobby data
+	// The battle is decided
+	if (hasWon) {
+		Battle.hasEnded = true;
+
+		// Flush the Battle data (name, score)
+		resetBattle(true);
+
+		// Reset the Lobby data (name, ready)
 		resetLobby();
 	}
 }

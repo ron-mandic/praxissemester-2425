@@ -53,7 +53,7 @@ io.on("connection", (socket) => {
 		// Transmit the readiness of the player
 		if (Lobby[id].ready) io.emit("s:setPlayerReadiness", id);
 
-		// Prepare the battle names
+		// Prepare the names for the battle players
 		if (Lobby["0"].name) Battle["0"].name = Lobby["0"].name!;
 		if (Lobby["1"].name) Battle["1"].name = Lobby["1"].name!;
 

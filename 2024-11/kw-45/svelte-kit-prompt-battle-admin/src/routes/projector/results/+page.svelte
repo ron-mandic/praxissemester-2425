@@ -176,7 +176,7 @@
 	});
 
 	$effect(() => {
-		if (boolShowNextRound) socket.emit('p:sendAdminReadiness');
+		if (boolShowNextRound) socket.emit('p:prepareAdmin');
 	});
 </script>
 

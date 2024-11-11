@@ -145,10 +145,6 @@
 				// If no one has won, the  game just continues (Next round)
 				if (!hasWon) {
 					boolHaveIWon = -1;
-
-					setTimeout(() => {
-						boolIsRedirecting = true;
-					}, 4500);
 					return;
 				}
 
@@ -157,13 +153,9 @@
 					// First show if the current player has won
 					boolHaveIWon = Number(id === PUBLIC_ID) as 0 | 1;
 
-					// Then announce the next round
+					// Then announce the next round (but don't redirect yet)
 					setTimeout(() => {
 						hasBeenAwarded = true;
-						// After that show the countdown with the message
-						setTimeout(() => {
-							boolIsRedirecting = true;
-						}, 1500);
 					}, 3000);
 				}
 			}, 1000);

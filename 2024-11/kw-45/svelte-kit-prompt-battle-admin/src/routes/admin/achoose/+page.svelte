@@ -21,8 +21,6 @@
 	let boolHaveChosen = $state(false);
 
 	$effect(() => {
-		strMode = $page.url.searchParams.get('mode')!;
-
 		if (!strMode) {
 			strMode = $page.url.searchParams.get('mode')!;
 		}
