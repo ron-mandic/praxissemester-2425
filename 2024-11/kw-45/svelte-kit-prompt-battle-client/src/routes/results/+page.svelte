@@ -139,6 +139,8 @@
 		response = fetchImages($promptValue, $promptScribble, BATCH_SIZE);
 
 		socket.on('s:updateBattle', ({ id, hasWon }: { id: string; hasWon: boolean }) => {
+			strMessage = !hasWon ? 'round=current' : 'round=new';
+
 			setTimeout(() => {
 				// If no one has won, the  game just continues (Next round)
 				if (!hasWon) {

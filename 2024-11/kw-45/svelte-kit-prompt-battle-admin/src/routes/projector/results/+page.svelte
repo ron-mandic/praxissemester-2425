@@ -6,7 +6,7 @@
 	import useSocket from '$lib/socket';
 	import Loader from '../../../components/Loader.svelte';
 	import Autoscroll from '../../../components/Autoscroll.svelte';
-	import { UNKNOWN } from '$lib';
+	import { SOCKET_SERVER_URL, UNKNOWN } from '$lib';
 	import Counter from '../../../components/Counter.svelte';
 	import { EBannerText } from '$lib/enums';
 	import Banner from '../../../components/Banner.svelte';
@@ -33,13 +33,14 @@
 	let numPlayerScore1 = $state<undefined | number>();
 	let strPlayerImage1 = $state('');
 	let boolIsVisible1 = $state(false);
-	let isDecided = $state(false);
+	let boolIsDecided = $state(false);
+	let boolIsRedirecting = $state(false);
 
 	let numImageIndex = $state<null | 0 | 1>(null);
 
 	let strDataPrompt = $state('');
-	let numMaxRounds = $state<undefined | number>();
 	let strMode = $state('');
+	let strMessage = $state('');
 
 	const getWinner = () => {
 		if (+numPlayerScore0! > +numPlayerScore1!) {
@@ -68,12 +69,13 @@
 
 		socket.on('s:sendImage/results', ({ id, dataURI }) => {
 			if (id == '0') {
-				strPlayerImage0 = 'data:image/png;base64,' + dataURI;
+				strPlayerImage0 = dataURI ? 'data:image/png;base64,' + dataURI : UNKNOWN;
 			}
 			if (id == '1') {
-				strPlayerImage1 = 'data:image/png;base64,' + dataURI;
+				strPlayerImage1 = dataURI ? 'data:image/png;base64,' + dataURI : UNKNOWN;
 			}
 
+			// You will enver know if images can be loaded or not
 			if (strPlayerImage0 && strPlayerImage1) {
 				boolIsVotable = true;
 
@@ -106,11 +108,12 @@
 			numPlayerScore0 = player0.score;
 			numPlayerScore1 = player1.score;
 
-			isDecided = hasWon;
+			boolIsDecided = hasWon;
 		});
 
 		socket.on('s:prepareRound', (message: string) => {
-			console.log(message);
+			boolIsRedirecting = true;
+			strMessage = message;
 
 			setTimeout(() => {
 				switch (message) {
@@ -171,7 +174,7 @@
 	$effect(() => {
 		if (boolShowOverlay) {
 			setTimeout(() => {
-				if (isDecided) {
+				if (boolIsDecided) {
 					boolShowOverlayFinal = true;
 					setTimeout(() => {
 						boolShowNextRound = true;
@@ -213,7 +216,12 @@
 						<Loader />
 					</div>
 				{:else}
-					<img src={strPlayerImage0} width="792" height="792" alt="792" />
+					<img
+						src={strPlayerImage0 !== UNKNOWN ? strPlayerImage0 : SOCKET_SERVER_URL + '/image/0'}
+						width="792"
+						height="792"
+						alt="792"
+					/>
 					{#if boolIsVisible0}
 						<div
 							class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -297,7 +305,12 @@
 						<Loader --delay={0.5} />
 					</div>
 				{:else}
-					<img src={strPlayerImage1} width="792" height="792" alt="792" />
+					<img
+						src={strPlayerImage1 !== UNKNOWN ? strPlayerImage1 : SOCKET_SERVER_URL + '/image/1'}
+						width="792"
+						height="792"
+						alt="792"
+					/>
 					{#if boolIsVisible1}
 						<div
 							class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -401,8 +414,15 @@
 	</div>
 {/if}
 
-{#if boolShowNextRound}
+{#if boolShowNextRound && !boolIsRedirecting}
 	<Banner innerText={EBannerText.ROUND} --background-overlay="transparent" />
+{:else if boolShowNextRound && boolIsRedirecting}
+	<Counter
+		end={strMessage === 'round=current' ? 'Carry on!' : "Let's go!"}
+		onEnd={() => {
+			console.log('Redirected');
+		}}
+	/>
 {/if}
 
 <style lang="scss">
