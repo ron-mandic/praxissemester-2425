@@ -46,3 +46,5 @@ export const CHALLENGES = [
 	"Invent a new dish",
 	"Create a movie poster for a blockbuster",
 ];
+
+export const MAX_ROUNDS = 3;

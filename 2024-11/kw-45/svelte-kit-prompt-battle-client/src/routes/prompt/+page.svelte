@@ -55,7 +55,7 @@
 			// Tell the admin which route to take next
 			socket.emit('c:sendRoute/prompt', strMode);
 
-			switch (strMode) {
+			switch (boolHasStarted && strMode) {
 				case 'p': {
 					goto(`results?${$page.url.searchParams.toString()}`, { replaceState: true });
 					break;
@@ -77,9 +77,8 @@
 	<title>Prompt</title>
 </svelte:head>
 
-<!-- CHANGE: 15 -->
 <Counter
-	t0={3}
+	t0={15}
 	onEnd={() => {
 		// First hide the prompot overlay, then start the timer
 		boolHasStarted = true;

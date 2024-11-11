@@ -30,7 +30,7 @@
 			// Tell the admin to now switch to the results page
 			socket.emit('c:sendRoute/scribble');
 
-			goto(`results?${$page.url.searchParams.toString()}`);
+			goto(`results?${$page.url.searchParams.toString()}`, { replaceState: true });
 		}
 	});
 </script>

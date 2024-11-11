@@ -4,7 +4,7 @@
 	import { Socket, io } from 'socket.io-client';
 	import IconCheck from '../../../components/IconCheck.svelte';
 	import { onMount } from 'svelte';
-	import { UNKNOWN } from '$lib';
+	import { SD_SERVER_URL, SOCKET_SERVER_URL, UNKNOWN } from '$lib';
 	import useSocket from '$lib/socket';
 
 	const socket = useSocket('ADMIN');
@@ -15,73 +15,61 @@
 	let numPlayerScore1 = $state('');
 
 	let strMode = $state('');
-	let strSourceImage0 = $state<undefined | string>();
-	let strSourceImage1 = $state<undefined | string>();
+	let strDataURI0 = $state<undefined | string>();
+	let strDataURI1 = $state<undefined | string>();
 
 	let boolHaveChosen = $state(false);
 
 	$effect(() => {
 		strMode = $page.url.searchParams.get('mode')!;
 
-		socket.emit('a:requestEvent', 's:sendBattleData').emit('a:requestEvent', 's:sendImage/results');
+		if (!strMode) {
+			strMode = $page.url.searchParams.get('mode')!;
+		}
 
-		socket.on('s:setPlayerNames', ({ playerName0, playerName1 }) => {
-			strPlayerName0 = playerName0;
-			strPlayerName1 = playerName1;
-		});
-		socket.on('s:sendBattleData', ({ player0Score, player1Score, guuid }) => {
-			player0Score = player0Score;
-			player1Score = player1Score;
-		});
-		socket.on('s:sendImage/results', ({ player0Image, player1Image }) => {
-			strSourceImage0 = 'data:image/png;base64,' + player0Image;
-			strSourceImage1 = 'data:image/png;base64,' + player1Image;
+		if (socket.connected) {
+			// Cannot load images via WS due to 431 (Request Header Fields Too Large)
+			socket.emit('acp:getBattleData');
+		}
+
+		socket.on('s:getBattleData', (battle) => {
+			strPlayerName0 = battle['0'].name;
+			numPlayerScore0 = battle['0'].score;
+			strPlayerName1 = battle['1'].name;
+			numPlayerScore1 = battle['1'].score;
 		});
 
 		return () => {
-			strSourceImage0 = undefined;
-			strSourceImage1 = undefined;
+			strDataURI0 = undefined;
+			strDataURI1 = undefined;
 			boolHaveChosen = false;
-			socket?.removeAllListeners();
+
+			socket.off('s:getBattleData');
 		};
 	});
 
-	function handleButtonA(e: MouseEvent) {
+	function handleButton(e: MouseEvent) {
 		if (boolHaveChosen) return;
-
-		const target = e.currentTarget! as HTMLDivElement;
-		target.dataset!.status = 'yes';
 		boolHaveChosen = true;
 
-		socket.emit('a:sendBattleData/admin/achoose', {
-			player0Score: (+numPlayerScore0 + 1).toString(),
-			player1Score: numPlayerScore1
-		});
-		socket.emit('a:sendImageChoice', '1');
-		numPlayerScore0 = (+numPlayerScore0 + 1).toString();
-
-		setTimeout(() => {
-			goto(`/admin/next?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
-		}, 0); // 2000
-	}
-
-	function handleButtonB(e: MouseEvent) {
-		if (boolHaveChosen) return;
-
 		const target = e.currentTarget! as HTMLDivElement;
+		// Change the opacity of the image
 		target.dataset!.status = 'yes';
-		boolHaveChosen = true;
+		// Extract the id of the image
+		const id = target.dataset!.id!;
 
-		socket.emit('a:sendBattleData/admin/achoose', {
-			player0Score: numPlayerScore0,
-			player1Score: (+numPlayerScore1 + 1).toString()
-		});
-		socket.emit('a:sendImageChoice', '2');
-		numPlayerScore1 = (+numPlayerScore1 + 1).toString();
+		// Update the score (only locally)
+		if (id == '0') {
+			numPlayerScore0 += 1;
+		} else {
+			numPlayerScore1 += 1;
+		}
+
+		socket.emit('a:updateBattle', id);
 
 		setTimeout(() => {
-			goto(`/admin/next?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
-		}, 0); // 2000
+			goto(`/admin/next?${$page.url.searchParams.toString()}`, { replaceState: true }); // ...&guuid=g-...
+		}, 4500); // 2000
 	}
 </script>
 
@@ -102,8 +90,8 @@
 				<div class="image-container mt-8 flex h-[420px] w-full items-center justify-center">
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="image" data-status="no" onclick={handleButtonA}>
-						<img width="378" height="378" src={strSourceImage0} alt="" />
+					<div class="image" data-status="no" data-id="0" onclick={handleButton}>
+						<img width="378" height="378" src={SOCKET_SERVER_URL + '/image/0'} alt="" />
 					</div>
 				</div>
 			</div>
@@ -129,8 +117,8 @@
 				<div class="image-container mt-8 flex h-[420px] w-full items-center justify-center">
 					<!-- svelte-ignore a11y_click_events_have_key_events -->
 					<!-- svelte-ignore a11y_no_static_element_interactions -->
-					<div class="image" data-status="no" onclick={handleButtonB}>
-						<img width="378" height="378" src={strSourceImage1} alt="" />
+					<div class="image" data-status="no" data-id="1" onclick={handleButton}>
+						<img width="378" height="378" src={SOCKET_SERVER_URL + '/image/1'} alt="" />
 					</div>
 				</div>
 			</div>

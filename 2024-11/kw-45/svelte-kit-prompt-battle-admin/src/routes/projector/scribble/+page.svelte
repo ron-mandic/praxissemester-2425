@@ -74,7 +74,7 @@
 	$effect(() => {
 		if ($isComplete) {
 			setTimeout(async () => {
-				goto(`/projector/results?${$page.url.searchParams.toString()}`);
+				goto(`/projector/results?${$page.url.searchParams.toString()}`, { replaceState: true });
 			}, 0); // 2000
 		}
 	});

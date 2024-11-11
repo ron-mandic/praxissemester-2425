@@ -122,10 +122,12 @@
 	let numSelectedIndex = $state<null | number>(null);
 	let strMode = $state('');
 	let strMessage = $state('');
+
 	let boolHasSelected = $state(false);
 	let boolIsVisible = $state(false);
-	let boolHasAwarded = $state(false);
-	let boolHasWon = $state<undefined | -1 | 0 | 1>(undefined);
+
+	let boolHaveIWon = $state<undefined | -1 | 0 | 1>(undefined);
+	let hasBeenAwarded = $state(false);
 	let boolIsRedirecting = $state(false);
 
 	onMount(() => {
@@ -136,13 +138,46 @@
 		// Just fetch it incompletely for now so we can resolve it later
 		response = fetchImages($promptValue, $promptScribble, BATCH_SIZE);
 
+		socket.on('s:updateBattle', ({ id, hasWon }: { id: string; hasWon: boolean }) => {
+			strMessage = hasWon ? 'round=new' : 'round=current';
+
+			setTimeout(() => {
+				// If no one has won, the  game just continues (Next round)
+				if (!hasWon) {
+					boolHaveIWon = -1;
+
+					setTimeout(() => {
+						boolIsRedirecting = true;
+					}, 4500);
+					return;
+				}
+
+				// If someone has won, assess whether the current player has won
+				if (hasWon) {
+					// First show if the current player has won
+					boolHaveIWon = Number(id === PUBLIC_ID) as 0 | 1;
+
+					// Then announce the next round
+					setTimeout(() => {
+						hasBeenAwarded = true;
+						// After that show the countdown with the message
+						setTimeout(() => {
+							boolIsRedirecting = true;
+						}, 1500);
+					}, 3000);
+				}
+			}, 1000);
+		});
+
 		setTimeout(() => {
 			document.querySelectorAll('.marquee').forEach((marquee) => {
 				marquee.classList.add('fade');
 			});
 		}, 0);
 
-		return () => {};
+		return () => {
+			socket.off('s:updateBattle');
+		};
 	});
 
 	function handleImageClick(event: MouseEvent) {
@@ -167,7 +202,7 @@
 			alwayson_scripts: {}
 		};
 
-		if (strMode && strMode === 'ps' && $promptScribble) {
+		if (strMode && strMode === 'ps' && scribble !== '') {
 			payload.alwayson_scripts = {
 				controlnet: {
 					enabled: true,
@@ -203,7 +238,11 @@
 </svelte:head>
 
 <div id="results" class="relative">
-	<div id="prompt-results" class="relative flex items-center justify-center" class:boolHasSelected>
+	<div
+		id="prompt-results"
+		class="relative flex items-center justify-center"
+		class:selected={boolHasSelected}
+	>
 		{#if boolIsRedirecting}
 			<Counter
 				seconds={3}
@@ -211,11 +250,11 @@
 				onEnd={() => {
 					switch (strMessage) {
 						case 'round=current': {
-							goto(`/prompt?${$page.url.searchParams.toString()}`);
+							goto(`/prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
 							break;
 						}
 						case 'round=new': {
-							goto('/');
+							goto('/', { replaceState: true });
 							break;
 						}
 						default:
@@ -223,7 +262,7 @@
 					}
 				}}
 			/>
-		{:else if boolHasWon === undefined && !boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHaveIWon === undefined && !hasBeenAwarded && !boolIsRedirecting}
 			{#await response as Promise<DataType>}
 				{#each new Array(BATCH_SIZE) as _, i}
 					<div class="image loader flex items-center justify-center bg-black">
@@ -236,6 +275,7 @@
 					console.log(data);
 					return data;
 				})()}
+
 				{#if !boolHasSelected}
 					{@const args =
 						strMode === 'p'
@@ -298,7 +338,7 @@
 					{/if}
 					<div
 						class="image-large flex items-center justify-center bg-black"
-						style="translate: 0 3.675rem; transition: translate 0.5s ease-in-out;"
+						style="translate: -1 3.675rem; transition: translate 0.5s ease-in-out;"
 						in:scale={{ duration: 500, delay: 150, opacity: 0.5, start: 0.5, easing: quintOut }}
 					>
 						<img
@@ -308,15 +348,15 @@
 					</div>
 				{/if}
 			{/await}
-		{:else if boolHasWon === -1 && !boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHaveIWon === -1 && !hasBeenAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.ROUND} />
-		{:else if boolHasWon === 0 && !boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHaveIWon === 0 && !hasBeenAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.LOSS} />
-		{:else if boolHasWon === 1 && !boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHaveIWon === 1 && !hasBeenAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.WIN} />
-		{:else if boolHasWon === 0 && boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHaveIWon === 0 && hasBeenAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.ROUND} />
-		{:else if boolHasWon === 1 && boolHasAwarded && !boolIsRedirecting}
+		{:else if boolHaveIWon === 1 && hasBeenAwarded && !boolIsRedirecting}
 			<Banner innerText={EBannerText.ROUND} />
 		{/if}
 	</div>

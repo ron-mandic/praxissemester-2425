@@ -64,7 +64,7 @@
 
 		setTimeout(() => {
 			strLabel = 'Players are prompting';
-		}, 4500 /* CHANGE: 16500 */); // 15 seconds + animation duration
+		}, 16500); // 15 seconds + animation duration
 
 		return () => {
 			socket.off('s:getBattleData');

@@ -28,7 +28,7 @@
 		socket.on('s:setMode', (mode) => {
 			strMode = mode;
 			$page.url.searchParams.set('mode', strMode);
-			goto(`?${$page.url.searchParams.toString()}`);
+			goto(`?${$page.url.searchParams.toString()}`, { replaceState: true });
 		});
 
 		socket.on('s:start', () => {
@@ -50,7 +50,9 @@
 	// Listen for the start event to redirect to the prompt page
 	$effect(() => {
 		if (boolHasEntered && boolIsStarting && strMode) {
-			goto(`prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
+			setTimeout(() => {
+				goto(`prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
+			}, 2000);
 		}
 	});
 </script>

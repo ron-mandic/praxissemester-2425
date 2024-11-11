@@ -64,8 +64,8 @@
 	$effect(() => {
 		if (boolHasChosen0 && boolHasChosen1) {
 			setTimeout(() => {
-				goto(`/admin/achoose?${$page.url.searchParams.toString()}`); // ...&guuid=g-...
-			}, 0); // 1000
+				goto(`/admin/achoose?${$page.url.searchParams.toString()}`, { replaceState: true }); // ...&guuid=g-...
+			}, 2500); // 1000
 		}
 	});
 </script>

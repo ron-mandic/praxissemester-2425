@@ -87,11 +87,11 @@
 
 		socket.on('s:sendImageChoice', (id) => {
 			switch (id) {
-				case '1': {
+				case '0': {
 					numImageIndex = 0;
 					break;
 				}
-				case '2': {
+				case '1': {
 					numImageIndex = 1;
 					break;
 				}
@@ -105,11 +105,11 @@
 			setTimeout(() => {
 				switch (message) {
 					case 'round=current': {
-						goto(`/projector/prompt?${$page.url.searchParams.toString()}`);
+						goto(`/projector/prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
 						break;
 					}
 					case 'round=new': {
-						goto('/projector');
+						goto('/projector', { replaceState: true });
 						break;
 					}
 					default:
@@ -142,9 +142,7 @@
 				}, 3000);
 			}, 3000);
 		}
-	});
 
-	$effect(() => {
 		if (strPlayerImage1 && numImageIndex === 1 && !boolIsVisible1) {
 			setTimeout(() => {
 				boolIsVisible1 = true;
@@ -198,17 +196,11 @@
 				class:opacity-0={numImageIndex === 1 && boolShowOverlay}
 			>
 				{#if !strPlayerImage0}
-					<div class="loader absolute" out:scale={{ duration: 100, easing: backOut, opacity: 0 }}>
+					<div class="loader absolute">
 						<Loader />
 					</div>
 				{:else}
-					<img
-						src={strPlayerImage0}
-						width="792"
-						height="792"
-						alt="792"
-						in:scale={{ duration: 300, easing: backOut, delay: 100, opacity: 0 }}
-					/>
+					<img src={strPlayerImage0} width="792" height="792" alt="792" />
 					{#if boolIsVisible0}
 						<div
 							class="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"

@@ -47,11 +47,11 @@
 			// for the admin
 			switch (strMessage) {
 				case 'round=current': {
-					goto(`/admin?${$page.url.searchParams.toString()}`);
+					goto(`/admin?${$page.url.searchParams.toString()}`, { replaceState: true });
 					break;
 				}
 				case 'round=new': {
-					goto('/');
+					goto('/', { replaceState: true });
 					break;
 				}
 				default:

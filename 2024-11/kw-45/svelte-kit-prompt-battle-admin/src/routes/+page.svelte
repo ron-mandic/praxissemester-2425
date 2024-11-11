@@ -53,7 +53,7 @@
 		if (boolIsStarting && strMode) {
 			setTimeout(() => {
 				goto(`admin?${$page.url.searchParams.toString()}`, { replaceState: true });
-			}, 0);
+			}, 2000);
 		}
 	});
 
@@ -88,12 +88,11 @@
 	</div>
 
 	<div class="bottom flex flex-col items-center gap-[28px]">
-		<!-- CHANGE !boolIsPlayer0Ready || !boolIsPlayer1Ready -->
 		<button
 			class="link-button flex flex-col"
 			class:opacity-30={strMode && strMode === 'ps'}
 			data-mode="p"
-			disabled={!boolIsPlayer0Ready}
+			disabled={!boolIsPlayer0Ready || !boolIsPlayer1Ready}
 			onclick={handleClick}
 		>
 			<div class="mt-[8px] flex flex-col items-center">
@@ -101,12 +100,11 @@
 				<span class="text-addition">(Prompt only)</span>
 			</div>
 		</button>
-		<!-- CHANGE !boolIsPlayer0Ready || !boolIsPlayer1Ready -->
 		<button
 			class="link-button flex flex-col"
 			class:opacity-30={strMode && strMode === 'p'}
 			data-mode="ps"
-			disabled={!boolIsPlayer0Ready}
+			disabled={!boolIsPlayer0Ready || !boolIsPlayer1Ready}
 			onclick={handleClick}
 		>
 			<div class="mt-[8px] flex flex-col items-center">

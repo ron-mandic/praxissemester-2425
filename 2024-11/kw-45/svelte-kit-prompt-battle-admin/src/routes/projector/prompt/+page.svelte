@@ -78,11 +78,11 @@
 			setTimeout(async () => {
 				switch (strMode) {
 					case 'p': {
-						goto(`/projector/results?${$page.url.searchParams.toString()}`);
+						goto(`/projector/results?${$page.url.searchParams.toString()}`, { replaceState: true });
 						break;
 					}
 					case 'ps': {
-						goto(`/projector/scribble?${$page.url.searchParams.toString()}`);
+						goto(`/projector/scribble?${$page.url.searchParams.toString()}`, { replaceState: true });
 						break;
 					}
 				}
@@ -96,9 +96,8 @@
 </svelte:head>
 
 {#if boolHasStarted}
-	<!-- CHANGE: 15 -->
 	<Counter
-		t0={3}
+		t0={15}
 		onEnd={() => {
 			setTimeout(() => {
 				timer.start();
