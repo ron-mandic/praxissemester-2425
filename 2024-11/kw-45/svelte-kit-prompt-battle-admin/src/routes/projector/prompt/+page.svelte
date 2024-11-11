@@ -97,7 +97,7 @@
 
 {#if boolHasStarted}
 	<Counter
-		t0={15}
+		t0={3}
 		onEnd={() => {
 			setTimeout(() => {
 				timer.start();

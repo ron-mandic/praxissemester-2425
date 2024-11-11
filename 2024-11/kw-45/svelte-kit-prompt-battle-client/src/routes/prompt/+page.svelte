@@ -78,7 +78,7 @@
 </svelte:head>
 
 <Counter
-	t0={15}
+	t0={3}
 	onEnd={() => {
 		// First hide the prompot overlay, then start the timer
 		boolHasStarted = true;

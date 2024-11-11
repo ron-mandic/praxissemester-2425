@@ -33,6 +33,7 @@
 	let numPlayerScore1 = $state<undefined | number>();
 	let strPlayerImage1 = $state('');
 	let boolIsVisible1 = $state(false);
+	let isDecided = $state(false);
 
 	let numImageIndex = $state<null | 0 | 1>(null);
 
@@ -85,7 +86,8 @@
 			}
 		});
 
-		socket.on('s:sendImageChoice', (id) => {
+		socket.on('s:updateBattle', ({ id, hasWon, player0, player1 }) => {
+			// Get final image choice
 			switch (id) {
 				case '0': {
 					numImageIndex = 0;
@@ -99,9 +101,17 @@
 					break;
 				}
 			}
+
+			// Update player score
+			numPlayerScore0 = player0.score;
+			numPlayerScore1 = player1.score;
+
+			isDecided = hasWon;
 		});
 
-		socket.on('s:prepareProjector', (message) => {
+		socket.on('s:prepareRound', (message: string) => {
+			console.log(message);
+
 			setTimeout(() => {
 				switch (message) {
 					case 'round=current': {
@@ -123,10 +133,18 @@
 			strPlayerImage0 = '';
 			strPlayerImage1 = '';
 
+			boolIsVisible0 = false;
+			boolIsVisible1 = false;
+			boolAreChoosing = false;
+			boolIsVotable = false;
+			boolShowOverlay = false;
+			boolShowOverlayFinal = false;
+			boolShowNextRound = false;
+
 			socket.off('s:getBattleData');
 			socket.off('s:sendImage/results');
-			socket.off('s:sendImageChoice');
-			socket.off('s:prepareProjector');
+			socket.off('s:updateBattle');
+			socket.off('s:prepareRound');
 		};
 	});
 
@@ -136,9 +154,6 @@
 				boolIsVisible0 = true;
 				setTimeout(() => {
 					boolShowOverlay = true;
-					setTimeout(() => {
-						numPlayerScore0 = +numPlayerScore0! + 1;
-					}, 3000);
 				}, 3000);
 			}, 3000);
 		}
@@ -148,9 +163,6 @@
 				boolIsVisible1 = true;
 				setTimeout(() => {
 					boolShowOverlay = true;
-					setTimeout(() => {
-						numPlayerScore1 = +numPlayerScore1! + 1;
-					}, 3000);
 				}, 3000);
 			}, 3000);
 		}
@@ -159,8 +171,6 @@
 	$effect(() => {
 		if (boolShowOverlay) {
 			setTimeout(() => {
-				let isDecided = +numPlayerScore0! + +numPlayerScore1! === numMaxRounds;
-
 				if (isDecided) {
 					boolShowOverlayFinal = true;
 					setTimeout(() => {
@@ -176,7 +186,10 @@
 	});
 
 	$effect(() => {
-		if (boolShowNextRound) socket.emit('p:prepareAdmin');
+		if (boolShowNextRound) {
+			// If the animation is done, enable the admin to prepare the next round
+			socket.emit('p:enableAdmin');
+		}
 	});
 </script>
 

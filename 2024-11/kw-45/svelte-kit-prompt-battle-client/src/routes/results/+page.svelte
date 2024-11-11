@@ -139,26 +139,41 @@
 		response = fetchImages($promptValue, $promptScribble, BATCH_SIZE);
 
 		socket.on('s:updateBattle', ({ id, hasWon }: { id: string; hasWon: boolean }) => {
-			strMessage = hasWon ? 'round=new' : 'round=current';
-
 			setTimeout(() => {
 				// If no one has won, the  game just continues (Next round)
 				if (!hasWon) {
 					boolHaveIWon = -1;
-					return;
 				}
-
 				// If someone has won, assess whether the current player has won
-				if (hasWon) {
+				else {
 					// First show if the current player has won
 					boolHaveIWon = Number(id === PUBLIC_ID) as 0 | 1;
 
 					// Then announce the next round (but don't redirect yet)
 					setTimeout(() => {
 						hasBeenAwarded = true;
-					}, 3000);
+					}, 5000);
 				}
 			}, 1000);
+		});
+
+		socket.on('s:prepareRound', (message: string) => {
+			boolIsRedirecting = true;
+
+			setTimeout(() => {
+				switch (message) {
+					case 'round=current': {
+						goto(`/prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
+						break;
+					}
+					case 'round=new': {
+						goto('/', { replaceState: true });
+						break;
+					}
+					default:
+						break;
+				}
+			}, 4000);
 		});
 
 		setTimeout(() => {
@@ -169,6 +184,7 @@
 
 		return () => {
 			socket.off('s:updateBattle');
+			socket.off('s:prepareRound');
 		};
 	});
 
@@ -223,6 +239,8 @@
 
 		return response.json();
 	}
+
+	$inspect({ boolHaveIWon, hasBeenAwarded, boolIsRedirecting });
 </script>
 
 <svelte:head>
@@ -237,7 +255,6 @@
 	>
 		{#if boolIsRedirecting}
 			<Counter
-				seconds={3}
 				end={strMessage === 'round=current' ? 'Carry on!' : "Let's go!"}
 				onEnd={() => {
 					switch (strMessage) {

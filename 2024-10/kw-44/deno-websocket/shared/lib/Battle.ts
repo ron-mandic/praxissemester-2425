@@ -1,5 +1,4 @@
 import { CHALLENGES, MAX_ROUNDS } from "./index.ts";
-import { resetLobby } from "./Lobby.ts";
 
 const Battle = {
 	index: 0,
@@ -54,23 +53,6 @@ export function updateBattle(
 			: winner.score >= Math.round(Battle.maxRounds / 2);
 
 	cb(id, hasWon, Battle);
-
-	// The battle is still going on
-	if (!hasWon) {
-		// Reset dataURI regardless of the winner
-		resetBattle();
-	}
-
-	// The battle is decided
-	if (hasWon) {
-		Battle.hasEnded = true;
-
-		// Flush the Battle data (name, score)
-		resetBattle(true);
-
-		// Reset the Lobby data (name, ready)
-		resetLobby();
-	}
 }
 
 export default Battle;

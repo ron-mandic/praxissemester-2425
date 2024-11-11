@@ -2,8 +2,8 @@ import { createServer } from "node:http";
 import { Server, ServerOptions } from "npm:socket.io";
 import { CHALLENGES, SOCKET_SERVER_OPTIONS } from "./index.ts";
 import app from "./app.ts";
-import Lobby from "./Lobby.ts";
-import Battle, { updateBattle } from "./Battle.ts";
+import Lobby, { resetLobby } from "./Lobby.ts";
+import Battle, { resetBattle, updateBattle } from "./Battle.ts";
 
 // Source: https://socket.io/get-started/chat#integrating-socketio
 const server = createServer(app);
@@ -128,6 +128,9 @@ io.on("connection", (socket) => {
 		updateBattle(
 			id,
 			(id: string, hasWon: boolean, battle: typeof Battle) => {
+				// Mark the end of the battle
+				Battle.hasEnded = hasWon;
+
 				// Direct message to the results pages of the other clients and to itself (admin)
 				io.emit("s:updateBattle", {
 					id,
@@ -141,8 +144,43 @@ io.on("connection", (socket) => {
 						score: battle["1"].score,
 					},
 				});
+
+				setTimeout(() => {
+					// The battle is still going on
+					if (!hasWon) {
+						// Reset dataURI regardless of the winner
+						resetBattle();
+					}
+
+					// The battle is decided
+					if (hasWon) {
+						// Flush the Battle data (name, score)
+						resetBattle(true);
+
+						// Reset the Lobby data (name, ready)
+						resetLobby();
+					}
+				}, 5000);
 			}
 		);
+	});
+
+	socket.on("p:enableAdmin", () => {
+		io.emit("s:enableAdmin");
+	});
+
+	// This is the very last endpoint before the admin clicks on the "Start" button
+	socket.on("a:prepareRound", (message: string) => {
+		io.emit("s:prepareRound", message);
+		console.log(`%c${message}`, "color: green;");
+
+		// Now you just need to reset the ended flag
+		if (message === "round=new") {
+			Battle.hasEnded = false;
+		} else {
+			// Delete the dataURI
+			resetBattle();
+		}
 	});
 
 	socket.on("disconnect", (reason: string) => {

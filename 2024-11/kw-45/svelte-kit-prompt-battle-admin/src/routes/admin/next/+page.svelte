@@ -13,7 +13,7 @@
 	let numPlayerScore1 = $state('');
 
 	let strMessage = $state<undefined | string>();
-	let boolIsDisabled = $state(true);
+	let boolHasBeenEnabled = $state(false);
 
 	onMount(() => {
 		if (socket.connected) {
@@ -21,31 +21,35 @@
 			socket.emit('acp:getBattleData');
 		}
 
+		// Get last chunk of battle data before major reset
+		// HINT: The server has a timeout during which the admin can safely request the data
 		socket.on('s:getBattleData', (battle) => {
 			strPlayerName0 = battle['0'].name;
 			numPlayerScore0 = battle['0'].score;
 			strPlayerName1 = battle['1'].name;
 			numPlayerScore1 = battle['1'].score;
+
+			strMessage = battle.hasEnded ? 'round=new' : 'round=current';
 		});
 
-		socket.on('s:prepareNextRound', (message) => {
-			strMessage = message;
-			console.log(strMessage);
-		});
-
-		// see projector/results
-		socket.on('s:prepareAdmin', () => {
-			boolIsDisabled = false;
+		socket.on('s:enableAdmin', () => {
+			boolHasBeenEnabled = true;
 		});
 
 		return () => {
 			strMessage = undefined;
-			boolIsDisabled = true;
-			socket?.removeAllListeners();
+			boolHasBeenEnabled = false;
+
+			socket.off('s:getBattleData');
+			socket.off('s:enableAdmin');
 		};
 	});
 
 	function handleButtonClick() {
+		// for the client, redirected by the server
+		socket.emit('a:prepareRound', strMessage);
+		console.log(strMessage);
+
 		setTimeout(() => {
 			// for the admin
 			switch (strMessage) {
@@ -61,13 +65,9 @@
 					break;
 			}
 		}, 4000);
-
-		// for the client, redirected by the server
-		socket.emit('a:prepareClient', strMessage);
-
-		// for the projector, redirected by the server
-		socket.emit('a:prepareProjector', strMessage);
 	}
+
+	$inspect(strMessage);
 </script>
 
 <svelte:head>
@@ -103,8 +103,8 @@
 		<div class="mt-[181px] flex h-auto w-full justify-center">
 			<button
 				class="link-button flex flex-col"
-				disabled={boolIsDisabled}
 				onclick={handleButtonClick}
+				disabled={!boolHasBeenEnabled}
 			>
 				<div class="mt-[8px] flex flex-col items-center">
 					<span class="text">start</span>
