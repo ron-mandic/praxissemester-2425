@@ -4,18 +4,10 @@
 	import Loader from '../../components/Loader.svelte';
 	import Banner from '../../components/Banner.svelte';
 	import Counter from '../../components/Counter.svelte';
-	import {
-		BATCH_SIZE,
-		CONTROL_NET_MODEL,
-		COUNTER_ROUND_CURRENT,
-		COUNTER_ROUND_NEW,
-		NEGATIVE_PROMPT,
-		SD_SERVER_URL
-	} from '$lib';
+	import { BATCH_SIZE, COUNTER_ROUND_CURRENT, COUNTER_ROUND_NEW } from '$lib';
 	import { onMount, tick } from 'svelte';
-	import { fly, scale } from 'svelte/transition';
-	import { backOut, quintOut } from 'svelte/easing';
-	import { Confetti } from 'svelte-confetti';
+	import { scale } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 	import useSocket from '$lib/socket';
 	import { PUBLIC_ID } from '$env/static/public';
 	import OutputFooter from '../../features/output-footer/components/OutputFooter.svelte';
@@ -99,6 +91,15 @@
 			}, 4000);
 		});
 
+		// s:RESET
+		socket.on('s:RESET', () => {
+			goto('/?reload=true', { replaceState: true });
+		});
+
+		socket.on('disconnect', () => {
+			console.log('Disconnected');
+		});
+
 		setTimeout(() => {
 			document.querySelectorAll('.marquee').forEach((marquee) => {
 				marquee.classList.add('fade');
@@ -108,6 +109,8 @@
 		return () => {
 			socket.off('s:updateBattle');
 			socket.off('s:prepareRound');
+			socket.off('s:RESET');
+			socket.off('disconnect');
 		};
 	});
 

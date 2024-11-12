@@ -131,6 +131,15 @@
 			}, 4000);
 		});
 
+		// s:RESET
+		socket.on('s:RESET', () => {
+			goto('/projector/?reload=true', { replaceState: true });
+		});
+
+		socket.on('disconnect', () => {
+			console.log('Disconnected');
+		});
+
 		return () => {
 			numImageIndex = null;
 			strPlayerImage0 = '';
@@ -148,6 +157,8 @@
 			socket.off('s:sendImage/results');
 			socket.off('s:updateBattle');
 			socket.off('s:prepareRound');
+			socket.off('s:RESET');
+			socket.off('disconnect');
 		};
 	});
 

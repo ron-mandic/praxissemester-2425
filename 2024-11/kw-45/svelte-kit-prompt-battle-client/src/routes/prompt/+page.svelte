@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
-	import { PUBLIC_ID } from '$env/static/public';
 	import { promptValue } from '$lib/stores/prompt-value';
 	import useSocket from '$lib/socket';
 	import { timer, isRunning, isComplete, resetTimer } from '$lib/stores/timer-prompt';
@@ -33,6 +32,11 @@
 			strDataPrompt = battle.challenge;
 		});
 
+		// s:RESET
+		socket.on('s:RESET', () => {
+			goto('/?reload=true', { replaceState: true });
+		});
+
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
@@ -43,6 +47,7 @@
 			resetTimer();
 
 			socket.off('s:getBattleData');
+			socket.off('s:RESET');
 			socket.off('disconnect');
 		};
 	});

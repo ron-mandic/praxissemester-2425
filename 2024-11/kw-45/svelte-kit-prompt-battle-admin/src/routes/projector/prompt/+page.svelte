@@ -7,7 +7,6 @@
 	import { UNKNOWN } from '$lib';
 	import { time, timer, isComplete, isRunning, resetTimer } from '$lib/stores/timer-prompt';
 	import Counter from '../../../components/Counter.svelte';
-	import type { Socket } from 'socket.io-client';
 
 	const socket = useSocket('PROJECTOR');
 
@@ -54,6 +53,11 @@
 			}
 		});
 
+		// s:RESET
+		socket.on('s:RESET', () => {
+			goto('/projector/?reload=true', { replaceState: true });
+		});
+
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
@@ -69,6 +73,7 @@
 
 			socket.off('s:getBattleData');
 			socket.off('s:sendPrompt');
+			socket.off('s:RESET');
 			socket.off('disconnect');
 		};
 	});
@@ -82,7 +87,9 @@
 						break;
 					}
 					case 'ps': {
-						goto(`/projector/scribble?${$page.url.searchParams.toString()}`, { replaceState: true });
+						goto(`/projector/scribble?${$page.url.searchParams.toString()}`, {
+							replaceState: true
+						});
 						break;
 					}
 				}

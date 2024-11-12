@@ -179,11 +179,14 @@ io.on("connection", (socket) => {
 
 	socket.on("a:RESET", () => {
 		// Changes not covered by resetBattle
-		Battle.index = 0;
+		// Battle.index = 0; Changes to index will not be reflected - this is the example
 		Battle.challenge = null;
 
 		resetBattle(true);
 		resetLobby(); // uuid and lastSeen will be regulated by c:joinLobby or c:updateLobby
+
+		console.log(Lobby);
+		console.log(Battle);
 
 		io.emit("s:RESET");
 	});

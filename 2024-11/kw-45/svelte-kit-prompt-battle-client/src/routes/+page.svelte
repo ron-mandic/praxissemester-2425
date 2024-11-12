@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { PUBLIC_ID } from '$env/static/public';
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { page } from '$app/stores';
 	import useSocket from '$lib/socket';
 	import InputTerminal from '../features/input-terminal/components/InputTerminal.svelte';
-	import { playerName } from '$lib/stores/player-name';
 	import type { Socket } from 'socket.io-client';
 	import { onMount } from 'svelte';
 
@@ -16,6 +15,21 @@
 	let strMode = $state('');
 
 	onMount(() => {
+		// RESET event
+		if ($page.url.searchParams.get('reload') !== null) {
+			const cleanUrl = new URL($page.url);
+			cleanUrl.search = '';
+
+			// Invoke a clean URL without the reload query
+			replaceState(cleanUrl, $page.state);
+
+			setTimeout(() => {
+				(window || globalThis).location.reload();
+			}, 1000);
+
+			return;
+		}
+
 		socket.on('connect', () => {
 			socket.emit('c:joinLobby', PUBLIC_ID);
 

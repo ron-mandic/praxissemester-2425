@@ -4,7 +4,6 @@
 	import type { Socket } from 'socket.io-client';
 	import OutputFooter from '../../output-footer/components/OutputFooter.svelte';
 	import { PUBLIC_ID } from '$env/static/public';
-	import { onMount } from 'svelte';
 
 	let loop: number;
 

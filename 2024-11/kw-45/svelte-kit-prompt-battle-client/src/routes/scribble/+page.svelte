@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { PUBLIC_ID } from '$env/static/public';
 	import useSocket from '$lib/socket';
 	import { timer, isComplete, isRunning, resetTimer } from '$lib/stores/timer-scribble';
 	import { onMount } from 'svelte';
@@ -11,6 +10,11 @@
 	const socket = useSocket();
 
 	onMount(() => {
+		// s:RESET
+		socket.on('s:RESET', () => {
+			goto('/?reload=true', { replaceState: true });
+		});
+
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
@@ -20,6 +24,7 @@
 			$isComplete = false;
 			resetTimer();
 
+			socket.off('s:RESET');
 			socket.off('disconnect');
 		};
 	});

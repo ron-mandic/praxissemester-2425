@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { PUBLIC_TYPE_ADMIN } from '$env/static/public';
 	import useSocket from '$lib/socket';
+	import { onMount } from 'svelte';
 
 	const socket = useSocket('ADMIN');
 
@@ -13,7 +14,7 @@
 	let strMode = $state<undefined | string>(undefined);
 	let boolIsStarting = $state(false);
 
-	$effect(() => {
+	onMount(() => {
 		// RESET event
 		if ($page.url.searchParams.get('reload') !== null) {
 			const cleanUrl = new URL($page.url);

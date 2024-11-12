@@ -16,11 +16,8 @@
 	let numPlayerScore0 = $state();
 	let strPlayerName1 = $state('');
 	let numPlayerScore1 = $state();
-
 	let strMode = $state('');
-
-	let strCanvas0 = $state<undefined | string>();
-	let strCanvas1 = $state<undefined | string>();
+	
 	let arrLines0 = $state<{ x1: number; y1: number; x2: number; y2: number }[]>([]);
 	let arrLines1 = $state<{ x1: number; y1: number; x2: number; y2: number }[]>([]);
 
@@ -50,6 +47,11 @@
 			}
 		});
 
+		// s:RESET
+		socket.on('s:RESET', () => {
+			goto('/projector/?reload=true', { replaceState: true });
+		});
+
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
@@ -67,6 +69,7 @@
 
 			socket.off('s:getBattleData');
 			socket.off('s:sendCanvasData');
+			socket.off('s:RESET');
 			socket.off('disconnect');
 		};
 	});

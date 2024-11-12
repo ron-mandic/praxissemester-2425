@@ -1,9 +1,8 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { page } from '$app/stores';
 	import useSocket from '$lib/socket';
-	import type { Socket } from 'socket.io-client';
-	import { onDestroy, onMount } from 'svelte';
+	import { onMount } from 'svelte';
 
 	const socket = useSocket('PROJECTOR');
 
@@ -15,6 +14,21 @@
 	let boolIsStarting = $state(false);
 
 	onMount(() => {
+		// RESET event
+		if ($page.url.searchParams.get('reload') !== null) {
+			const cleanUrl = new URL($page.url);
+			cleanUrl.search = '';
+
+			// Invoke a clean URL without the reload query
+			replaceState(cleanUrl, $page.state);
+
+			setTimeout(() => {
+				(window || globalThis).location.reload();
+			}, 1000);
+
+			return;
+		}
+
 		socket.on('connect', () => {
 			socket.emit('c:joinLobby', 'PROJECTOR');
 
@@ -42,6 +56,11 @@
 			boolIsStarting = true;
 		});
 
+		// s:RESET
+		socket.on('s:RESET', () => {
+			goto('/projector/?reload=true', { replaceState: true });
+		});
+
 		socket.on('disconnect', () => {
 			console.log('Disconnected');
 		});
@@ -52,6 +71,7 @@
 			socket.off('s:setPlayerReadiness');
 			socket.off('s:setMode');
 			socket.off('s:start');
+			socket.off('s:RESET');
 			socket.off('disconnect');
 		};
 	});

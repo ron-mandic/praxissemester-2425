@@ -1,10 +1,9 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { Socket, io } from 'socket.io-client';
 	import IconCheck from '../../../components/IconCheck.svelte';
 	import { onMount } from 'svelte';
-	import { SD_SERVER_URL, SOCKET_SERVER_URL, UNKNOWN } from '$lib';
+	import { SOCKET_SERVER_URL, UNKNOWN } from '$lib';
 	import useSocket from '$lib/socket';
 
 	const socket = useSocket('ADMIN');
@@ -20,7 +19,7 @@
 
 	let boolHaveChosen = $state(false);
 
-	$effect(() => {
+	onMount(() => {
 		if (!strMode) {
 			strMode = $page.url.searchParams.get('mode')!;
 		}

@@ -48,8 +48,10 @@ export function updateBattle(
 	Battle.index++;
 	Battle.challenge = CHALLENGES[Battle.index];
 
+	console.log(`%cEvent: New challenge\n${Battle.challenge}`, "color: gray;");
+
 	// Now track which Batch the game is in
-	// TODO: Make it pretier and more readable
+	// TODO: Make it prettier and more readable
 	if (
 		(Battle.index - BATTLE_CHALLENG_OFFSET_EXAMPLE) % Battle.maxRounds ===
 		0
