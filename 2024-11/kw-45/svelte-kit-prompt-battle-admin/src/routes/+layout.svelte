@@ -4,6 +4,7 @@
 	import '@fontsource/jetbrains-mono/400.css';
 	import '@fontsource/jetbrains-mono/700.css';
 	import '@fontsource/jetbrains-mono/800.css';
+	import { quartIn, quartOut } from 'svelte/easing';
 	import { fly } from 'svelte/transition';
 
 	let { children, data } = $props();
@@ -19,8 +20,8 @@
 	<div
 		id="app"
 		class="flex h-screen w-full items-center justify-center"
-		in:fly={{ x: window.innerWidth / 4, duration: 300, delay: 300 }}
-		out:fly={{ x: -window.innerWidth / 4, duration: 300 }}
+		in:fly={{ x: window.innerWidth / 4, duration: 300, delay: 300, easing: quartOut }}
+		out:fly={{ x: -window.innerWidth / 4, duration: 300, easing: quartIn }}
 	>
 		<main class="flex h-full w-full items-center justify-center">
 			{@render children()}

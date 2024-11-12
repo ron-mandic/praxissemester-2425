@@ -1,5 +1,7 @@
 import { CHALLENGES, MAX_ROUNDS } from "./index.ts";
 
+const BATTLE_CHALLENG_OFFSET_EXAMPLE = 1;
+
 const Battle = {
 	index: 0,
 	challenge: null as null | string,
@@ -45,6 +47,22 @@ export function updateBattle(
 	// Update the stats regardless of the winner
 	Battle.index++;
 	Battle.challenge = CHALLENGES[Battle.index];
+
+	// Now track which Batch the game is in
+	// TODO: Make it pretier and more readable
+	if (
+		(Battle.index - BATTLE_CHALLENG_OFFSET_EXAMPLE) % Battle.maxRounds ===
+		0
+	) {
+		console.log(
+			`%cEvent: Batch #${
+				!(Battle.index - BATTLE_CHALLENG_OFFSET_EXAMPLE)
+					? "1"
+					: (Battle.index - BATTLE_CHALLENG_OFFSET_EXAMPLE) / 3 + 1
+			}`,
+			"color: blue;"
+		);
+	}
 
 	// Check if the game has ended (prematurely)
 	const hasWon =

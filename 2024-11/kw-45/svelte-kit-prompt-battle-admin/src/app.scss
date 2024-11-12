@@ -44,3 +44,7 @@ button,
 a {
 	cursor: pointer !important;
 }
+
+button:disabled {
+	opacity: 0.5;
+}

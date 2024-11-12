@@ -4,7 +4,14 @@
 	import Loader from '../../components/Loader.svelte';
 	import Banner from '../../components/Banner.svelte';
 	import Counter from '../../components/Counter.svelte';
-	import { BATCH_SIZE, CONTROL_NET_MODEL, NEGATIVE_PROMPT, SD_SERVER_URL } from '$lib';
+	import {
+		BATCH_SIZE,
+		CONTROL_NET_MODEL,
+		COUNTER_ROUND_CURRENT,
+		COUNTER_ROUND_NEW,
+		NEGATIVE_PROMPT,
+		SD_SERVER_URL
+	} from '$lib';
 	import { onMount, tick } from 'svelte';
 	import { fly, scale } from 'svelte/transition';
 	import { backOut, quintOut } from 'svelte/easing';
@@ -16,7 +23,7 @@
 	import { promptValue } from '$lib/stores/prompt-value';
 	import { promptScribble } from '$lib/stores/prompt-scribble';
 	import type { DataType } from '$lib/interfaces';
-	import { fetchImages } from '$lib/functions';
+	import { fetchImages, getRandomFrom } from '$lib/functions';
 	import { spring } from 'svelte/motion';
 
 	const socket = useSocket();
@@ -147,7 +154,9 @@
 
 		{#if boolIsRedirecting}
 			<Counter
-				end={strMessage === 'round=current' ? 'Carry on!' : "Let's go!"}
+				end={strMessage === 'round=current'
+					? (getRandomFrom(COUNTER_ROUND_CURRENT) as string)
+					: (getRandomFrom(COUNTER_ROUND_NEW) as string)}
 				onEnd={() => {
 					switch (strMessage) {
 						case 'round=current': {

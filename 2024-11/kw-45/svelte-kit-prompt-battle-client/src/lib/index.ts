@@ -27,3 +27,27 @@ export const SD_ENDPOINT_TXT2IMG = '/sdapi/v1/txt2img';
 export const UNKNOWN = '?';
 export const TIMER_PROMPT_SECONDS = 60;
 export const TIMER_SCRIBBLE_SECONDS = 30;
+
+export const COUNTER_ROUND_CURRENT = [
+	'Carry on!',
+	'Almost there!',
+	'Keep it up!',
+	'Keep it going!',
+	'You got this!',
+	'Stay strong!',
+	'Push through!',
+	'Keep pushing!',
+	"Don't quit!",
+	'Stay focused!'
+];
+
+export const COUNTER_ROUND_NEW = [
+	'Here we go!',
+	'Round start!',
+	'Time to shine!',
+	"Let's do this!",
+	'Showtime!',
+	'Get ready!',
+	'Bring it on!',
+	'The game is on!'
+];

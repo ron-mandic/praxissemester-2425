@@ -6,16 +6,14 @@
 	import useSocket from '$lib/socket';
 	import Loader from '../../../components/Loader.svelte';
 	import Autoscroll from '../../../components/Autoscroll.svelte';
-	import { SOCKET_SERVER_URL, UNKNOWN } from '$lib';
+	import { COUNTER_ROUND_CURRENT, COUNTER_ROUND_NEW, SOCKET_SERVER_URL, UNKNOWN } from '$lib';
 	import Counter from '../../../components/Counter.svelte';
 	import { EBannerText } from '$lib/enums';
 	import Banner from '../../../components/Banner.svelte';
-	import { fly, scale } from 'svelte/transition';
-	import { backOut } from 'svelte/easing';
+	import { getRandomFrom } from '$lib/functions';
 
 	const socket = useSocket('PROJECTOR');
 
-	const MAX_ROUNDS = 3;
 	let boolAreChoosing = $state(false);
 	let boolIsVotable = $state(false);
 	let boolIsRegistered = true;
@@ -23,6 +21,8 @@
 	let boolShowOverlay = $state(false);
 	let boolShowOverlayFinal = $state(false);
 	let boolShowNextRound = $state(false);
+	let boolIsDecided = $state(false);
+	let boolIsRedirecting = $state(false);
 
 	let strPlayerName0 = $state('');
 	let numPlayerScore0 = $state<undefined | number>();
@@ -33,8 +33,6 @@
 	let numPlayerScore1 = $state<undefined | number>();
 	let strPlayerImage1 = $state('');
 	let boolIsVisible1 = $state(false);
-	let boolIsDecided = $state(false);
-	let boolIsRedirecting = $state(false);
 
 	let numImageIndex = $state<null | 0 | 1>(null);
 
@@ -420,7 +418,9 @@
 	<Banner innerText={EBannerText.ROUND} --background-overlay="transparent" />
 {:else if boolShowNextRound && boolIsRedirecting}
 	<Counter
-		end={strMessage === 'round=current' ? 'Carry on!' : "Let's go!"}
+		end={strMessage === 'round=current'
+			? (getRandomFrom(COUNTER_ROUND_CURRENT) as string)
+			: (getRandomFrom(COUNTER_ROUND_NEW) as string)}
 		onEnd={() => {
 			console.log('Redirected');
 		}}

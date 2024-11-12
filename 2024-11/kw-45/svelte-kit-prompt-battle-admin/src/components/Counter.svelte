@@ -31,13 +31,13 @@
 	<div
 		id="counter"
 		class:starting
-		class="flex justify-center items-center flex-col w-[774px] text-center font-bold"
+		class="flex w-[774px] flex-col items-center justify-center text-center font-bold"
 		out:fly={{ delay: 375, duration: 300, x: 0, y: -100, opacity: 0, easing: quintOut }}
 	>
 		<slot name="noblink" />
 		<div class="w-full" class:starting={count <= 0 || starting}>
 			<slot name="blink">
-				<span>{count <= 0 ? end : count}</span>
+				<span class="whitespace-nowrap">{count <= 0 ? end : count}</span>
 			</slot>
 		</div>
 	</div>
@@ -61,7 +61,10 @@
 		user-select: none;
 		z-index: 998;
 
-		width: var(--width, 774px);
+		min-width: 774px;
+		width: auto;
+		max-width: 1888px;
+		padding: 0 2rem;
 		height: var(--height, auto);
 		transition: opacity 0.5s ease-in-out;
 

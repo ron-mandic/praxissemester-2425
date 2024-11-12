@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
+	import { goto, replaceState } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { PUBLIC_TYPE_ADMIN } from '$env/static/public';
 	import useSocket from '$lib/socket';
@@ -14,6 +14,21 @@
 	let boolIsStarting = $state(false);
 
 	$effect(() => {
+		// RESET event
+		if ($page.url.searchParams.get('reload') !== null) {
+			const cleanUrl = new URL($page.url);
+			cleanUrl.search = '';
+
+			// Invoke a clean URL without the reload query
+			replaceState(cleanUrl, $page.state);
+
+			setTimeout(() => {
+				(window || globalThis).location.reload();
+			}, 1000);
+
+			return;
+		}
+
 		socket.on('connect', () => {
 			socket.emit('c:joinLobby', PUBLIC_TYPE_ADMIN);
 			$page.url.searchParams.set('uuid', socket.id!);

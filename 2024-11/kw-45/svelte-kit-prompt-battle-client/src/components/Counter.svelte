@@ -61,7 +61,10 @@
 		user-select: none;
 		z-index: 998;
 
-		width: var(--width, 774px);
+		min-width: 774px;
+		width: auto;
+		max-width: 1888px;
+		padding: 0 2rem;
 		height: var(--height, auto);
 		transition: opacity 0.5s ease-in-out;
 

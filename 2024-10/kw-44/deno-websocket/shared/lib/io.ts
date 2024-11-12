@@ -177,6 +177,17 @@ io.on("connection", (socket) => {
 		}
 	});
 
+	socket.on("a:RESET", () => {
+		// Changes not covered by resetBattle
+		Battle.index = 0;
+		Battle.challenge = null;
+
+		resetBattle(true);
+		resetLobby(); // uuid and lastSeen will be regulated by c:joinLobby or c:updateLobby
+
+		io.emit("s:RESET");
+	});
+
 	socket.on("disconnect", (reason: string) => {
 		console.log(
 			`%cUser ${socket.id} disconnected: ${reason}`,

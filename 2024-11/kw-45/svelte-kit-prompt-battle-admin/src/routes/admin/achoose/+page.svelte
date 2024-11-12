@@ -69,6 +69,11 @@
 			goto(`/admin/next?${$page.url.searchParams.toString()}`, { replaceState: true }); // ...&guuid=g-...
 		}, 4500); // 2000
 	}
+
+	function handleButtonReset() {
+		socket.emit('a:RESET');
+		goto('/?reload=true', { replaceState: true });
+	}
 </script>
 
 <svelte:head>
@@ -138,8 +143,8 @@
 	{/if}
 
 	<div class="footer absolute bottom-0 flex w-full items-center justify-between">
-		<button id="btn-restart">restart round</button>
-		<button id="btn-quit">force quit</button>
+		<button id="btn-restart" disabled>restart round</button>
+		<button id="btn-reset" onclick={handleButtonReset}>reset battle</button>
 	</div>
 </div>
 
@@ -259,7 +264,7 @@
 			border: 1.083px solid #ffe500;
 		}
 
-		#btn-quit {
+		#btn-reset {
 			color: #f00;
 			border: 1.083px solid #f00;
 		}
