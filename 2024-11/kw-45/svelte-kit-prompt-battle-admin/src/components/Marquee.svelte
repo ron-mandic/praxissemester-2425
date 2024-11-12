@@ -11,13 +11,31 @@
 <div class={`marquee pos-${position}`}>
 	<ul class={`marquee__content dir-${direction}`}>
 		{#each arrMarquee as item}
-			<li>{@html item}</li>
+			<li class="relative">
+				<span class="opacity-0">{@html item}</span>
+				<img
+					class="absolute left-1/2 {position === 'bottom'
+						? 'top-[30%]'
+						: 'top-[70%]'} h-auto w-full -translate-x-1/2 -translate-y-1/2"
+					src="/png/PromptBattle.png"
+					alt="PromptBattle"
+				/>
+			</li>
 		{/each}
 	</ul>
 
 	<ul class={`marquee__content dir-${direction}`} aria-hidden="true">
 		{#each arrMarquee as item}
-			<li>{@html item}</li>
+			<li class="relative">
+				<span class="opacity-0">{@html item}</span>
+				<img
+					class="absolute left-1/2 {position === 'bottom'
+						? 'top-[30%]'
+						: 'top-[70%]'} h-auto w-full -translate-x-1/2 -translate-y-1/2"
+					src="/png/PromptBattle.png"
+					alt="PromptBattle"
+				/>
+			</li>
 		{/each}
 	</ul>
 </div>
@@ -28,7 +46,6 @@
 
 		position: fixed;
 		display: flex;
-		overflow: hidden;
 		user-select: none;
 		max-width: 1920px;
 		gap: var(--gap);
@@ -81,7 +98,6 @@
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background-image: linear-gradient(to right, #000, transparent, #000);
 		}
 	}
 

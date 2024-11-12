@@ -60,8 +60,13 @@
 	}
 </script>
 
-<h1 class="w-full text-center font-thin uppercase">
-	<span class="font-bold">Prompt</span>Battle
+<h1 class="relative w-full text-center font-thin uppercase">
+	<span class="font-bold opacity-0">Prompt</span><span class="opacity-0">Battle</span>
+	<img
+		class="absolute left-1/2 top-1/3 h-auto w-[1331px] -translate-x-1/2 -translate-y-1/2"
+		src="/png/PromptBattle.png"
+		alt="PromptBattle"
+	/>
 </h1>
 <section id="terminal" class="p-2">
 	<p>~/Player {+strPlayerNumber + 1} &gt; ./prompt-battle.sh</p>

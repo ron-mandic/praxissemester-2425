@@ -393,7 +393,12 @@
 		--background-overlay="transparent"
 	>
 		<p class="counter-p-1 uppercase" style="font-size: 100px; color: white;" slot="noblink">
-			Winner:
+			<span class="opacity-0">Winner:</span>
+			<img
+				class="absolute left-1/2 top-[20%] h-auto w-[407px] -translate-x-1/2 -translate-y-1/2"
+				src="/png/Winner.png"
+				alt="Winner"
+			/>
 		</p>
 		<p class="counter-p-2 overflow-hidden text-ellipsis whitespace-nowrap uppercase" slot="blink">
 			<span class="w-full px-12">{getWinner()}</span>

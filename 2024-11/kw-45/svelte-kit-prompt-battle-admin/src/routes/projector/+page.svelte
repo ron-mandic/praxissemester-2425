@@ -71,8 +71,13 @@
 
 <div class="m-auto flex h-full w-full flex-col justify-between pb-[42px] pt-[61px]">
 	<div class="top flex h-screen flex-col justify-center">
-		<h1 class="w-full text-center font-thin uppercase">
-			<span class="font-bold">Prompt</span>Battle
+		<h1 class="relative w-full text-center font-thin uppercase">
+			<span class="font-bold opacity-0">Prompt</span><span class="opacity-0">Battle</span>
+			<img
+				class="absolute left-1/2 top-1/3 h-auto w-[1331px] -translate-x-1/2 -translate-y-1/2"
+				src="/png/PromptBattle.png"
+				alt="PromptBattle"
+			/>
 		</h1>
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0" class="player py-[25px]">

@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { quintOut } from 'svelte/easing';
+	import { EBannerText } from '$lib/enums';
 
 	export let t0 = 3;
 	export let tN = -1;
@@ -25,6 +26,16 @@
 			}
 		}, 1000);
 	});
+
+	function getOpacity(end: string) {
+		switch (end) {
+			case 'Prompt!':
+			case 'Scribble!':
+				return 'opacity-0';
+			default:
+				return 'opacity-100';
+		}
+	}
 </script>
 
 {#if covering}
@@ -37,7 +48,28 @@
 		<slot name="noblink" />
 		<div class="w-full" class:starting={count <= 0 || starting}>
 			<slot name="blink">
-				<span>{count <= 0 ? end : count}</span>
+				<span>
+					{#if count <= 0}
+						<span class="{getOpacity(end)} whitespace-nowrap">{end}</span>
+					{:else}
+						<span>{count}</span>
+					{/if}
+				</span>
+				{#if count <= 0}
+					{#if end === 'Prompt!'}
+						<img
+							class="absolute left-1/2 top-1/2 h-auto w-[482px] -translate-x-1/2 -translate-y-1/2"
+							src="/png/Prompt.png"
+							alt="Prompt"
+						/>
+					{:else if end === 'Scribble!'}
+						<img
+							class="absolute left-1/2 top-1/2 h-auto w-[570px] -translate-x-1/2 -translate-y-1/2"
+							src="/png/Scribble.png"
+							alt="Scribble"
+						/>
+					{/if}
+				{/if}
 			</slot>
 		</div>
 	</div>
