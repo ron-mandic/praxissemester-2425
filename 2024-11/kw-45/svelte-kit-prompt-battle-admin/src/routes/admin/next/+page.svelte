@@ -58,7 +58,9 @@
 					break;
 				}
 				case 'round=new': {
-					goto('/', { replaceState: true });
+					// Reset the mode so the admin can choose the next mode manually again
+					$page.url.searchParams.delete('mode');
+					goto(`/?${$page.url.searchParams.toString()}`, { replaceState: true });
 					break;
 				}
 				default:
@@ -79,7 +81,9 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative">{strPlayerName0 || UNKNOWN}</span>
+					<span class="relative overflow-hidden text-ellipsis whitespace-nowrap px-4"
+						>{strPlayerName0 || UNKNOWN}</span
+					>
 				</div>
 			</div>
 			<div id="player-score" class="mt-4 w-full self-start">
@@ -96,7 +100,9 @@
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative">{strPlayerName1 || UNKNOWN}</span>
+					<span class="relative overflow-hidden text-ellipsis whitespace-nowrap px-4"
+						>{strPlayerName1 || UNKNOWN}</span
+					>
 				</div>
 			</div>
 		</div>

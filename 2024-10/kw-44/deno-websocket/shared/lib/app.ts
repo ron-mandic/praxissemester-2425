@@ -1,4 +1,4 @@
-// @deno-types="npm:@types/express@5.0.0"
+// @deno-types="npm:@types/express@4.17.17"
 import express, { Request, Response } from "npm:express@4.21.1";
 import { Buffer } from "node:buffer";
 import Battle from "./Battle.ts";
@@ -8,7 +8,7 @@ const app = express();
 
 // Web server
 app.get("/", (_req: Request, res: Response) => {
-	res.send("Hello, World!");
+	res.send("Hello World!");
 });
 
 app.get("/image/:id", (req: Request, res: Response) => {
@@ -35,6 +35,9 @@ app.get("/image/:id", (req: Request, res: Response) => {
 		"Content-Length": imgBuffer.length,
 	});
 	res.end(imgBuffer);
+
+	// Zerstöre das Objekt dann wieder
+	Battle[id].dataURI = null;
 });
 
 export default app;

@@ -20,14 +20,11 @@
 
 	let refTextarea: HTMLTextAreaElement;
 
-	onMount(() => {
+	// As soon as the timer starts, focus on the textarea for better usability
+	$effect(() => {
 		if ($isRunning) {
 			refTextarea?.focus();
 		}
-
-		return () => {
-			clearInterval(loop);
-		};
 	});
 
 	function handleBlur() {
@@ -40,14 +37,16 @@
 </script>
 
 <div id="prompt" class="relative" data-prompt={strDataPrompt || UNKNOWN}>
+	<!-- svelte-ignore a11y_autofocus -->
 	<textarea
 		id="prompt-area"
 		name="prompt"
-		class="relative h-full w-full p-6 focus:outline-none"
+		class="relative z-50 h-full w-full p-6 focus:outline-none"
 		oninput={handleInput}
 		disabled={!$isRunning || $isComplete}
 		maxlength={MAX_INPUT_LENGTH}
 		onblur={handleBlur}
+		autofocus={true}
 		bind:value={strPromptValue}
 		bind:this={refTextarea}
 	></textarea>

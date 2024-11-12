@@ -122,7 +122,9 @@
 						break;
 					}
 					case 'round=new': {
-						goto('/projector', { replaceState: true });
+						// Reset the mode so the admin can choose the next mode manually again
+						$page.url.searchParams.delete('mode');
+						goto(`/projector?${$page.url.searchParams.toString()}`, { replaceState: true });
 						break;
 					}
 					default:

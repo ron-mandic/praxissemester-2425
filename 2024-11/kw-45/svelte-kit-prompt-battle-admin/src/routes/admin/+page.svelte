@@ -83,7 +83,9 @@
 	<div class="top flex flex-col items-start">
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0" class="player py-[25px]">
-				<span class="relative px-4">{strPlayerName0}</span>
+				<span class="relative overflow-hidden text-ellipsis whitespace-nowrap px-4"
+					>{strPlayerName0}</span
+				>
 			</div>
 			<div id="player-score" class="w-full">
 				<p>current score:</p>
@@ -98,7 +100,9 @@
 				</p>
 			</div>
 			<div id="player-1" class="player py-[25px]">
-				<span class="relative px-4">{strPlayerName1}</span>
+				<span class="relative overflow-hidden text-ellipsis whitespace-nowrap px-4"
+					>{strPlayerName1}</span
+				>
 			</div>
 		</div>
 	</div>

@@ -3,12 +3,11 @@
 	import { page } from '$app/stores';
 	import Loader from '../../components/Loader.svelte';
 	import Banner from '../../components/Banner.svelte';
-	// @ts-expect-error Module ... te-kit-prompt-battle-client/src/components/Counter.d.svelte.ts', but '--allowArbitraryExtensions' is not set.ts(6263)
 	import Counter from '../../components/Counter.svelte';
 	import { BATCH_SIZE, CONTROL_NET_MODEL, NEGATIVE_PROMPT, SD_SERVER_URL } from '$lib';
 	import { onMount, tick } from 'svelte';
 	import { fly, scale } from 'svelte/transition';
-	import { quintOut } from 'svelte/easing';
+	import { backOut, quintOut } from 'svelte/easing';
 	import { Confetti } from 'svelte-confetti';
 	import useSocket from '$lib/socket';
 	import { PUBLIC_ID } from '$env/static/public';
@@ -16,105 +15,9 @@
 	import { EBannerText } from '$lib/enums';
 	import { promptValue } from '$lib/stores/prompt-value';
 	import { promptScribble } from '$lib/stores/prompt-scribble';
-
-	interface Parameters {
-		prompt: string;
-		negative_prompt: string;
-		styles: string[] | null;
-		seed: number;
-		subseed: number;
-		subseed_strength: number;
-		seed_resize_from_h: number;
-		seed_resize_from_w: number;
-		sampler_name: string | null;
-		scheduler: string | null;
-		batch_size: number;
-		n_iter: number;
-		steps: number;
-		cfg_scale: number;
-		width: number;
-		height: number;
-		restore_faces: boolean | null;
-		tiling: boolean | null;
-		do_not_save_samples: boolean;
-		do_not_save_grid: boolean;
-		eta: number | null;
-		denoising_strength: number | null;
-		s_min_uncond: number | null;
-		s_churn: number | null;
-		s_tmax: number | null;
-		s_tmin: number | null;
-		s_noise: number | null;
-		override_settings: Record<string, unknown> | null;
-		override_settings_restore_afterwards: boolean;
-		refiner_checkpoint: string | null;
-		refiner_switch_at: number | null;
-		disable_extra_networks: boolean;
-		firstpass_image: string | null;
-		comments: string | null;
-		enable_hr: boolean;
-		firstphase_width: number;
-		firstphase_height: number;
-		hr_scale: number;
-		hr_upscaler: string | null;
-		hr_second_pass_steps: number;
-		hr_resize_x: number;
-		hr_resize_y: number;
-		hr_checkpoint_name: string | null;
-		hr_sampler_name: string | null;
-		hr_scheduler: string | null;
-		hr_prompt: string;
-		hr_negative_prompt: string;
-		force_task_id: string | null;
-		sampler_index: string;
-		script_name: string | null;
-		script_args: unknown[];
-		send_images: boolean;
-		save_images: boolean;
-		alwayson_scripts: Record<string, unknown>;
-		infotext: string | null;
-	}
-
-	interface Info {
-		prompt: string;
-		all_prompts: string[];
-		negative_prompt: string;
-		all_negative_prompts: string[];
-		seed: number;
-		all_seeds: number[];
-		subseed: number;
-		all_subseeds: number[];
-		subseed_strength: number;
-		width: number;
-		height: number;
-		sampler_name: string;
-		cfg_scale: number;
-		steps: number;
-		batch_size: number;
-		restore_faces: boolean;
-		face_restoration_model: string | null;
-		sd_model_name: string;
-		sd_model_hash: string;
-		sd_vae_name: string | null;
-		sd_vae_hash: string | null;
-		seed_resize_from_w: number;
-		seed_resize_from_h: number;
-		denoising_strength: number | null;
-		extra_generation_params: Record<string, unknown>;
-		index_of_first_image: number;
-		infotexts: string[];
-		styles: string[];
-		job_timestamp: string;
-		clip_skip: number;
-		is_using_inpainting_conditioning: boolean;
-		version: string;
-	}
-
-	interface DataType {
-		images: string[];
-		parameters: Parameters;
-		info: string | Info;
-	}
+	import type { DataType } from '$lib/interfaces';
+	import { fetchImages } from '$lib/functions';
+	import { spring } from 'svelte/motion';
 
 	const socket = useSocket();
 	let response = $state<Promise<DataType>>();
@@ -130,13 +33,22 @@
 	let hasBeenAwarded = $state(false);
 	let boolIsRedirecting = $state(false);
 
+	let boolHasZooomedIn = $state(false);
+	const objImageScribble0 = { y: 0, width: 124, height: 124 };
+	const objImageScribbleN = { y: -256, width: 544, height: 544 };
+	const storeImageScribble = spring(objImageScribble0, {
+		stiffness: 0.1,
+		damping: 0.675,
+		precision: 0.1
+	});
+
 	onMount(() => {
 		if (!strMode) {
 			strMode = $page.url.searchParams.get('mode')!;
 		}
 
 		// Just fetch it incompletely for now so we can resolve it later
-		response = fetchImages($promptValue, $promptScribble, BATCH_SIZE);
+		response = fetchImages($promptValue, $promptScribble, strMode, BATCH_SIZE);
 
 		socket.on('s:updateBattle', ({ id, hasWon }: { id: string; hasWon: boolean }) => {
 			strMessage = !hasWon ? 'round=current' : 'round=new';
@@ -165,11 +77,13 @@
 			setTimeout(() => {
 				switch (message) {
 					case 'round=current': {
-						goto(`/prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
+						// goto(`/prompt?${$page.url.searchParams.toString()}`, { replaceState: true });
 						break;
 					}
 					case 'round=new': {
-						goto('/', { replaceState: true });
+						// Reset the mode so the admin can choose the next mode manually again
+						$page.url.searchParams.delete('mode');
+						// goto(`/?${$page.url.searchParams.toString()}`, { replaceState: true });
 						break;
 					}
 					default:
@@ -190,59 +104,24 @@
 		};
 	});
 
+	function getImages(images: string[]) {
+		if (images.length <= 3) {
+			return images;
+		}
+
+		return images.slice(0, 3);
+	}
+
+	function toggleZoom(e: MouseEvent) {
+		boolHasZooomedIn = !boolHasZooomedIn;
+		storeImageScribble.set(boolHasZooomedIn ? objImageScribbleN : objImageScribble0);
+	}
+
 	function handleImageClick(event: MouseEvent) {
 		const refElement = event.currentTarget! as HTMLButtonElement;
 		const i = refElement.dataset.i!;
 		return i;
 	}
-
-	async function fetchImages(
-		prompt: string,
-		scribble: string,
-		batchSize: number
-	): Promise<DataType> {
-		const payload = {
-			prompt: prompt,
-			negative_prompt: NEGATIVE_PROMPT,
-			steps: 20,
-			cfg_scale: 6,
-			width: 512,
-			height: 512,
-			batch_size: batchSize + 1,
-			alwayson_scripts: {}
-		};
-
-		if (strMode && strMode === 'ps' && scribble !== '') {
-			payload.alwayson_scripts = {
-				controlnet: {
-					args: [
-						{
-							enabled: true,
-							image: scribble,
-							module: 'None',
-							model: CONTROL_NET_MODEL
-						}
-					]
-				}
-			};
-		}
-
-		let url = SD_SERVER_URL + '/sdapi/v1/txt2img';
-
-		// Make fetch request (POST)
-
-		const response = await fetch(url, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(payload)
-		});
-
-		return response.json();
-	}
-
-	$inspect({ boolHaveIWon, hasBeenAwarded, boolIsRedirecting });
 </script>
 
 <svelte:head>
@@ -255,6 +134,17 @@
 		class="relative flex items-center justify-center"
 		class:selected={boolHasSelected}
 	>
+		{#if $promptScribble && !boolHasSelected}
+			<button
+				id="scribble"
+				onclick={toggleZoom}
+				class:zoomed={boolHasZooomedIn}
+				style="transform: translate(-50%, {$storeImageScribble.y}px); width: {$storeImageScribble.width}px; height: {$storeImageScribble.height}px;"
+			>
+				<img src={$promptScribble} alt="Scribble" />
+			</button>
+		{/if}
+
 		{#if boolIsRedirecting}
 			<Counter
 				end={strMessage === 'round=current' ? 'Carry on!' : "Let's go!"}
@@ -276,7 +166,10 @@
 		{:else if boolHaveIWon === undefined && !hasBeenAwarded && !boolIsRedirecting}
 			{#await response as Promise<DataType>}
 				{#each new Array(BATCH_SIZE) as _, i}
-					<div class="image loader flex items-center justify-center bg-black">
+					<div
+						class="image loader flex items-center justify-center bg-black"
+						class:faded={boolHasZooomedIn}
+					>
 						<Loader --delay={i} />
 					</div>
 				{/each}
@@ -288,14 +181,12 @@
 				})()}
 
 				{#if !boolHasSelected}
-					{@const args =
-						strMode === 'p'
-							? images.slice(0, images.length - 1)
-							: images.slice(0, images.length - 2)}
+					{@const args = getImages(images)}
 					{#each args as dataURI, index}
 						<button
 							class="image flex items-center justify-center bg-black"
 							data-i={index}
+							class:faded={boolHasZooomedIn}
 							onclick={(e) => {
 								numSelectedIndex = +handleImageClick(e);
 								boolHasSelected = true;
@@ -333,7 +224,7 @@
 						</button>
 					{/each}
 				{:else}
-					{#if boolIsVisible}
+					<!-- {#if boolIsVisible}
 						<div id="confetti" class="pointer-events-none">
 							<Confetti
 								x={[-5, 5]}
@@ -346,7 +237,7 @@
 								colorArray={['#ED3A4F', '#0091B5', '#FDB913']}
 							/>
 						</div>
-					{/if}
+					{/if} -->
 					<div
 						class="image-large flex items-center justify-center bg-black"
 						style="translate: -1 3.675rem; transition: translate 0.5s ease-in-out;"
@@ -396,6 +287,28 @@
 		}
 	}
 
+	#scribble {
+		all: unset;
+		position: absolute;
+		bottom: -122px;
+		left: 50%;
+		flex-shrink: 0;
+		border: 2px solid #6eebea;
+		background: #1c1f22;
+		z-index: 999;
+
+		&:not(.zoomed):hover img {
+			animation: pulse 0.75s cubic-bezier(0.47, 0, 0.745, 0.715);
+		}
+
+		img {
+			width: 100%;
+			aspect-ratio: 1 / 1;
+			object-fit: contain;
+			transform-origin: center center;
+		}
+	}
+
 	#confetti {
 		width: 100px;
 		height: 100px;
@@ -421,18 +334,34 @@
 	}
 
 	.image {
-		width: 528px;
-		height: 528px;
 		padding: 0.5rem;
 		aspect-ratio: 1 / 1;
 		flex-shrink: 0;
 		border: 2px solid #6eebea;
-		transition: translate 0.5s ease-in-out;
+		transition:
+			translate 0.5s ease-in-out,
+			opacity 0.75s cubic-bezier(0.77, 0, 0.175, 1);
 
-		&:not(.loader):hover {
-			cursor: pointer;
-			translate: 0 -10px;
-			transition: translate 0.25s cubic-bezier(0.86, 0, 0.07, 1);
+		&:not(.loader) {
+			width: 528px;
+			height: 528px;
+
+			&:hover {
+				translate: 0 -0.5rem;
+				transition: translate 0.25s cubic-bezier(0.785, 0.135, 0.15, 0.86);
+			}
+		}
+
+		&.loader {
+			width: 548px;
+			height: 548px;
+		}
+
+		&.faded,
+		&.loader.faded {
+			opacity: 0.125;
+			filter: blur(12px);
+			transition: opacity 0.5s cubic-bezier(0.77, 0, 0.175, 1);
 		}
 	}
 

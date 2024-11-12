@@ -79,7 +79,9 @@
 		<div class="players flex w-full items-center gap-[75px] px-[181px]">
 			<div id="player-0">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">{strPlayerName0 || UNKNOWN}</span>
+					<span class="relative overflow-hidden text-ellipsis whitespace-nowrap px-4"
+						>{strPlayerName0 || UNKNOWN}</span
+					>
 					{#if boolHasChosen0}
 						<div
 							class="absolute -left-24 top-1/2 -translate-x-1/2 -translate-y-1/2"
@@ -140,7 +142,9 @@
 			</div>
 			<div id="player-1">
 				<div class="player relative py-[25px]">
-					<span class="relative px-4">{strPlayerName1 || UNKNOWN}</span>
+					<span class="relative overflow-hidden text-ellipsis whitespace-nowrap px-4"
+						>{strPlayerName1 || UNKNOWN}</span
+					>
 					{#if boolHasChosen1}
 						<div
 							class="absolute -right-24 top-1/2 -translate-y-1/2 translate-x-1/2"

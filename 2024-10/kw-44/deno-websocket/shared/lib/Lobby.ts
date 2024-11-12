@@ -42,4 +42,19 @@ export function resetLobby() {
 	Lobby["1"].ready = false;
 }
 
+export function logLobby(message: string, id?: string) {
+	if (id) console.log(`%cEvent: ${message} = ${id}`, "color: blue;");
+	else console.log(`%cEvent: ${message}`, "color: blue;");
+
+	console.log("%cClient\t\tUUID", "color: gray;");
+	for (const key in Lobby) {
+		if (key === "PROJECTOR") {
+			console.log(`${key}\t${Lobby[key].uuid}`);
+		} else {
+			console.log(`${key}\t\t${Lobby[key].uuid}`);
+		}
+	}
+	console.log("\n");
+}
+
 export default Lobby;

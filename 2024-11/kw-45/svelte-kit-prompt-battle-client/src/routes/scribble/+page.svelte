@@ -5,7 +5,6 @@
 	import useSocket from '$lib/socket';
 	import { timer, isComplete, isRunning, resetTimer } from '$lib/stores/timer-scribble';
 	import { onMount } from 'svelte';
-	// @ts-expect-error Module ... te-kit-prompt-battle-client/src/components/Counter.d.svelte.ts', but '--allowArbitraryExtensions' is not set.ts(6263)
 	import Counter from '../../components/Counter.svelte';
 	import InputScribble from '../../features/input-scribble/components/InputScribble.svelte';
 

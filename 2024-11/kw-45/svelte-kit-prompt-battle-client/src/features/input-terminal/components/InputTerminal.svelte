@@ -22,14 +22,10 @@
 	let refTerminal: HTMLDivElement;
 	let refInput: HTMLInputElement;
 
-	// Immediately focus on the input
-	onMount(() => {
-		refInput?.focus();
-	});
-
 	// Translate the fake cursor to the end of the input
 	function handleInput() {
 		refTerminal.style.setProperty('--offset', `${strPlayerName.length * 30}px`);
+
 		socket.emit('c:setPlayerName', {
 			id: strPlayerNumber,
 			name: strPlayerName
@@ -39,7 +35,6 @@
 	// Prevent the input from losing focus
 	function handleBlur() {
 		refInput?.focus();
-		return false;
 	}
 
 	/**
@@ -48,9 +43,7 @@
 	 * further input from the player.
 	 */
 	function handleKeyDown(e: KeyboardEvent) {
-		if (boolHasEntered) return;
-
-		if (e.key === 'Enter') {
+		if (e.key === 'Enter' && !boolHasEntered) {
 			if (strPlayerName === '') return;
 
 			boolHasEntered = true;
@@ -82,18 +75,22 @@
 		class:changed={boolHasEntered}
 		bind:this={refTerminal}
 	>
-		<label>
+		<label for="input">
 			<span>Player {+strPlayerNumber + 1}: </span>
+			<!-- svelte-ignore a11y_autofocus -->
 			<input
+				id="input"
 				type="text"
 				name="player"
 				maxlength={25}
 				autocomplete="off"
 				autocorrect="off"
+				class="z-50"
 				onblur={handleBlur}
 				oninput={handleInput}
 				onkeydown={handleKeyDown}
 				class:changed={boolHasEntered}
+				autofocus={true}
 				bind:value={strPlayerName}
 				bind:this={refInput}
 			/>

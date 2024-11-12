@@ -18,5 +18,5 @@ export const NEGATIVE_PROMPT =
 
 export const SD_SERVER_URL = 'https://71d3b90f125d29c23f.gradio.live'; // NOTE: Without / at the end
 export const UNKNOWN = '?';
-export const TIMER_PROMPT_SECONDS = 10;
-export const TIMER_SCRIBBLE_SECONDS = 10;
+export const TIMER_PROMPT_SECONDS = 60;
+export const TIMER_SCRIBBLE_SECONDS = 30;

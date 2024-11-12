@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { Server, ServerOptions } from "npm:socket.io";
 import { CHALLENGES, SOCKET_SERVER_OPTIONS } from "./index.ts";
 import app from "./app.ts";
-import Lobby, { resetLobby } from "./Lobby.ts";
+import Lobby, { resetLobby, logLobby } from "./Lobby.ts";
 import Battle, { resetBattle, updateBattle } from "./Battle.ts";
 
 // Source: https://socket.io/get-started/chat#integrating-socketio
@@ -11,7 +11,7 @@ const io = new Server(server, SOCKET_SERVER_OPTIONS as Partial<ServerOptions>);
 
 // Web socket
 io.on("connection", (socket) => {
-	console.log(`%cUser connected: ${socket.id}`, "color: blue;");
+	console.log(`%cUser connected: ${socket.id}`, "color: grey;");
 
 	socket.on("c:joinLobby", (id: string) => {
 		socket.join("Lobby");
@@ -33,10 +33,7 @@ io.on("connection", (socket) => {
 			Lobby[id].lastSeen = Date.now();
 		}
 
-		// Show entire room
-		const lobby = io.sockets.adapter.rooms.get("Lobby");
-		console.log(Array.from(lobby!));
-		console.log(Lobby);
+		logLobby("Client joined");
 	});
 
 	socket.on("c:updateLobby", ({ id, name }) => {
@@ -46,9 +43,7 @@ io.on("connection", (socket) => {
 			Lobby[id].lastSeen = Date.now();
 		}
 
-		// const lobby = io.sockets.adapter.rooms.get("Lobby");
-		// console.log(lobby);
-		console.log(Lobby);
+		logLobby("Client updated", id);
 
 		// Transmit the readiness of the player
 		if (Lobby[id].ready) io.emit("s:setPlayerReadiness", id);
@@ -172,7 +167,6 @@ io.on("connection", (socket) => {
 	// This is the very last endpoint before the admin clicks on the "Start" button
 	socket.on("a:prepareRound", (message: string) => {
 		io.emit("s:prepareRound", message);
-		console.log(`%c${message}`, "color: green;");
 
 		// Now you just need to reset the ended flag
 		if (message === "round=new") {
@@ -185,7 +179,7 @@ io.on("connection", (socket) => {
 
 	socket.on("disconnect", (reason: string) => {
 		console.log(
-			`%cUser ${socket.id} disconnected: ${reason}\n`,
+			`%cUser ${socket.id} disconnected: ${reason}`,
 			"color: red;"
 		);
 
@@ -193,6 +187,7 @@ io.on("connection", (socket) => {
 			if (Lobby[id].uuid === socket.id) {
 				Lobby[id].uuid = null;
 				Lobby[id].lastSeen = Date.now();
+
 				if (id !== "ADMIN" && id !== "PROJECTOR") {
 					Lobby[id].name = "";
 					Lobby[id].ready = false;
@@ -200,7 +195,7 @@ io.on("connection", (socket) => {
 			}
 		}
 
-		console.log(Lobby);
+		logLobby("Client left");
 	});
 });
 

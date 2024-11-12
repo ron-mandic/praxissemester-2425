@@ -6,7 +6,6 @@
 	import useSocket from '$lib/socket';
 	import { timer, isRunning, isComplete, resetTimer } from '$lib/stores/timer-prompt';
 	import InputPrompt from '../../features/input-prompt/components/InputPrompt.svelte';
-	// @ts-expect-error Module ... te-kit-prompt-battle-client/src/components/Counter.d.svelte.ts', but '--allowArbitraryExtensions' is not set.ts(6263)
 	import Counter from '../../components/Counter.svelte';
 	import Autoscroll from '../../components/Autoscroll.svelte';
 	import { UNKNOWN } from '$lib';
@@ -78,7 +77,7 @@
 </svelte:head>
 
 <Counter
-	t0={3}
+	t0={15}
 	onEnd={() => {
 		// First hide the prompot overlay, then start the timer
 		boolHasStarted = true;

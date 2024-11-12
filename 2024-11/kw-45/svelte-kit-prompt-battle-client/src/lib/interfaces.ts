@@ -1,0 +1,98 @@
+export interface Parameters {
+	prompt: string;
+	negative_prompt: string;
+	styles: string[] | null;
+	seed: number;
+	subseed: number;
+	subseed_strength: number;
+	seed_resize_from_h: number;
+	seed_resize_from_w: number;
+	sampler_name: string | null;
+	scheduler: string | null;
+	batch_size: number;
+	n_iter: number;
+	steps: number;
+	cfg_scale: number;
+	width: number;
+	height: number;
+	restore_faces: boolean | null;
+	tiling: boolean | null;
+	do_not_save_samples: boolean;
+	do_not_save_grid: boolean;
+	eta: number | null;
+	denoising_strength: number | null;
+	s_min_uncond: number | null;
+	s_churn: number | null;
+	s_tmax: number | null;
+	s_tmin: number | null;
+	s_noise: number | null;
+	override_settings: Record<string, unknown> | null;
+	override_settings_restore_afterwards: boolean;
+	refiner_checkpoint: string | null;
+	refiner_switch_at: number | null;
+	disable_extra_networks: boolean;
+	firstpass_image: string | null;
+	comments: string | null;
+	enable_hr: boolean;
+	firstphase_width: number;
+	firstphase_height: number;
+	hr_scale: number;
+	hr_upscaler: string | null;
+	hr_second_pass_steps: number;
+	hr_resize_x: number;
+	hr_resize_y: number;
+	hr_checkpoint_name: string | null;
+	hr_sampler_name: string | null;
+	hr_scheduler: string | null;
+	hr_prompt: string;
+	hr_negative_prompt: string;
+	force_task_id: string | null;
+	sampler_index: string;
+	script_name: string | null;
+	script_args: unknown[];
+	send_images: boolean;
+	save_images: boolean;
+	alwayson_scripts: Record<string, unknown>;
+	infotext: string | null;
+}
+
+export interface Info {
+	prompt: string;
+	all_prompts: string[];
+	negative_prompt: string;
+	all_negative_prompts: string[];
+	seed: number;
+	all_seeds: number[];
+	subseed: number;
+	all_subseeds: number[];
+	subseed_strength: number;
+	width: number;
+	height: number;
+	sampler_name: string;
+	cfg_scale: number;
+	steps: number;
+	batch_size: number;
+	restore_faces: boolean;
+	face_restoration_model: string | null;
+	sd_model_name: string;
+	sd_model_hash: string;
+	sd_vae_name: string | null;
+	sd_vae_hash: string | null;
+	seed_resize_from_w: number;
+	seed_resize_from_h: number;
+	denoising_strength: number | null;
+	extra_generation_params: Record<string, unknown>;
+	index_of_first_image: number;
+	infotexts: string[];
+	styles: string[];
+	job_timestamp: string;
+	clip_skip: number;
+	is_using_inpainting_conditioning: boolean;
+	version: string;
+}
+
+export interface DataType {
+	images: string[];
+	parameters: Parameters;
+	info: string | Info;
+}
