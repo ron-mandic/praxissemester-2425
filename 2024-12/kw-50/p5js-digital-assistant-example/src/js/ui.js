@@ -1,3 +1,39 @@
+function drawInterface() {
+  let vol = mic.getLevel();
+
+  if (vol - 0 <= 1e-4) {
+    if (frameCount % 180 === 0) console.error("No volume detected");
+  }
+
+  let sizeOffset = map(vol, 0, 1, 0, 550);
+  let finalSize = CIRCLE_SIZE + sizeOffset;
+  currentSize = lerp(currentSize, finalSize, 0.1);
+
+  if (chatbot.mode === "user") {
+    if (!chatbot.isListening) {
+      fill(195);
+      ellipse(windowWidth / 2, windowHeight / 2, currentSize, currentSize);
+    } else {
+      fill(45);
+      ellipse(windowWidth / 2, windowHeight / 2, CIRCLE_SIZE, CIRCLE_SIZE);
+    }
+
+    return;
+  }
+
+  fill(195);
+  if (chatbot.mode === "assistant") {
+    if (chatbot.isProcessing) {
+      currentSize = CIRCLE_SIZE + Math.sin(frameCount * 0.1) * 10;
+      ellipse(windowWidth / 2, windowHeight / 2, currentSize, currentSize);
+    } else {
+      drawBars();
+    }
+
+    return;
+  }
+}
+
 function drawBars() {
   let spectrum = fft.analyze();
 
@@ -39,4 +75,10 @@ function drawBars() {
     b4,
     Math.abs(b4 / 2)
   );
+}
+
+function drawLegend() {
+  fill("white");
+  text("Click to start recording", 20, windowHeight - 40);
+  text("Double click to restart session", 20, windowHeight - 20);
 }

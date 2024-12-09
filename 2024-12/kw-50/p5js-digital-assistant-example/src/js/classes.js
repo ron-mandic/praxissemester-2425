@@ -99,7 +99,7 @@ class Chatbot {
     lang,
     voice,
     model = "mistral:latest",
-    url = "http://172.17.11.18:8888/chat"
+    url = "http://localhost:11434/api/chat"
   ) {
     this.lang = lang;
     this.voice = voice;
@@ -144,82 +144,117 @@ class Chatbot {
 
   /**
    * This function fires when the speech recognition starts
-   * @param {() => void} [listener] The listener function to be executed
+   * @param {() => void} [listener] The listener function to be executed (removes default logging behavior)
    */
   onRecordingStart(listener) {
     this.speechRecorder.onStart = () => {
-      info("Chatbot: Speech recognition started", [42, 207, 92]);
       if (!this.isRecording) this.isRecording = true;
-      // Input mode is (back to) user since the user is speaking (again)
       this.mode = "user";
+
+      if (listener) {
+        // Bind the listener function to the Chatbot instance
+        listener.bind(this)();
+        return;
+      }
+
+      // DEFAULT LOGGING BEHAVIOR
+      info("Chatbot: Speech recognition started", [42, 207, 92]);
     };
   }
 
   /**
    * This function fires when the speech recognition detects a result
-   * @param {() => void} [listener] The listener function to be executed
+   * @param {() => void} [listener] The listener function to be executed (removes default logging behavior)
+   * @param {boolean} [autoSpeaksResult] Whether the chatbot should automatically speak the result or not
    */
-  onRecordingResult(listener) {
+  onRecordingResult(listener, autoSpeaksResult = true) {
     this.speechRecorder.onResult = () => {
+      this.mode = "assistant";
+
       const { resultString, resultJSON, resultConfidence } =
         this.speechRecorder;
       this.recording = resultString || "";
       this.recordingConfidence = resultConfidence || null;
       this.recordingJSON = resultJSON || null;
 
-      // Input mode is assistant since the assistant is speaking
-      this.mode = "assistant";
-
       if (!this.recording) {
         return;
       }
 
-      // Log the recognized prompt
+      // Consult the AI by providing the user's recognized prompt
+      if (autoSpeaksResult) this.#talk(this.recording);
+
+      if (listener) {
+        // Bind the listener function to the Chatbot instance
+        listener.bind(this)();
+        return;
+      }
+
+      // DEFAULT LOGGING BEHAVIOR
       info("Chatbot: Speech detected");
       console.log(this.recording);
-
-      // Consult the AI by providing the user's recognized prompt
-      this.#talk(this.recording);
     };
   }
 
   /**
    * This function fires when the speech recognition ends
-   * @param {() => void} [listener] The listener function to be executed
+   * @param {() => void} [listener] The listener function to be executed (removes default logging behavior)
    */
   onRecordingEnd(listener) {
     this.speechRecorder.onEnd = () => {
-      info("Chatbot: Speech recognition ended", [235, 66, 66]);
       this.isRecording = false;
+
+      if (listener) {
+        // Bind the listener function to the Chatbot instance
+        listener.bind(this)();
+        return;
+      }
+
+      // DEFAULT LOGGING BEHAVIOR
+      info("Chatbot: Speech recognition ended", [235, 66, 66]);
     };
   }
 
   /**
    * This function fires when the speech synthesis starts
-   * @param {() => void} [listener] The listener function to be executed
+   * @param {() => void} [listener] The listener function to be executed (removes default logging behavior)
    */
   onSpeechStart(listener) {
     this.speech.onStart = () => {
+      if (!this.isSpeaking) this.isSpeaking = true;
+
+      if (listener) {
+        // Bind the listener function to the Chatbot instance
+        listener.bind(this)();
+        return;
+      }
+
+      // DEFAULT LOGGING BEHAVIOR
       info("Chatbot: Speech started", [42, 207, 92]);
       console.log(this.response);
-      if (!this.isSpeaking) this.isSpeaking = true;
     };
   }
 
   /**
    * This function fires when the speech synthesis ends
-   * @param {() => void} [listener] The listener function to be executed
+   * @param {() => void} [listener] The listener function to be executed (removes default logging behavior)
    */
   onSpeechEnd(listener) {
     this.speech.onEnd = () => {
-      info("Chatbot: Speech ended", [235, 66, 66]);
       this.isSpeaking = false;
-
+      // Manually start the speech recognition again
+      this.startRecording();
       // Make an animation to the full size
       currentSize = 50;
 
-      // Manually start the speech recognition again
-      this.speechRecorder.start();
+      if (listener) {
+        // Bind the listener function to the Chatbot instance
+        listener.bind(this)();
+        return;
+      }
+
+      // DEFAULT LOGGING BEHAVIOR
+      info("Chatbot: Speech ended", [235, 66, 66]);
     };
   }
 
@@ -278,8 +313,11 @@ class Chatbot {
    * @returns {Promise<ChatResponse>} The AI's response to the user's prompt
    */
   async chat(payload) {
+    console.log("Payload:", payload);
+    console.log("URL:", this.url);
+
     try {
-      return await post(this.url, payload);
+      return await post(this.url, { ...payload, stream: false });
     } catch (error) {
       console.error("Error:", error);
     }
@@ -328,10 +366,10 @@ class Chatbot {
     this.responseJSON = data;
     this.isProcessing = false;
 
-    // Last but not least, use the speech synthesizer to speak the AI's response
-    this.speak(message.content);
-
-    // At the end, append the AI's response to the messages array for the next iteration
+    // Last but not least, append the AI's response to the messages array for the next iteration
     this.messages.push(message);
+
+    // And at the end, use the speech synthesizer to speak the AI's response
+    this.speak(this.response);
   }
 }

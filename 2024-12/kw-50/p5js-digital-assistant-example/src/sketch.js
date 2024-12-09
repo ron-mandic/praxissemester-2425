@@ -20,20 +20,20 @@ function setup() {
   canvas = createCanvas(windowWidth, windowHeight);
   chatbot = new Chatbot("en-US", "Google US English");
 
-  canvas.doubleClicked(() => {
-    chatbot.startRecording();
-
-    // Restart lerp animation
-    currentSize = 50;
-  });
-
   // @ts-expect-error Property 'AudioIn' does not exist on type '(sketch: object, node: string | object) => void'.ts(2339)
   mic = new p5.AudioIn();
   // @ts-expect-error Property 'FFT' does not exist on type '(sketch: object, node: string | object) => void'.ts(2339)
   fft = new p5.FFT(0.8, 1024);
   smoothSpectrum = new Array(fft?.bins || 1024).fill(0);
 
+  canvas.doubleClicked(() => {
+    // Start recording and stop the current utterance
+    chatbot.startRecording();
+    currentSize = 50;
+  });
+
   canvas.mousePressed(() => {
+    // Request microphone access by explicitly clicking
     userStartAudio().then(() => {
       mic.start();
       mic.connect(fft);
@@ -43,40 +43,7 @@ function setup() {
 
 function draw() {
   background(20);
-  let vol = mic.getLevel();
 
-  if (vol - 0 <= 1e-4) {
-    if (frameCount % 180 === 0) console.error("No volume detected");
-  }
-
-  let sizeOffset = map(vol, 0, 1, 0, 550);
-  let finalSize = CIRCLE_SIZE + sizeOffset;
-  currentSize = lerp(currentSize, finalSize, 0.1);
-
-  if (chatbot.mode === "user") {
-    if (!chatbot.isListening) {
-      fill(195);
-      ellipse(windowWidth / 2, windowHeight / 2, currentSize, currentSize);
-    } else {
-      fill(45);
-      ellipse(windowWidth / 2, windowHeight / 2, CIRCLE_SIZE, CIRCLE_SIZE);
-    }
-
-    return;
-  }
-
-  fill(195);
-  if (chatbot.mode === "assistant") {
-    if (chatbot.isProcessing) {
-      currentSize = CIRCLE_SIZE + Math.sin(frameCount * 0.1) * 10;
-      ellipse(windowWidth / 2, windowHeight / 2, currentSize, currentSize);
-    } else {
-      drawBars();
-    }
-
-    return;
-  }
-
-  fill(45);
-  text("", 20, windowHeight - 20);
+  drawInterface();
+  drawLegend();
 }
