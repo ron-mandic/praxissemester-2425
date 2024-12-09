@@ -180,7 +180,7 @@ class Chatbot {
    * @returns {Promise<{role: string; content: string}>} The AI's response to the user's prompt
    */
   async #ask() {
-    let url = "http://localhost:11434/api/chat";
+    let url = "http://172.17.11.18:8888/chat";
     let payload = {
       model: this.model,
       messages: this.#messages,

@@ -1,8 +1,8 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from pydantic import BaseModel
-from ollama import chat
-from ollama import ChatResponse
+from ollama import chat, ChatResponse, AsyncClient
+from typing import Literal
 
 app = FastAPI()
 app.add_middleware(
@@ -14,20 +14,16 @@ app.add_middleware(
 )
 
 class MessageRequest(BaseModel):
+    model: str
     content: str
 
 class ChatResponseModel(BaseModel):
+    role: Literal["assistant"]
     message: str
 
 @app.post("/chat", response_model=ChatResponseModel)
 async def ask(request: MessageRequest):
-    response: ChatResponse = chat(model='mistral:latest', messages=[
-        {
-            'role': 'user',
-            'content': request.content,
-        },
-    ])
-    
-    message = response.message
-    return ChatResponseModel(message=message)
+    async with AsyncClient() as client:
+        response = await client.chat(model=request.model, messages=request.messages, stream=False)
+    return ChatResponseModel(message=response.message)
 

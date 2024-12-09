@@ -4,5 +4,5 @@
 
 ```bash
 (.venv) $ pip install fastapi "uvicorn[standard]"
-(.venv) $ pip install ollama requests python-dotenv
+(.venv) $ pip install ollama requests python-dotenv asyncio
 ```
