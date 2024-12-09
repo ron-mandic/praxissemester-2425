@@ -7,7 +7,7 @@ function drawBars() {
 
   // Get random samples from the spectrum
   let args = [];
-  for (let i = 0; i < 1024; i += 8) {
+  for (let i = 0; i < 1024; i += 24) {
     args.push(smoothSpectrum[i]);
   }
   let min = Math.min(...args);

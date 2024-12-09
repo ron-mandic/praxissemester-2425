@@ -18,7 +18,7 @@ function setup() {
   rectMode(CENTER);
 
   canvas = createCanvas(windowWidth, windowHeight);
-  chatbot = new Chatbot("en-US", "Google US English", "mistral-small:latest");
+  chatbot = new Chatbot("en-US", "Google US English", "mistral:latest");
 
   canvas.doubleClicked(() => {
     chatbot.speech.stop();
