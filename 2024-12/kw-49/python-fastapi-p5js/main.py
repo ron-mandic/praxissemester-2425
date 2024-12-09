@@ -1,8 +1,9 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from pydantic import BaseModel
-from ollama import chat, ChatResponse, AsyncClient
+from ollama import chat, ChatResponse
 from typing import Literal
+from httpx import AsyncClient, Timeout
 
 app = FastAPI()
 app.add_middleware(
@@ -13,17 +14,24 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class MessageRequest(BaseModel):
+class ChatRequest(BaseModel):
     model: str
-    content: str
+    messages: list
 
-class ChatResponseModel(BaseModel):
-    role: Literal["assistant"]
-    message: str
+OLLAMA_API_URL="http://localhost:11434/api/chat"
+OLLAMA_API_HEADERS={"Content-Type": "application/json"}
 
-@app.post("/chat", response_model=ChatResponseModel)
-async def ask(request: MessageRequest):
-    async with AsyncClient() as client:
-        response = await client.chat(model=request.model, messages=request.messages, stream=False)
-    return ChatResponseModel(message=response.message)
+@app.post("/chat")
+async def index(request: ChatRequest):
+    async with AsyncClient(timeout=Timeout(45.0)) as client:
+        payload = {
+            "model": request.model,
+            "stream": False,
+            "messages": request.messages
+        }
+
+        response = await client.post(OLLAMA_API_URL, headers=OLLAMA_API_HEADERS, json=payload)
+        data = response.json()
+
+    return data
 

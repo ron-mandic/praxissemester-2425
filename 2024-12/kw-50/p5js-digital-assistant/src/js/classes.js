@@ -184,12 +184,10 @@ class Chatbot {
     let payload = {
       model: this.model,
       messages: this.#messages,
-      stream: false,
     };
 
     try {
-      const { message } = await post(url, payload);
-      return message;
+      return await post(url, payload);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -210,7 +208,7 @@ class Chatbot {
 
     // Secondly, consult the AI with the current messages array
     this.isLoading = true;
-    const message = await this.#ask();
+    const { message } = await this.#ask();
     this.isLoading = false;
 
     // Last but not least, use the speech synthesizer to speak the AI's response
