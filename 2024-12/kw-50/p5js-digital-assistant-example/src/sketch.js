@@ -3,7 +3,6 @@ let canvas;
 let chatbot;
 
 let mic, fft;
-let currentSize = 50;
 let smoothSpectrum = [];
 
 let b1 = 50;
@@ -24,12 +23,13 @@ function setup() {
   mic = new p5.AudioIn();
   // @ts-expect-error Property 'FFT' does not exist on type '(sketch: object, node: string | object) => void'.ts(2339)
   fft = new p5.FFT(0.8, 1024);
+
   smoothSpectrum = new Array(fft?.bins || 1024).fill(0);
 
   canvas.doubleClicked(() => {
     // Start recording and stop the current utterance
     chatbot.startRecording();
-    currentSize = 50;
+    chatbot.circleSize = 50;
   });
 
   canvas.mousePressed(() => {

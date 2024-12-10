@@ -7,12 +7,12 @@ function drawInterface() {
 
   let sizeOffset = map(vol, 0, 1, 0, 550);
   let finalSize = CIRCLE_SIZE + sizeOffset;
-  currentSize = lerp(currentSize, finalSize, 0.1);
+  chatbot.circleSize = lerp(chatbot.circleSize, finalSize, 0.1);
 
   if (chatbot.mode === "user") {
-    if (!chatbot.isRecording) {
+    if (chatbot.isRecording) {
       fill(195);
-      ellipse(windowWidth / 2, windowHeight / 2, currentSize, currentSize);
+      ellipse(windowWidth / 2, windowHeight / 2, chatbot.circleSize, chatbot.circleSize);
     } else {
       fill(45);
       ellipse(windowWidth / 2, windowHeight / 2, CIRCLE_SIZE, CIRCLE_SIZE);
@@ -24,8 +24,8 @@ function drawInterface() {
   fill(195);
   if (chatbot.mode === "assistant") {
     if (chatbot.isProcessing) {
-      currentSize = CIRCLE_SIZE + Math.sin(frameCount * 0.1) * 10;
-      ellipse(windowWidth / 2, windowHeight / 2, currentSize, currentSize);
+      chatbot.circleSize = CIRCLE_SIZE + Math.sin(frameCount * 0.1) * 10;
+      ellipse(windowWidth / 2, windowHeight / 2, chatbot.circleSize, chatbot.circleSize);
     } else {
       drawBars();
     }

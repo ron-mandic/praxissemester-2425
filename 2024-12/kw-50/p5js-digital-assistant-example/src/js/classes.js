@@ -88,6 +88,10 @@ class Chatbot {
    * @type {null | ChatResponse} The AI's answer to the user's prompt in JSON format
    */
   responseJSON;
+  /**
+   * @type {number} The size of the circle in the user interface
+   */
+  circleSize;
 
   /**
    * @param {string} lang The language of the chatbot
@@ -131,6 +135,9 @@ class Chatbot {
     this.speech.interrupt = true;
     this.speech.setLang(this.lang);
     this.speech.setVoice(this.voice);
+
+    // ui
+    this.circleSize = 50;
 
     // Manually stop all utterances if the speech synthesis is still running
     this.speech.stop();
@@ -245,7 +252,7 @@ class Chatbot {
       // Manually start the speech recognition again
       this.startRecording();
       // Make an animation to the full size
-      currentSize = 50;
+      this.circleSize = 50;
 
       if (listener) {
         // Bind the listener function to the Chatbot instance
@@ -313,9 +320,6 @@ class Chatbot {
    * @returns {Promise<ChatResponse>} The AI's response to the user's prompt
    */
   async chat(payload) {
-    console.log("Payload:", payload);
-    console.log("URL:", this.url);
-
     try {
       return await post(this.url, { ...payload, stream: false });
     } catch (error) {
