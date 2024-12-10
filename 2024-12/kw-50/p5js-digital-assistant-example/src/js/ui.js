@@ -10,7 +10,7 @@ function drawInterface() {
   currentSize = lerp(currentSize, finalSize, 0.1);
 
   if (chatbot.mode === "user") {
-    if (!chatbot.isListening) {
+    if (!chatbot.isRecording) {
       fill(195);
       ellipse(windowWidth / 2, windowHeight / 2, currentSize, currentSize);
     } else {
@@ -78,7 +78,7 @@ function drawBars() {
 }
 
 function drawLegend() {
-  fill("white");
-  text("Click to start recording", 20, windowHeight - 40);
-  text("Double click to restart session", 20, windowHeight - 20);
+  fill(225);
+  text("Click once to allow access to the microphone", 20, windowHeight - 40);
+  text("Click twice to restart the session", 20, windowHeight - 20);
 }
