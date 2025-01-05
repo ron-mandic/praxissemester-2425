@@ -1,84 +1,188 @@
 <script lang="ts">
-	import '$lib/styles/normalize.css';
+	import 'normalize.css';
 	import '../app.scss';
-	// import { ModeWatcher } from 'mode-watcher';
-	import AppSidebar from '@/components/app-sidebar.svelte';
-	import * as Breadcrumb from '@/components/ui/breadcrumb/index.js';
-	import * as Sidebar from '@/components/ui/sidebar/index.js';
-	import { Separator } from '@/components/ui/separator/index.js';
-	import { page } from '$app/state';
-	import { IsMobile } from '$lib/hooks/is-mobile.svelte.js';
+	import { Image, AudioLines, BookOpen, LetterText } from 'lucide-svelte/icons';
+	import App from '$lib/components/svelte/App.svelte';
+	import AppSidebar from '$lib/components/svelte/AppSidebar.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 
-	let { children } = $props();
-	let mobile = new IsMobile();
-	let paths = $derived.by(() => {
-		let segments = page.url.pathname.split('/');
-		return segments.map((segment, i, arr) => {
-			if (segment === '') {
-				return { path: 'Overview', href: '/' };
-			}
+	let { data, children } = $props();
 
-			let path = segment
-				.split('-')
-				.map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-				.join(' ');
-
-			if (i === arr.length - 1) {
-				return { path, href: null };
-			}
-
-			return {
-				path,
-				href: `/${segment}`
-			};
-		});
-	});
-
-	$inspect(page.url.pathname);
+	const services = $state([
+		{
+			title: 'Audio',
+			url: '/audio',
+			icon: AudioLines,
+			items: [
+				{
+					title: 'ElevenLabs',
+					url: 'https://elevenlabs.io/'
+				},
+				{
+					title: 'Hume',
+					url: 'https://www.hume.ai/'
+				},
+				{
+					title: 'Murf AI',
+					url: 'https://murf.ai/'
+				},
+				{
+					title: 'Stable Audio',
+					url: 'https://stableaudio.com/'
+				},
+				{
+					title: 'Suno',
+					url: 'https://suno.com/'
+				},
+				{
+					title: 'Udio',
+					url: 'https://www.udio.com/'
+				}
+			]
+		},
+		{
+			title: 'Text',
+			url: '/text',
+			icon: LetterText,
+			items: [
+				{
+					title: 'ChatGPT',
+					url: 'https://chatgpt.com/'
+				},
+				{
+					title: 'Claude',
+					url: 'https://claude.ai/'
+				},
+				{
+					title: 'Copilot',
+					url: 'https://copilot.microsoft.com/'
+				},
+				{
+					title: 'Gemini',
+					url: 'https://gemini.google.com/'
+				},
+				{
+					title: 'Grok',
+					url: 'https://x.ai/'
+				},
+				{
+					title: 'HuggingChat',
+					url: 'https://huggingface.co/chat/'
+				},
+				{
+					title: 'Meta AI',
+					url: 'https://www.meta.ai/'
+				},
+				{
+					title: 'Mistral',
+					url: 'https://chat.mistral.ai/'
+				},
+				{
+					title: 'Perplexity',
+					url: 'https://perplexity.ai/'
+				},
+				{
+					title: 'Phind',
+					url: 'https://www.phind.com/'
+				},
+				{
+					title: 'You',
+					url: 'https://you.com/'
+				}
+			]
+		},
+		{
+			title: 'Image',
+			url: '/image',
+			icon: Image,
+			items: [
+				{
+					title: 'Adobe Firefly',
+					url: 'https://firefly.adobe.com/'
+				},
+				{
+					title: 'Ideogram',
+					url: 'https://dreamstudio.ai/'
+				},
+				{
+					title: 'Leonardo.Ai',
+					url: 'https://leonardo.ai/'
+				},
+				{
+					title: 'Microsoft Designer',
+					url: 'https://designer.microsoft.com/'
+				},
+				{
+					title: 'Midjourney',
+					url: 'https://www.midjourney.com/'
+				},
+				{
+					title: 'Recraft',
+					url: 'https://www.recraft.ai/'
+				},
+				{
+					title: 'Replicate',
+					url: 'https://replicate.com/'
+				},
+				{
+					title: 'Stable Diffusion',
+					url: '/image/stable-diffusion'
+				}
+			]
+		},
+		{
+			title: 'Video',
+			url: '#',
+			icon: BookOpen,
+			items: [
+				{
+					title: 'AI Studios',
+					url: 'https://www.aistudios.com/'
+				},
+				{
+					title: 'Dream Machine',
+					url: 'https://dream-machine.lumalabs.ai/'
+				},
+				{
+					title: 'Haiper',
+					url: 'https://haiper.ai/'
+				},
+				{
+					title: 'KLING AI',
+					url: 'https://klingai.com/'
+				},
+				{
+					title: 'Pika',
+					url: 'https://pika.art/'
+				},
+				{
+					title: 'Runway',
+					url: 'https://runwayml.com/'
+				},
+				{
+					title: 'Stable Video',
+					url: 'https://www.stablevideo.com/'
+				},
+				{
+					title: 'Sora',
+					url: 'https://sora.com/'
+				},
+				{
+					title: 'Veo 2',
+					url: 'https://deepmind.google/technologies/veo/veo-2/'
+				}
+			]
+		}
+	]);
 </script>
 
-<!-- <ModeWatcher /> -->
+<Sidebar.Provider
+	class="min-h-[calc(100dvh-74px)] focus-visible:border-none"
+	style="--sidebar-width: 20rem; --sidebar-width-mobile: 20rem;"
+>
+	<AppSidebar {services} />
 
-<Sidebar.Provider>
-	<AppSidebar />
-	<Sidebar.Inset class="md:p-2">
-		<header
-			class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12"
-		>
-			<div class="flex items-center gap-2 px-4">
-				<Sidebar.Trigger class="-ml-1" />
-				<Separator orientation="vertical" class="mr-2 h-4" />
-				<Breadcrumb.Root>
-					<Breadcrumb.List class="select-none">
-						{#if page.url.pathname === '/'}
-							<Breadcrumb.Item>
-								<Breadcrumb.Page>Overview</Breadcrumb.Page>
-							</Breadcrumb.Item>
-						{:else}
-							{#each paths as { path, href }, i (path)}
-								{#if href}
-									<Breadcrumb.Item>
-										<Breadcrumb.Link {href}
-											>{mobile.current && i < paths.length - 1
-												? `${path.slice(0, 3)}...`
-												: path}</Breadcrumb.Link
-										>
-									</Breadcrumb.Item>
-									<Breadcrumb.Separator />
-								{:else}
-									<Breadcrumb.Item>
-										<Breadcrumb.Page
-											class="pointer-events-none overflow-hidden text-ellipsis whitespace-nowrap min-[320px]:max-w-[12ch] min-[393px]:max-w-[21ch] sm:max-w-full"
-											>{path}</Breadcrumb.Page
-										>
-									</Breadcrumb.Item>
-								{/if}
-							{/each}
-						{/if}
-					</Breadcrumb.List>
-				</Breadcrumb.Root>
-			</div>
-		</header>
+	<App {services} url={data.url}>
 		{@render children?.()}
-	</Sidebar.Inset>
+	</App>
 </Sidebar.Provider>

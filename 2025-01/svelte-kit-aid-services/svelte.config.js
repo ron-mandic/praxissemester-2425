@@ -18,7 +18,6 @@ const config = {
 			'@/*': './src/lib/*'
 		}
 	},
-
 	extensions: ['.svelte', '.svx']
 };
 

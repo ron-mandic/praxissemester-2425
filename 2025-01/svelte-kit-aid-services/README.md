@@ -1,4 +1,10 @@
-# AI+D Services
+# README.md
+
+## Add-on next steps
+
+- drizzle:
+  - You will need to set DATABASE_URL in your production environment
+  - Run npm run db:push to update your database schema
 
 ## Packages
 

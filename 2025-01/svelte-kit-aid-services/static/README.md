@@ -1,6 +1,6 @@
-# AI+D Services
+# README.md
 
 ## Sources
 
-- [Favicon by AI + Design Lab](https://aid-lab.hfg-gmuend.de/)
-- [Cursor Pack by Kenney](https://kenney.nl/assets/cursor-pack)
+- [favicon](https://aid-lab.hfg-gmuend.de/)
+- [cursors](https://kenney.nl/assets/cursor-pack)

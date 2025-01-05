@@ -2,10 +2,10 @@ import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
+	plugins: [sveltekit()],
 	server: {
 		host: true
 	},
-	plugins: [sveltekit()],
 	// Source: https://vite.dev/config/shared-options.html#css-preprocessoroptions
 	css: {
 		preprocessorOptions: {
