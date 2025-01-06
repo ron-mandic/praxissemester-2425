@@ -3,6 +3,6 @@
 	import Section from '@/components/svelte/Section.svelte';
 </script>
 
-<Section>
+<Section class="grid place-content-center">
 	<Button href="/image/stable-diffusion">Open Stable Diffusion</Button>
 </Section>

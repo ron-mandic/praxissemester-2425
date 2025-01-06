@@ -61,7 +61,7 @@
 <div id="app" class="relative m-2 h-full min-h-[calc(100dvh-74px)] w-screen md:ml-1.5">
 	<header
 		data-scroll={!isScrolling.current}
-		class="sticky left-0 right-0 top-2 z-[2] inline-flex h-auto w-[100%] items-center justify-between gap-x-1 overflow-hidden rounded-lg border border-slate-200/10 bg-sidebar/70 p-1 shadow-sm backdrop-blur-xl transition-[width,transform,margin] duration-500 ease-in-out data-[scroll=false]:!w-[calc(100%-.75rem)] data-[scroll=false]:!translate-x-1.5"
+		class="sticky left-0 right-0 top-2 z-[2] inline-flex h-auto w-[100%] items-center justify-between gap-x-1 overflow-hidden rounded-lg border border-sidebar-border bg-sidebar/70 p-1 shadow-sm backdrop-blur-xl transition-[width,transform,margin] duration-500 ease-in-out data-[scroll=false]:!w-[calc(100%-.75rem)] data-[scroll=false]:!translate-x-1.5 dark:border-slate-200/10"
 	>
 		<div class="inline-flex items-center gap-x-1">
 			<Trigger
@@ -69,7 +69,7 @@
 				class="inline-flex items-center gap-x-3 px-3 text-muted-foreground shadow-none"
 			>
 				<Kbd class="hidden md:inline-flex">
-					<span class="text-xs">⌘</span>
+					<span class="text-sm translate-y-[.5px]">⌘</span>
 					<span>B</span>
 				</Kbd>
 			</Trigger>
@@ -107,7 +107,7 @@
 				Search
 			</span>
 			<Kbd class="hidden md:inline-flex">
-				<span class="text-xs">⌘</span>
+				<span class="text-sm translate-y-[.5px]">⌘</span>
 				<span>K</span>
 			</Kbd>
 			<div class="sr-only">Search</div>
@@ -136,8 +136,8 @@
 			<Kbd
 				class="text-xs! absolute right-[44px] top-0 z-[-1] mt-[14px] hidden h-[20px] w-auto font-normal text-sidebar-foreground no-highlight no-interaction md:inline-flex"
 			>
-				<span>⇥</span>
-				<span>Tab</span>
+				<span class="text-base -translate-x-px pb-1">⇥</span>
+				<span class="tracking-tight">Tab</span>
 			</Kbd>
 			<span
 				class="text-base! absolute left-[47.5px] top-0 z-[-1] mt-3 h-auto w-full translate-y-px text-muted-foreground/50 no-highlight no-interaction md:!translate-y-[0.5px] md:!text-sm"

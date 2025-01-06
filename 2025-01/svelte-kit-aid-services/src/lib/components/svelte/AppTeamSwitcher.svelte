@@ -75,14 +75,18 @@
 
 							{#if !team.disabled}
 								<DropdownMenu.Shortcut class="pointer-events-none">
-									<Kbd class="min-w-[48px] py-1 tracking-tighter">⌥ + {index + 1}</Kbd>
+									<Kbd class="min-w-[48px] py-1 tracking-tighter">
+										<span class="text-[13px] inline-block">⌥</span>
+										<span>+</span>
+										<span>{index + 1}</span>
+									</Kbd>
 								</DropdownMenu.Shortcut>
 							{/if}
 						</DropdownMenu.Item>
 
 						{#if team.disabled}
 							<Sticker
-								class="group-hover:animate-jello absolute right-2 top-2 no-interaction"
+								class="absolute right-2 top-2 no-interaction group-hover:animate-jello"
 								title="Coming soon"
 							/>
 						{/if}

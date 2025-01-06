@@ -8,7 +8,7 @@
 
 <span
 	class={cn(
-		'bg-sticker border-sticker-border text-sticker-foreground rounded-full border-[1.5px] px-2 py-1 text-[10px] no-interaction',
+		'bg-sticker border-sticker-border font-semibold text-sticker-foreground rounded-full border-[1.25px] px-2 py-1 text-[10px] no-interaction',
 		className
 	)}
 >

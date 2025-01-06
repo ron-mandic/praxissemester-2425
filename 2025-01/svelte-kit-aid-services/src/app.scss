@@ -37,7 +37,7 @@
 		--destructive: 0 72.2% 50.6%;
 		--destructive-foreground: 0 0% 98%;
 		--ring: 240 10% 3.9%;
-		--radius: 0.5rem;
+		--radius: 0.675rem;
 
 		--sidebar-background: 0 0% 98%;
 		--sidebar-foreground: 240 5.3% 26.1%;
@@ -47,10 +47,16 @@
 		--sidebar-accent-foreground: 240 5.9% 10%;
 		--sidebar-border: 220 13% 91%;
 		--sidebar-ring: 217.2 91.2% 59.8%;
+
+		// TODO: Fix the sticker colors for light mode
+		--sticker: 24 28% 30%;
+		--sticker-foreground: 25 100% 72%;
+		--sticker-border: 25 24% 24%;
 	}
 
 	.dark {
-		--background: 240 10% 6%; // 240 10% 3.9%
+		// 240 10% 3.9% (original), e.g. also 240 6% 7% (adjusted) for fixing Chromium color shifting
+		--background: 240 10% 3.9%;
 		--foreground: 0 0% 98%;
 		--muted: 240 3.7% 15.9%;
 		--muted-foreground: 240 5% 64.9%;
@@ -131,5 +137,33 @@
 	}
 	body {
 		@apply overflow-x-hidden overflow-y-scroll;
+	}
+
+	body::after {
+		content: '';
+		@apply fixed left-1/2 top-4 z-0 h-[10%] w-[40vw] -translate-x-1/2 rotate-2 rounded-full bg-sidebar-primary/30 blur-3xl transition-colors md:-translate-x-[30%] md:bg-sidebar-primary/15;
+	}
+
+	/* 
+	Background color deliberately set to e.g. #0D0D10 (HSL: 240, 10%, 6%). 
+	Note: Chromium displays visual artifacts (e.g., color shifting) with very dark colors 
+	like #0D0D10 due to rounding errors during HSL-to-RGB conversion and GPU optimizations.
+	
+	This issue does not occur in Safari and Firefox, as these browsers reportedly 
+	use more precise rendering engines for colors. If problems persist, using a slightly 
+	lighter color (e.g., #111113) or switching to RGB instead of HSL may resolve the issue.
+	*/
+	@supports (-webkit-appearance: none) {
+		html:not(.dark),
+		body:not(.dark) {
+			background-color: #ffffff !important;
+		}
+
+		@media (prefers-color-scheme: dark) {
+			html.dark,
+			body.dark {
+				background-color: #09090b !important;
+			}
+		}
 	}
 }
