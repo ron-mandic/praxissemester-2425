@@ -139,10 +139,10 @@
 		@apply overflow-x-hidden overflow-y-scroll;
 	}
 
-	body::after {
-		content: '';
-		@apply fixed left-1/2 top-4 z-0 h-[10%] w-[40vw] -translate-x-1/2 rotate-2 rounded-full bg-sidebar-primary/30 blur-3xl transition-colors md:-translate-x-[30%] md:bg-sidebar-primary/15;
-	}
+	// body::after {
+	// 	content: '';
+	// 	@apply fixed left-1/2 top-4 z-0 h-[10%] w-[40vw] -translate-x-1/2 rotate-6 rounded-full bg-sidebar-primary/30 blur-3xl transition-colors md:-translate-x-[30%] md:bg-sidebar-primary/15;
+	// }
 
 	/* 
 	Background color deliberately set to e.g. #0D0D10 (HSL: 240, 10%, 6%). 

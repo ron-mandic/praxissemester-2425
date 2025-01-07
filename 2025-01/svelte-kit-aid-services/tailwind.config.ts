@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss';
 import { fontFamily } from 'tailwindcss/defaultTheme';
 import tailwindcssAnimate from 'tailwindcss-animate';
+import tailwindcssContainerQueries from '@tailwindcss/container-queries';
 import plugin from 'tailwindcss/plugin';
 
 const config: Config = {
@@ -110,13 +111,19 @@ const config: Config = {
 					'66.6%': { transform: 'skewX(-0.78125deg) skewY(-0.78125deg)' },
 					'77.7%': { transform: 'skewX(0.390625deg) skewY(0.390625deg)' },
 					'88.8%': { transform: 'skewX(-0.1953125deg) skewY(-0.1953125deg)' }
+				},
+				'scale-in-out': {
+					'0%': { transform: 'scale(1) translate(-50%,-50%)' },
+					'50%': { transform: 'scale(1.1) translate(-50%,-50%)' },
+					'100%': { transform: 'scale(1) translate(-50%,-50%)' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'caret-blink': 'caret-blink 1.25s ease-out infinite',
-				jello: 'jello 1s ease-in-out infinite'
+				jello: 'jello 1s ease-in-out infinite',
+				'scale-in-out': 'scale-in-out 0.5s ease-in-out infinite'
 			}
 		}
 	},
@@ -135,7 +142,9 @@ const config: Config = {
 				}
 			});
 		}),
-		tailwindcssAnimate
+		tailwindcssAnimate,
+		// Source: https://github.com/tailwindlabs/tailwindcss-container-queries?tab=readme-ov-file#installation
+		tailwindcssContainerQueries
 	]
 };
 

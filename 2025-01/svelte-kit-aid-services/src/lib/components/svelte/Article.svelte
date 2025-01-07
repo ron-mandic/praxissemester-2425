@@ -10,6 +10,6 @@
 	}>();
 </script>
 
-<section class={cn(`mt-2 min-h-[calc(100dvh-74px)] w-full bg-none`, className)}>
+<article class={cn(`mt-2 min-h-[calc(100dvh-74px)] w-full bg-none`, className)}>
 	{@render children?.()}
-</section>
+</article>

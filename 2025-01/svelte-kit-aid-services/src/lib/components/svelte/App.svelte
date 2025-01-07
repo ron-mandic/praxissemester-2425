@@ -34,7 +34,7 @@
 	function handleInputKeydown(
 		event: KeyboardEvent & { currentTarget: EventTarget & HTMLInputElement }
 	) {
-		if (event.code === 'Tab' && output.startsWith(input)) {
+		if (event.code === 'Tab') {
 			event.preventDefault();
 			input = output;
 		}
@@ -69,7 +69,7 @@
 				class="inline-flex items-center gap-x-3 px-3 text-muted-foreground shadow-none"
 			>
 				<Kbd class="hidden md:inline-flex">
-					<span class="text-sm translate-y-[.5px]">⌘</span>
+					<span class="translate-y-[.5px] text-sm">⌘</span>
 					<span>B</span>
 				</Kbd>
 			</Trigger>
@@ -107,7 +107,7 @@
 				Search
 			</span>
 			<Kbd class="hidden md:inline-flex">
-				<span class="text-sm translate-y-[.5px]">⌘</span>
+				<span class="translate-y-[.5px] text-sm">⌘</span>
 				<span>K</span>
 			</Kbd>
 			<div class="sr-only">Search</div>
@@ -136,7 +136,7 @@
 			<Kbd
 				class="text-xs! absolute right-[44px] top-0 z-[-1] mt-[14px] hidden h-[20px] w-auto font-normal text-sidebar-foreground no-highlight no-interaction md:inline-flex"
 			>
-				<span class="text-base -translate-x-px pb-1">⇥</span>
+				<span class="-translate-x-px pb-1 text-base">⇥</span>
 				<span class="tracking-tight">Tab</span>
 			</Kbd>
 			<span
