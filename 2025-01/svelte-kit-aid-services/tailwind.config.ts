@@ -112,10 +112,12 @@ const config: Config = {
 					'77.7%': { transform: 'skewX(0.390625deg) skewY(0.390625deg)' },
 					'88.8%': { transform: 'skewX(-0.1953125deg) skewY(-0.1953125deg)' }
 				},
-				'scale-in-out': {
-					'0%': { transform: 'scale(1) translate(-50%,-50%)' },
-					'50%': { transform: 'scale(1.1) translate(-50%,-50%)' },
-					'100%': { transform: 'scale(1) translate(-50%,-50%)' }
+				'background-slide': {
+					'0%': { backgroundPosition: '0% 50%' },
+					'25%': { backgroundPosition: '50% 50%' },
+					'50%': { backgroundPosition: '100% 50%' },
+					'75%': { backgroundPosition: '50% 50%' },
+					'100%': { backgroundPosition: '0% 50%' }
 				}
 			},
 			animation: {
@@ -123,7 +125,8 @@ const config: Config = {
 				'accordion-up': 'accordion-up 0.2s ease-out',
 				'caret-blink': 'caret-blink 1.25s ease-out infinite',
 				jello: 'jello 1s ease-in-out infinite',
-				'scale-in-out': 'scale-in-out 0.5s ease-in-out infinite'
+				'scale-in-out': 'scale-in-out 0.5s ease-in-out infinite',
+				'background-slide': 'background-slide 3s ease-in-out infinite'
 			}
 		}
 	},

@@ -1,23 +1,30 @@
 <script lang="ts">
 	import Section from '@/components/svelte/Article.svelte';
 	import { Textarea } from '@/components/ui/textarea';
-	import { Settings2, Sparkles, Pencil, ImagePlus, Expand, Info } from 'lucide-svelte';
+	import {
+		Settings2,
+		Sparkles,
+		Pencil,
+		ImagePlus,
+		Expand,
+		Info,
+		ChevronsUpDown,
+		Check
+	} from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import Kbd from '@/components/svelte/Kbd.svelte';
 	import { fly, scale } from 'svelte/transition';
-	import {
-		backIn,
-		backInOut,
-		backOut,
-		quartIn,
-		quartInOut,
-		quartOut,
-		quintInOut
-	} from 'svelte/easing';
+	import { backIn, backOut, quartOut } from 'svelte/easing';
 	import { Toggle } from '@/components/ui/toggle';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import * as HoverCard from '@/components/ui/hover-card';
 	import Input from '@/components/ui/input/input.svelte';
+	import Slider from '@/components/ui/slider/slider.svelte';
+	import { enhance } from '$app/forms';
+	import { tick } from 'svelte';
+	import * as Popover from '@/components/ui/popover';
+	import * as Command from '@/components/ui/command';
+	import { cn } from '@/utils';
 
 	let value = $state('');
 	let pressed = $state(false);
@@ -25,15 +32,48 @@
 	let textarea = $state<null | HTMLTextAreaElement>(null);
 	let modalHeight = $state<null | number>(null);
 
-	$effect(() => {
-		if (pressed) {
-			console.log(textarea);
-		}
+	let values = $state([7, 20, -1, 0]);
+
+	let selectList = $state([
+		{ value: 'DPM++ 2M', label: 'DPM++ 2M' },
+		{ value: 'DPM++ SDE', label: 'DPM++ SDE' },
+		{ value: 'DPM++ 2M SDE', label: 'DPM++ 2M SDE' },
+		{ value: 'DPM++ 2M SDE Heun', label: 'DPM++ 2M SDE Heun' },
+		{ value: 'DPM++ 2S a', label: 'DPM++ 2S a' },
+		{ value: 'DPM++ 3M SDE', label: 'DPM++ 3M SDE' },
+		{ value: 'Euler a', label: 'Euler a' },
+		{ value: 'Euler', label: 'Euler' },
+		{ value: 'LMS', label: 'LMS' },
+		{ value: 'Heun', label: 'Heun' },
+		{ value: 'DPM2', label: 'DPM2' },
+		{ value: 'DPM2 a', label: 'DPM2 a' },
+		{ value: 'DPM fast', label: 'DPM fast' },
+		{ value: 'DPM adaptive', label: 'DPM adaptive' },
+		{ value: 'Restart', label: 'Restart' },
+		{ value: 'DDIM', label: 'DDIM' },
+		{ value: 'PLMS', label: 'PLMS' },
+		{ value: 'UniPC', label: 'UniPC' },
+		{ value: 'LCM', label: 'LCM' }
+	]);
+	let selectOpen = $state(false);
+	let selectValue = $state(selectList[0].value);
+	let refSelect = $state<HTMLButtonElement>(null!);
+
+	const selectResult = $derived.by(() => {
+		const index = selectList.findIndex((f) => f.value === selectValue);
+		const value = index !== -1 ? selectList[index] : undefined;
+
+		return { index, ...value };
 	});
 
-	let values = $state([1, 0, 0, 0]);
+	function closeAndFocusTrigger() {
+		selectOpen = false;
+		tick().then(() => {
+			refSelect.focus();
+		});
+	}
 
-	$inspect(modalHeight);
+	$inspect({ selectValue, selectResult });
 </script>
 
 <Section class="relative">
@@ -52,87 +92,243 @@
 				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 0, easing: backIn }}
 			>
 				<section
-					class="grid h-[clamp(161px,1fr,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
-					<header class="text-muted-foreground">
-						<h2 class="flex items-center gap-x-2 text-sm font-bold">
-							CFG Scale <HoverCard.Root>
-								<HoverCard.Trigger class="hidden md:block">
-									<Info class="size-4" />
+					<header>
+						<h2 class="w-max select-none pl-1 text-sm font-bold text-muted-foreground">
+							<HoverCard.Root>
+								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
+									CFG <Info class="hidden size-4 md:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar px-3 py-2 text-sm"
-									>Controls how closely the image matches the prompt.
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+									>Controls how closely the image matches the prompt. The higher the value, the more
+									strictly the image adheres to the prompt,
 								</HoverCard.Content>
 							</HoverCard.Root>
 						</h2>
-					</header>
-					<footer class="flex flex-col items-end">
 						<Input
-							class="w-auto"
+							class="absolute right-2 top-2 w-auto min-w-24"
 							type="number"
 							min="1"
 							max="30"
 							step="0.5"
+							pattern="[0-9]+([.][0-9]+)?"
+							oninput={(e) => {
+								if (isNaN(parseFloat(e.currentTarget.value))) {
+									return;
+								}
+							}}
+							onwheel={(e) => {
+								e.preventDefault();
+
+								if (e.deltaY < 0) {
+									values[0] += 0.5;
+								} else {
+									values[0] -= 0.5;
+								}
+							}}
 							bind:value={values[0]}
 						/>
-						<Input type="range" min="1" max="30" step="0.5" bind:value={values[0]} />
+					</header>
+					<footer class="flex h-full w-full flex-col items-center justify-end px-2 pb-2.5">
+						<Slider
+							bind:value={values[0]}
+							type="single"
+							min={1}
+							max={30}
+							step={0.5}
+							onwheel={(e) => {
+								e.preventDefault();
+
+								if (e.deltaY < 0) {
+									values[0] += 1;
+								} else {
+									values[0] -= 1;
+								}
+							}}
+						/>
 					</footer>
 				</section>
 
 				<section
-					class="grid h-[clamp(161px,85%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr,auto] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
-					<header class="text-muted-foreground">
-						<h2 class="flex items-center gap-x-2 text-sm font-bold">
-							Seed <HoverCard.Root>
-								<HoverCard.Trigger class="hidden md:block">
-									<Info class="size-4" />
+					<header>
+						<h2 class="w-max select-none pl-1 text-sm font-bold text-muted-foreground">
+							<HoverCard.Root>
+								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
+									Steps <Info class="hidden size-4 md:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar px-3 py-2 text-sm"
-									>Sets the starting point for consistent results.
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+									>Defines the number of iterations for refining the image. More steps lead to finer
+									details, but higher values may also increase processing time.
 								</HoverCard.Content>
 							</HoverCard.Root>
 						</h2>
+						<Input
+							class="absolute right-2 top-2 w-auto min-w-24"
+							type="number"
+							min="1"
+							max="150"
+							pattern="^[0-9]*$"
+							oninput={(e) => {
+								if (isNaN(parseFloat(e.currentTarget.value))) {
+									return;
+								}
+							}}
+							onwheel={(e) => {
+								e.preventDefault();
+
+								if (e.deltaY < 0) {
+									values[1] += 1;
+								} else {
+									values[1] -= 1;
+								}
+							}}
+							bind:value={values[1]}
+						/>
 					</header>
-					<footer class="">
-						<Input class="w-full" type="number" bind:value={values[1]} />
+					<footer class="flex h-full w-full flex-col items-center justify-end px-2 pb-2.5">
+						<Slider
+							type="single"
+							bind:value={values[1]}
+							min={1}
+							max={150}
+							onwheel={(e) => {
+								e.preventDefault();
+
+								if (e.deltaY < 0) {
+									values[1] += 1;
+								} else {
+									values[1] -= 1;
+								}
+							}}
+						/>
 					</footer>
 				</section>
 
 				<section
-					class="grid h-[clamp(161px,85%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr,auto] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
-					<header class="text-muted-foreground">
-						<h2 class="flex items-center gap-x-2 text-sm font-bold">
-							Steps <HoverCard.Root>
-								<HoverCard.Trigger class="hidden md:block">
-									<Info class="size-4" />
+					<header>
+						<h2 class="w-max select-none pl-2 pt-1 text-sm font-bold text-muted-foreground">
+							<HoverCard.Root>
+								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
+									Seed <Info class="hidden size-4 md:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar px-3 py-2 text-sm"
-									>Defines the number of iterations for refining the image.
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+									>Sets the starting point for consistent results. Using the same seed ensures
+									consistent results while changing it adds variation.
 								</HoverCard.Content>
 							</HoverCard.Root>
 						</h2>
 					</header>
-					<footer class=""></footer>
+					<footer class="flex h-full w-full flex-col items-center justify-end">
+						<Input
+							type="number"
+							min="1"
+							max="150"
+							pattern="^[0-9]*$"
+							oninput={(e) => {
+								if (isNaN(parseFloat(e.currentTarget.value))) {
+									return;
+								}
+							}}
+							onchange={(e) => {
+								values[2] = Math.round(parseFloat(e.currentTarget.value));
+							}}
+							onwheel={(e) => {
+								e.preventDefault();
+
+								if (e.deltaY < 0) {
+									values[2] += 1;
+								} else {
+									values[2] -= 1;
+								}
+							}}
+							bind:value={values[2]}
+						/>
+					</footer>
 				</section>
 
 				<section
-					class="grid h-[clamp(161px,85%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr,auto] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
-					<header class="text-muted-foreground">
-						<h2 class="flex items-center gap-x-2 text-sm font-bold">
-							Sampler <HoverCard.Root>
-								<HoverCard.Trigger class="hidden md:block">
-									<Info class="size-4" />
+					<header>
+						<h2 class="w-max select-none pl-2 pt-1 text-sm font-bold text-muted-foreground">
+							<HoverCard.Root>
+								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
+									Sampler <Info class="hidden size-4 md:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar px-3 py-2 text-sm"
-									>Determines the algorithm shaping style and quality.
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+									>The sampling method shapes the style and quality of the image. The sampler can
+									influence how smooth, detailed, and closely the image follows the prompt.
 								</HoverCard.Content>
 							</HoverCard.Root>
 						</h2>
 					</header>
-					<footer class=""></footer>
+					<footer class="flex h-full w-full flex-col items-center justify-end">
+						<Popover.Root bind:open={selectOpen}>
+							<Popover.Trigger
+								bind:ref={refSelect}
+								onwheel={(e) => {
+									e.preventDefault();
+									let deltaY = e.deltaY;
+									let i = selectResult.index;
+
+									// if (selectOpen) return;
+
+									if (deltaY < 0) {
+										i = i === 0 ? selectList.length - 1 : i - 1;
+									} else {
+										i = i === selectList.length - 1 ? 0 : i + 1;
+									}
+
+									selectValue = selectList[i].value;
+								}}
+							>
+								{#snippet child({ props })}
+									<Button
+										variant="outline"
+										class="w-full justify-between bg-background/60"
+										{...props}
+										role="combobox"
+										aria-expanded={selectOpen}
+									>
+										{selectResult?.label || 'Select a framework...'}
+										<ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
+									</Button>
+								{/snippet}
+							</Popover.Trigger>
+							<Popover.Content class="w-inherit bg-sidebar! p-0">
+								<Command.Root>
+									<Command.Input />
+									<Command.List class="bg-sidebar/60">
+										<Command.Empty>No sampler found</Command.Empty>
+										<Command.Group>
+											{#each selectList as framework}
+												<Command.Item
+													value={framework.value}
+													onSelect={() => {
+														selectValue = framework.value;
+														closeAndFocusTrigger();
+													}}
+												>
+													<Check
+														class={cn(
+															'mr-2 size-4',
+															selectValue !== framework.value && 'text-transparent'
+														)}
+													/>
+													{framework.label}
+												</Command.Item>
+											{/each}
+										</Command.Group>
+									</Command.List>
+								</Command.Root>
+							</Popover.Content>
+						</Popover.Root>
+					</footer>
 				</section>
 			</div>
 		{/if}
