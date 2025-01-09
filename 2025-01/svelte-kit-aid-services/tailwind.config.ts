@@ -9,6 +9,10 @@ const config: Config = {
 	content: ['./src/**/*.{html,js,svelte,ts}'],
 	safelist: ['dark'],
 	theme: {
+		fontFamily: {
+			sans: ['"Inter Variable"', ...fontFamily.sans],
+			vintage: ['"MonteCarlo"', 'serif']
+		},
 		container: {
 			center: true,
 			padding: '2rem',
@@ -81,10 +85,6 @@ const config: Config = {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
-			},
-			fontFamily: {
-				sans: [...fontFamily.sans],
-				vintage: ['"MonteCarlo"', 'serif']
 			},
 			transitionTimingFunction: {
 				'out-cubic': 'cubic-bezier(0.22, 0.61, 0.36, 1)'

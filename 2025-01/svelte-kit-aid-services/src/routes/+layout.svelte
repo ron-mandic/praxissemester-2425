@@ -1,5 +1,7 @@
 <script lang="ts">
 	import 'normalize.css';
+	import '@fontsource/geist-sans';
+	import '@fontsource/montecarlo';
 	import '../app.scss';
 	import { Image, AudioLines, BookOpen, LetterText } from 'lucide-svelte/icons';
 	import App from '$lib/components/svelte/App.svelte';

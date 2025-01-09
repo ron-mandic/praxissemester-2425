@@ -6,11 +6,9 @@
 		Sparkles,
 		Pencil,
 		ImagePlus,
-		Expand,
 		Info,
 		ChevronsUpDown,
-		Check,
-		CommandIcon
+		Check
 	} from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import Kbd from '@/components/svelte/Kbd.svelte';
@@ -60,7 +58,7 @@
 
 	let refTextarea = $state<null | HTMLTextAreaElement>(null);
 	let refModalInput = $state<null | HTMLInputElement>(null);
-	let refForm = $state<HTMLFormElement>(null!);
+	let refForm = $state<HTMLDivElement>(null!);
 	let refSelect = $state<HTMLButtonElement>(null!);
 
 	const selectResult = $derived.by(() => {
@@ -106,7 +104,7 @@
 			/>
 		</div> -->
 
-		<div class="relative h-full w-full rounded-lg bg-red-900/30"></div>
+		<div class="relative h-full w-full rounded-lg"></div>
 
 		{#if pressed}
 			<!--
@@ -140,6 +138,7 @@
 						</h2>
 						<Input
 							class="absolute right-2 top-2 w-auto min-w-24"
+							bind:value={values[0]}
 							type="number"
 							min="1"
 							max="30"
@@ -159,7 +158,6 @@
 									values[0] -= 0.5;
 								}
 							}}
-							bind:value={values[0]}
 						/>
 					</header>
 					<footer class="flex h-full w-full flex-col items-center justify-end px-2 pb-2.5">
@@ -199,6 +197,7 @@
 						</h2>
 						<Input
 							class="absolute right-2 top-2 w-auto min-w-24"
+							bind:value={values[1]}
 							type="number"
 							min="1"
 							max="150"
@@ -217,13 +216,12 @@
 									values[1] -= 1;
 								}
 							}}
-							bind:value={values[1]}
 						/>
 					</header>
 					<footer class="flex h-full w-full flex-col items-center justify-end px-2 pb-2.5">
 						<Slider
-							type="single"
 							bind:value={values[1]}
+							type="single"
 							min={1}
 							max={150}
 							onwheel={(e) => {
@@ -259,6 +257,7 @@
 					</header>
 					<footer class="flex h-full w-full flex-col items-center justify-end">
 						<Input
+							bind:value={values[2]}
 							type="number"
 							min="1"
 							max="150"
@@ -280,7 +279,6 @@
 									values[2] -= 1;
 								}
 							}}
-							bind:value={values[2]}
 						/>
 					</footer>
 				</section>
@@ -371,8 +369,9 @@
 		{/if}
 	</div>
 
-	<form
+	<div
 		bind:this={refForm}
+		id="form"
 		class="absolute bottom-9 left-1/2 flex h-auto w-full max-w-[640px] -translate-x-1/2 flex-col items-center justify-end"
 	>
 		<div
@@ -381,10 +380,9 @@
 			<Textarea
 				bind:value
 				bind:ref={refTextarea}
-				name="prompt"
 				placeholder="What will you create?"
 				draggable="true"
-				class="h-auto max-h-[150px] w-full resize-none border-none bg-red-900 text-base leading-tight transition-colors duration-300 placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
+				class="h-auto max-h-[150px] w-full resize-none border-none bg-transparent text-base leading-tight transition-colors duration-300 placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
 				oninput={(_) => {
 					// Registering changes to the value (only alphanumeric characters, but with Copy / Paste)
 					if (value.length === 0) {
@@ -415,15 +413,6 @@
 					}
 				}}
 				onkeydown={(e) => {
-					if (pressed) {
-						tick().then(() => {
-							requestAnimationFrame(() => {
-								refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
-							});
-						});
-						return;
-					}
-
 					// Registering keyboard interactions (non-alphanumeric characters) prior to input changes
 					if (e.key === 'Enter' && e.shiftKey) {
 						e.preventDefault();
@@ -432,7 +421,7 @@
 						// First, let the reactive value 'value' apply changes to the DOM
 						tick().then(() => {
 							// Then, apply changes but for all non-alphanumeric characters (including Enter)
-							refTextarea!.style.height = refTextarea!.scrollHeight + 'px';
+							if (!pressed) refTextarea!.style.height = refTextarea!.scrollHeight + 'px';
 
 							requestAnimationFrame(() => {
 								refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
@@ -445,8 +434,18 @@
 						e.preventDefault();
 						if (!value) return;
 
-						refForm.requestSubmit();
 						value = '';
+
+						const formData = new FormData();
+						formData.append('prompt', value);
+						formData.append('cfg_scale', values[0].toString());
+						formData.append('steps', values[1].toString());
+						formData.append('seed', values[2].toString());
+						formData.append('sampler_index', selectValue);
+
+						for (let [key, value] of formData.entries()) {
+							console.log(key, value);
+						}
 
 						tick().then(() => {
 							// Reset the entire form by restoring the initial height
@@ -515,7 +514,6 @@
 				<div>
 					<Button
 						class="disabled:bg-blue-600! select-none bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 px-3 text-white transition-[opacity,transform] duration-300 ease-out-cubic hover:-translate-y-[2px] active:-translate-y-[2px] disabled:opacity-30"
-						type="submit"
 						tabindex={0}
 						disabled={value.length === 0}
 					>
@@ -530,11 +528,11 @@
 				</div>
 			</div>
 		</div>
-	</form>
+	</div>
 </Section>
 
 <style lang="scss">
-	form::after {
+	#form::after {
 		content: 'Do not use for malicious purposes';
 		@apply absolute left-1/2 top-full w-full -translate-x-1/2 translate-y-3 cursor-auto text-center text-xs text-muted-foreground/50 transition-transform duration-200 ease-out-cubic no-interaction;
 	}
