@@ -77,6 +77,18 @@
 		});
 	}
 
+	$effect(() => {
+		// Whenever pressed changes, adjust the height of the textarea accordingly
+		if (pressed) {
+			refTextarea!.style.height = 'auto';
+			return;
+		}
+
+		let scrollHeight = refTextarea!.scrollHeight;
+		refTextarea!.style.height = scrollHeight + 'px';
+		refTextarea?.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+	});
+
 	$inspect({ selectValue, selectResult });
 </script>
 
@@ -370,47 +382,63 @@
 				name="prompt"
 				placeholder="What will you create?"
 				draggable="true"
-				class="h-auto max-h-[150px] w-full resize-none border-none bg-transparent text-base leading-tight transition-colors duration-300 placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
+				class="h-auto max-h-[150px] w-full resize-none border-none bg-red-900 text-base leading-tight transition-colors duration-300 placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
 				oninput={(_) => {
-					if (value.trim() === '') {
+					// Registering changes to the value (only alphanumeric characters, but with Copy / Paste)
+					if (value.length === 0) {
 						refTextarea!.style.height = 'auto';
-						console.log('Gotcha!');
+						return;
+					}
+
+					// Apply changes for all alpha-numeric characters (excluding special characters e.g. Enter)
+					refTextarea!.style.height = refTextarea!.scrollHeight + 'px';
+
+					if (refTextarea!.clientHeight < refTextarea!.scrollHeight) {
+						// Wait until the textarea has resized (all reactive updates have been applied)
+						tick().then(() => {
+							// Make sure scrolling happens in the next frame (after Browser's repaint/reflow)
+							requestAnimationFrame(() => {
+								refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
+							});
+						});
 					}
 				}}
 				onkeydown={(e) => {
+					// Registering keyboard interactions (non-alphanumeric characters) prior to input changes
+
 					if (e.key === 'Enter' && e.shiftKey) {
 						e.preventDefault();
 						value += '\n';
 
+						// First, let the reactive value 'value' apply changes to the DOM
 						tick().then(() => {
-							let scrollHeight = refTextarea!.scrollHeight;
+							// Then, apply changes but for all non-alphanumeric characters (including Enter)
+							refTextarea!.style.height = refTextarea!.scrollHeight + 'px';
 
-							refTextarea!.style.height = scrollHeight + 'px';
-							refTextarea?.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+							requestAnimationFrame(() => {
+								refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
+							});
 						});
-					} else if (e.key === 'Enter') {
+						return;
+					}
+
+					if (e.key === 'Enter') {
 						e.preventDefault();
+						if (!value) return;
 
 						refForm.requestSubmit();
 						value = '';
 
 						tick().then(() => {
+							// Reset the entire form by restoring the initial height
 							refTextarea!.style.height = 'auto';
+
 							setTimeout(() => {
 								refTextarea?.focus();
 							}, 1_000);
 						});
+						return;
 					}
-
-					tick().then(() => {
-						if (pressed) {
-							refTextarea!.style.height = 'auto';
-						} else {
-							let scrollHeight = refTextarea!.scrollHeight;
-							refTextarea!.style.height = scrollHeight + 'px';
-							refTextarea?.scrollTo({ top: scrollHeight, behavior: 'smooth' });
-						}
-					});
 				}}
 			/>
 			<div
