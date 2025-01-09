@@ -81,12 +81,14 @@
 		// Whenever pressed changes, adjust the height of the textarea accordingly
 		if (pressed) {
 			refTextarea!.style.height = 'auto';
+			refTextarea?.focus();
 			return;
 		}
 
-		let scrollHeight = refTextarea!.scrollHeight;
-		refTextarea!.style.height = scrollHeight + 'px';
-		refTextarea?.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+		refTextarea!.style.height = refTextarea!.scrollHeight + 'px';
+		requestAnimationFrame(() => {
+			refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
+		});
 	});
 
 	$inspect({ selectValue, selectResult });
@@ -390,6 +392,15 @@
 						return;
 					}
 
+					if (pressed) {
+						tick().then(() => {
+							requestAnimationFrame(() => {
+								refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
+							});
+						});
+						return;
+					}
+
 					// Apply changes for all alpha-numeric characters (excluding special characters e.g. Enter)
 					refTextarea!.style.height = refTextarea!.scrollHeight + 'px';
 
@@ -404,8 +415,16 @@
 					}
 				}}
 				onkeydown={(e) => {
-					// Registering keyboard interactions (non-alphanumeric characters) prior to input changes
+					if (pressed) {
+						tick().then(() => {
+							requestAnimationFrame(() => {
+								refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
+							});
+						});
+						return;
+					}
 
+					// Registering keyboard interactions (non-alphanumeric characters) prior to input changes
 					if (e.key === 'Enter' && e.shiftKey) {
 						e.preventDefault();
 						value += '\n';
