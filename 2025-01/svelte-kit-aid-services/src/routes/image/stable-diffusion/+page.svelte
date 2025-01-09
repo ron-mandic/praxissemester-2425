@@ -9,7 +9,8 @@
 		Expand,
 		Info,
 		ChevronsUpDown,
-		Check
+		Check,
+		CommandIcon
 	} from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import Kbd from '@/components/svelte/Kbd.svelte';
@@ -29,7 +30,6 @@
 	let value = $state('');
 	let pressed = $state(false);
 
-	let textarea = $state<null | HTMLTextAreaElement>(null);
 	let modalHeight = $state<null | number>(null);
 
 	let values = $state([7, 20, -1, 0]);
@@ -57,6 +57,10 @@
 	]);
 	let selectOpen = $state(false);
 	let selectValue = $state(selectList[0].value);
+
+	let refTextarea = $state<null | HTMLTextAreaElement>(null);
+	let refModalInput = $state<null | HTMLInputElement>(null);
+	let refForm = $state<HTMLFormElement>(null!);
 	let refSelect = $state<HTMLButtonElement>(null!);
 
 	const selectResult = $derived.by(() => {
@@ -78,21 +82,35 @@
 
 <Section class="relative">
 	<div
-		class="group flex h-[calc(100dvh-74px)] max-h-[calc(100dvh-74px)] w-full flex-col justify-end overflow-y-hidden pb-[clamp(198px,10%,350px)] @container"
+		class="group flex h-[calc(100dvh-74px)] max-h-[calc(100dvh-74px)] w-full flex-col justify-end overflow-y-hidden pb-[clamp(198px,10%,200px)] @container"
 	>
+		<!-- <div class="relative h-full w-full rounded-lg bg-red-900/30">
+			<img
+				src="https://images.unsplash.com/photo-1736319551652-4378fc7f9502?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+				alt="Placeholder"
+				class="h-full w-full rounded-lg object-cover"
+			/>
+		</div> -->
+
+		<div class="relative h-full w-full rounded-lg bg-red-900/30"></div>
+
 		{#if pressed}
+			<!--
+				NOTE: iPhone 4 support, currently full iPhone SE compatibility
+				[@media(max-height:552px)]:h-[108px] 
+			-->
 			<div
 				role="dialog"
 				aria-labelledby="modal-title"
 				aria-describedby="modal-description"
 				id="modal-settings"
-				class="mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-full max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
+				class="absolute left-1/2 mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-full max-w-[640px] -translate-x-1/2 snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
 				bind:clientHeight={modalHeight}
-				in:fly={{ y: 50, opacity: 0, duration: 300, delay: 100, easing: quartOut }}
-				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 0, easing: backIn }}
+				in:fly={{ y: 50, opacity: 0, duration: 300, delay: 300, easing: quartOut }}
+				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 100, easing: backIn }}
 			>
 				<section
-					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
@@ -151,7 +169,7 @@
 				</section>
 
 				<section
-					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
@@ -208,7 +226,7 @@
 				</section>
 
 				<section
-					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2
@@ -254,7 +272,7 @@
 				</section>
 
 				<section
-					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2
@@ -275,6 +293,7 @@
 						<Popover.Root bind:open={selectOpen}>
 							<Popover.Trigger
 								bind:ref={refSelect}
+								tabindex={0}
 								onwheel={(e) => {
 									e.preventDefault();
 									let deltaY = e.deltaY;
@@ -339,6 +358,7 @@
 	</div>
 
 	<form
+		bind:this={refForm}
 		class="absolute bottom-9 left-1/2 flex h-auto w-full max-w-[640px] -translate-x-1/2 flex-col items-center justify-end"
 	>
 		<div
@@ -346,28 +366,56 @@
 		>
 			<Textarea
 				bind:value
-				bind:ref={textarea}
+				bind:ref={refTextarea}
 				name="prompt"
 				placeholder="What will you create?"
 				draggable="true"
-				class="h-auto! max-h-[150px] w-full resize-none border-none bg-transparent text-base transition-colors duration-300 placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
-				oninput={(e) => {
-					if (pressed) {
-						e.currentTarget.style.height = 'auto';
-						return;
+				class="h-auto max-h-[150px] w-full resize-none border-none bg-transparent text-base leading-tight transition-colors duration-300 placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
+				oninput={(_) => {
+					if (value.trim() === '') {
+						refTextarea!.style.height = 'auto';
+						console.log('Gotcha!');
+					}
+				}}
+				onkeydown={(e) => {
+					if (e.key === 'Enter' && e.shiftKey) {
+						e.preventDefault();
+						value += '\n';
+
+						tick().then(() => {
+							let scrollHeight = refTextarea!.scrollHeight;
+
+							refTextarea!.style.height = scrollHeight + 'px';
+							refTextarea?.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+						});
+					} else if (e.key === 'Enter') {
+						e.preventDefault();
+
+						refForm.requestSubmit();
+						value = '';
+
+						tick().then(() => {
+							refTextarea!.style.height = 'auto';
+							setTimeout(() => {
+								refTextarea?.focus();
+							}, 1_000);
+						});
 					}
 
-					let height = e.currentTarget.scrollHeight;
-					e.currentTarget.style.height = height + 'px';
-
-					if (e.currentTarget.value.trim() === '') {
-						e.currentTarget.style.height = 'auto';
-					}
+					tick().then(() => {
+						if (pressed) {
+							refTextarea!.style.height = 'auto';
+						} else {
+							let scrollHeight = refTextarea!.scrollHeight;
+							refTextarea!.style.height = scrollHeight + 'px';
+							refTextarea?.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+						}
+					});
 				}}
 			/>
 			<div
 				class="align-items mt-4 flex flex-row justify-between"
-				in:fly={{ y: 30, opacity: 0, duration: 300, delay: 750, easing: backOut }}
+				in:fly={{ y: 30, opacity: 0, duration: 300, delay: 1000, easing: backOut }}
 			>
 				<div class="flex select-none items-center gap-x-2">
 					<Toggle
@@ -375,10 +423,13 @@
 						class="border border-transparent text-muted-foreground hover:text-sidebar-accent-foreground focus-visible:animate-pulse focus-visible:ring-sidebar-ring data-[state=on]:bg-blue-900/30 data-[state=on]:text-blue-500 hover:data-[state=on]:!border-blue-500 hover:data-[state=on]:bg-blue-900/30 data-[state=on]:focus-visible:animate-pulse"
 						onPressedChange={(pressed) => {
 							if (pressed) {
-								textarea!.style.height = 'auto';
-								textarea?.scrollTo({ top: textarea!.scrollHeight, behavior: 'smooth' });
+								refTextarea!.style.height = 'auto';
+								refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
 							} else {
-								textarea!.style.height = textarea!.scrollHeight + 'px';
+								refTextarea!.style.height = refTextarea!.scrollHeight + 'px';
+								tick().then(() => {
+									refTextarea?.focus();
+								});
 							}
 						}}
 						tabindex={0}
@@ -426,8 +477,7 @@
 						<Kbd
 							class="ml-0.5 hidden items-center gap-x-1 border-slate-300/30 bg-transparent md:inline-flex"
 						>
-							<span class="text-sm">⌘</span>
-							<span class="-translate-y-px text-sm">↵</span>
+							<span class="translate-y-[0.5px] text-sm">↵</span>
 						</Kbd>
 					</Button>
 				</div>

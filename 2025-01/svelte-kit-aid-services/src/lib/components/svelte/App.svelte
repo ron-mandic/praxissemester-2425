@@ -8,7 +8,7 @@
 	import { navigating } from '$app/state';
 	import { IsScrolling } from '$lib/hooks/is-scrolling.svelte';
 	import { Button } from '../ui/button';
-	import { Search, Slash } from 'lucide-svelte/icons';
+	import { CommandIcon, Search, Slash } from 'lucide-svelte/icons';
 	import Kbd from './Kbd.svelte';
 
 	let { children, services, url } = $props();
@@ -69,15 +69,23 @@
 				class="inline-flex items-center gap-x-3 px-3 text-muted-foreground shadow-none"
 			>
 				<Kbd class="hidden md:inline-flex">
-					<span class="translate-y-[.5px] text-sm">⌘</span>
+					<span class="text-sm">
+						<CommandIcon style="width: 12px; aspect-ratio: 1 / 1;" />
+					</span>
 					<span>B</span>
 				</Kbd>
 			</Trigger>
 			<Separator orientation="vertical" class="mr-3 h-4 bg-muted-foreground/40" />
 			<Breadcrumb.Root>
 				<Breadcrumb.List class="select-none">
-					<Breadcrumb.Item class="hidden lg:block">
-						<Breadcrumb.Link href="#">Image</Breadcrumb.Link>
+					<Breadcrumb.Item
+						class="hidden focus-within:border-none focus-within:outline-none lg:block"
+						aria-current="page"
+					>
+						<Breadcrumb.Link
+							class="rounded-sm border-none focus-visible:animate-pulse focus-visible:outline-2 focus-visible:outline-offset-2"
+							href="/image">Image</Breadcrumb.Link
+						>
 					</Breadcrumb.Item>
 
 					<Breadcrumb.Separator class="hidden lg:block">
@@ -107,7 +115,9 @@
 				Search
 			</span>
 			<Kbd class="hidden md:inline-flex">
-				<span class="translate-y-[.5px] text-sm">⌘</span>
+				<span class="text-sm">
+					<CommandIcon style="width: 12px; aspect-ratio: 1 / 1;" />
+				</span>
 				<span>K</span>
 			</Kbd>
 			<div class="sr-only">Search</div>

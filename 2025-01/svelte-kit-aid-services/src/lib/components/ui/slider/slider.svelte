@@ -37,7 +37,7 @@ get along, so we shut typescript up by casting `value` to `never`.
 			<SliderPrimitive.Thumb
 				index={thumb}
 				class={[{
-					"block size-5 cursor-grab rounded-full border-2 border-primary bg-primary ring-offset-background duration-200 ease-in transition-colors focus-visible:bg-sidebar-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-0 active:bg-sidebar-primary active:outline-none active:ring-2 active:ring-sidebar-ring active:ring-offset-0 disabled:pointer-events-none disabled:opacity-50": true,
+					"block size-[18px] cursor-grab rounded-full border-2 border-primary bg-primary ring-offset-background duration-200 ease-in transition-colors focus-visible:bg-sidebar-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-0 active:bg-sidebar-primary active:outline-none active:ring-2 active:ring-sidebar-ring active:ring-offset-0 disabled:pointer-events-none disabled:opacity-50": true,
 					"bg-sidebar-primary ring-sidebar-ring ring-2": grab
 				}]}
 				onfocus={() => (grab = true)}
