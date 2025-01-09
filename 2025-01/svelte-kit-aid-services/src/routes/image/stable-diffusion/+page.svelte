@@ -95,14 +95,14 @@
 					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
-						<h2 class="w-max select-none pl-1 text-sm font-bold text-muted-foreground">
+						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
 							<HoverCard.Root>
 								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
 									CFG <Info class="hidden size-4 md:block" />
 								</HoverCard.Trigger>
 								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Controls how closely the image matches the prompt. The higher the value, the more
-									strictly the image adheres to the prompt,
+									strictly the image adheres to the prompt.
 								</HoverCard.Content>
 							</HoverCard.Root>
 						</h2>
@@ -141,9 +141,9 @@
 								e.preventDefault();
 
 								if (e.deltaY < 0) {
-									values[0] += 1;
+									values[0] += 0.5;
 								} else {
-									values[0] -= 1;
+									values[0] -= 0.5;
 								}
 							}}
 						/>
@@ -154,7 +154,7 @@
 					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
-						<h2 class="w-max select-none pl-1 text-sm font-bold text-muted-foreground">
+						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
 							<HoverCard.Root>
 								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
 									Steps <Info class="hidden size-4 md:block" />
@@ -211,7 +211,9 @@
 					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
-						<h2 class="w-max select-none pl-2 pt-1 text-sm font-bold text-muted-foreground">
+						<h2
+							class="w-max select-none pl-2 pt-1 text-base font-bold text-muted-foreground md:text-sm"
+						>
 							<HoverCard.Root>
 								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
 									Seed <Info class="hidden size-4 md:block" />
@@ -255,7 +257,9 @@
 					class="relative grid h-[clamp(161px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
-						<h2 class="w-max select-none pl-2 pt-1 text-sm font-bold text-muted-foreground">
+						<h2
+							class="w-max select-none pl-2 pt-1 text-base font-bold text-muted-foreground md:text-sm"
+						>
 							<HoverCard.Root>
 								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
 									Sampler <Info class="hidden size-4 md:block" />
@@ -338,7 +342,7 @@
 		class="absolute bottom-9 left-1/2 flex h-auto w-full max-w-[640px] -translate-x-1/2 flex-col items-center justify-end"
 	>
 		<div
-			class="relative h-full w-full rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl transition-[width,transform,margin]"
+			class="relative h-full w-full rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-sm backdrop-blur-xl transition-[width,transform,margin]"
 		>
 			<Textarea
 				bind:value
