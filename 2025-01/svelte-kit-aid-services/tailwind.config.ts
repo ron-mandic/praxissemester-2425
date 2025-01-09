@@ -10,7 +10,7 @@ const config: Config = {
 	safelist: ['dark'],
 	theme: {
 		fontFamily: {
-			sans: ['"Inter Variable"', ...fontFamily.sans],
+			sans: ['Inter, system-ui, Avenir, Helvetica, Arial, sans-serif', ...fontFamily.sans],
 			vintage: ['"MonteCarlo"', 'serif']
 		},
 		container: {

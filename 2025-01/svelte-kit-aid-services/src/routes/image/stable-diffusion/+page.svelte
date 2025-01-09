@@ -19,7 +19,6 @@
 	import * as HoverCard from '@/components/ui/hover-card';
 	import Input from '@/components/ui/input/input.svelte';
 	import Slider from '@/components/ui/slider/slider.svelte';
-	import { enhance } from '$app/forms';
 	import { tick } from 'svelte';
 	import * as Popover from '@/components/ui/popover';
 	import * as Command from '@/components/ui/command';
@@ -27,9 +26,6 @@
 
 	let value = $state('');
 	let pressed = $state(false);
-
-	let modalHeight = $state<null | number>(null);
-
 	let values = $state([7, 20, -1, 0]);
 
 	let selectList = $state([
@@ -57,7 +53,6 @@
 	let selectValue = $state(selectList[0].value);
 
 	let refTextarea = $state<null | HTMLTextAreaElement>(null);
-	let refModalInput = $state<null | HTMLInputElement>(null);
 	let refForm = $state<HTMLDivElement>(null!);
 	let refSelect = $state<HTMLButtonElement>(null!);
 
@@ -104,7 +99,9 @@
 			/>
 		</div> -->
 
-		<div class="relative h-full w-full rounded-lg"></div>
+		<div class="relative flex h-full w-full items-center justify-center rounded-lg">
+			<p>Hello World</p>
+		</div>
 
 		{#if pressed}
 			<!--
@@ -117,7 +114,6 @@
 				aria-describedby="modal-description"
 				id="modal-settings"
 				class="absolute left-1/2 mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-full max-w-[640px] -translate-x-1/2 snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
-				bind:clientHeight={modalHeight}
 				in:fly={{ y: 50, opacity: 0, duration: 300, delay: 300, easing: quartOut }}
 				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 100, easing: backIn }}
 			>
@@ -430,6 +426,7 @@
 						return;
 					}
 
+					// TODO: Enter should also return a new line on mobile
 					if (e.key === 'Enter') {
 						e.preventDefault();
 						if (!value) return;
@@ -512,6 +509,7 @@
 				</div>
 
 				<div>
+					<!-- TODO: Button should also create a FormData instance -->
 					<Button
 						class="disabled:bg-blue-600! select-none bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 px-3 text-white transition-[opacity,transform] duration-300 ease-out-cubic hover:-translate-y-[2px] active:-translate-y-[2px] disabled:opacity-30"
 						tabindex={0}

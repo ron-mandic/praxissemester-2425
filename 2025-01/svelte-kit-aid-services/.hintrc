@@ -1,19 +1,26 @@
 {
-	"extends": ["development"],
-	"hints": {
-		"meta-viewport": "off",
-		"no-inline-styles": "off",
-		"axe/text-alternatives": [
-			"default",
-			{
-				"document-title": "off"
-			}
-		],
-		"compat-api/css": [
-			"default",
-			{
-				"ignore": ["scrollbar-width", "-webkit-text-size-adjust", "-moz-appearance"]
-			}
-		]
-	}
+  "extends": [
+    "development"
+  ],
+  "hints": {
+    "meta-viewport": "off",
+    "no-inline-styles": "off",
+    "axe/text-alternatives": [
+      "default",
+      {
+        "document-title": "off"
+      }
+    ],
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "scrollbar-width",
+          "-webkit-text-size-adjust",
+          "-moz-appearance",
+          "font-smooth"
+        ]
+      }
+    ]
+  }
 }

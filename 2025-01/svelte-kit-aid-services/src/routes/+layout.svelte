@@ -1,12 +1,12 @@
 <script lang="ts">
 	import 'normalize.css';
-	import '@fontsource/geist-sans';
 	import '@fontsource/montecarlo';
 	import '../app.scss';
-	import { Image, AudioLines, BookOpen, LetterText } from 'lucide-svelte/icons';
+
 	import App from '$lib/components/svelte/App.svelte';
 	import AppSidebar from '$lib/components/svelte/AppSidebar.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { Image, AudioLines, BookOpen, LetterText } from 'lucide-svelte/icons';
 
 	let { data, children } = $props();
 
