@@ -86,7 +86,9 @@
 		});
 	});
 
-	$inspect({ selectValue, selectResult });
+	let clientWidth = $state(0);
+
+	$inspect(clientWidth);
 </script>
 
 <Section class="relative">
@@ -102,34 +104,8 @@
 		</div> -->
 
 		<div
-			class="relative flex h-full w-full items-center justify-center overflow-x-hidden rounded-lg"
-		>
-			<Carousel.Root class="w-full max-w-[90%]">
-				<Carousel.Content class="rounded-lg">
-					<Carousel.Item class="h-auto w-auto">
-						<img
-							src="https://images.unsplash.com/photo-1736457908762-d6ae9e5fb593?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-							class="aspect-square rounded-lg object-cover"
-							alt="BG-1"
-						/>
-					</Carousel.Item>
-					<Carousel.Item class="h-auto w-auto">
-						<img
-							src="https://images.unsplash.com/photo-1736178643897-4f9cfc7b0fe5?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-							class="aspect-square rounded-lg object-cover"
-							alt="BG-2"
-						/>
-					</Carousel.Item>
-					<Carousel.Item class="h-auto w-auto">
-						<img
-							src="https://images.unsplash.com/photo-1733051155541-eaf8979ff01b?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-							class="aspect-square rounded-lg object-cover"
-							alt="BG-3"
-						/>
-					</Carousel.Item>
-				</Carousel.Content>
-			</Carousel.Root>
-		</div>
+			class="relative flex h-full w-full items-center justify-center overflow-x-hidden rounded-lg bg-transparent"
+		></div>
 
 		{#if pressed}
 			<!--
@@ -141,7 +117,8 @@
 				aria-labelledby="modal-title"
 				aria-describedby="modal-description"
 				id="modal-settings"
-				class="absolute left-1/2 mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-full max-w-[640px] -translate-x-1/2 snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
+				class="mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-full max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
+				style="position: absolute; left: 50%; transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px);"
 				in:fly={{ y: 50, opacity: 0, duration: 300, delay: 300, easing: quartOut }}
 				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 100, easing: backIn }}
 			>
@@ -396,7 +373,8 @@
 	<div
 		bind:this={refForm}
 		id="form"
-		class="absolute bottom-9 left-1/2 flex h-auto w-full max-w-[640px] -translate-x-1/2 flex-col items-center justify-end"
+		class="absolute bottom-9 flex h-auto w-full max-w-[640px] flex-col items-center justify-end"
+		style="position: absolute; left: 50%; transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px);"
 	>
 		<div
 			class="relative h-full w-full rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-sm backdrop-blur-xl transition-[width,transform,margin]"
