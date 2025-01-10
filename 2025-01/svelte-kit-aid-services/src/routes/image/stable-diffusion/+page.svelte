@@ -8,7 +8,8 @@
 		ImagePlus,
 		Info,
 		ChevronsUpDown,
-		Check
+		Check,
+		Terminal
 	} from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import Kbd from '@/components/svelte/Kbd.svelte';
@@ -23,6 +24,7 @@
 	import * as Popover from '@/components/ui/popover';
 	import * as Command from '@/components/ui/command';
 	import { cn } from '@/utils';
+	import * as Carousel from '@/components/ui/carousel';
 
 	let value = $state('');
 	let pressed = $state(false);
@@ -99,8 +101,34 @@
 			/>
 		</div> -->
 
-		<div class="relative flex h-full w-full items-center justify-center rounded-lg">
-			<p>Hello World</p>
+		<div
+			class="relative flex h-full w-full items-center justify-center overflow-x-hidden rounded-lg"
+		>
+			<Carousel.Root class="w-full max-w-[90%]">
+				<Carousel.Content class="rounded-lg">
+					<Carousel.Item class="h-auto w-auto">
+						<img
+							src="https://images.unsplash.com/photo-1736457908762-d6ae9e5fb593?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+							class="aspect-square rounded-lg object-cover"
+							alt="BG-1"
+						/>
+					</Carousel.Item>
+					<Carousel.Item class="h-auto w-auto">
+						<img
+							src="https://images.unsplash.com/photo-1736178643897-4f9cfc7b0fe5?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+							class="aspect-square rounded-lg object-cover"
+							alt="BG-2"
+						/>
+					</Carousel.Item>
+					<Carousel.Item class="h-auto w-auto">
+						<img
+							src="https://images.unsplash.com/photo-1733051155541-eaf8979ff01b?q=80&w=1964&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+							class="aspect-square rounded-lg object-cover"
+							alt="BG-3"
+						/>
+					</Carousel.Item>
+				</Carousel.Content>
+			</Carousel.Root>
 		</div>
 
 		{#if pressed}
@@ -118,7 +146,7 @@
 				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 100, easing: backIn }}
 			>
 				<section
-					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
@@ -177,7 +205,7 @@
 				</section>
 
 				<section
-					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
@@ -234,7 +262,7 @@
 				</section>
 
 				<section
-					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2
@@ -280,7 +308,7 @@
 				</section>
 
 				<section
-					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar-accent/40 p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
 				>
 					<header>
 						<h2
@@ -463,7 +491,7 @@
 				<div class="flex select-none items-center gap-x-2">
 					<Toggle
 						bind:pressed
-						class="border border-transparent text-muted-foreground hover:text-sidebar-accent-foreground focus-visible:animate-pulse focus-visible:ring-sidebar-ring data-[state=on]:bg-blue-900/30 data-[state=on]:text-blue-500 hover:data-[state=on]:!border-blue-500 hover:data-[state=on]:bg-blue-900/30 data-[state=on]:focus-visible:animate-pulse"
+						class="border-2 border-transparent text-muted-foreground hover:text-sidebar-accent-foreground focus-visible:animate-pulse focus-visible:ring-sidebar-ring data-[state=on]:bg-blue-900/30 data-[state=on]:text-blue-500 hover:data-[state=on]:!border-blue-500 hover:data-[state=on]:bg-blue-900/40 data-[state=on]:focus-visible:animate-pulse"
 						onPressedChange={(pressed) => {
 							if (pressed) {
 								refTextarea!.style.height = 'auto';

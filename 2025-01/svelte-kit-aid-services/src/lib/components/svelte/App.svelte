@@ -83,7 +83,7 @@
 						aria-current="page"
 					>
 						<Breadcrumb.Link
-							class="rounded-sm border-none focus-visible:animate-pulse focus-visible:outline-2 focus-visible:outline-offset-2"
+							class="rounded-[4px] border-none ring-sidebar-ring focus-visible:animate-pulse focus-visible:outline-2 focus-visible:outline-offset-2"
 							href="/image">Image</Breadcrumb.Link
 						>
 					</Breadcrumb.Item>

@@ -118,7 +118,7 @@
 		@apply w-full touch-manipulation scroll-smooth bg-background text-foreground;
 	}
 	body {
-		@apply overflow-x-hidden overflow-y-scroll selection:bg-sidebar-primary/10 selection:text-sidebar-primary;
+		@apply overflow-x-hidden overflow-y-scroll selection:bg-blue-900/30 selection:text-blue-500;
 	}
 
 	body::after {

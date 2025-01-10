@@ -128,7 +128,7 @@
 				},
 				{
 					title: 'Stable Diffusion',
-					url: '/image/stable-diffusion'
+					url: 'https://stablediffusionweb.com/'
 				}
 			]
 		},
