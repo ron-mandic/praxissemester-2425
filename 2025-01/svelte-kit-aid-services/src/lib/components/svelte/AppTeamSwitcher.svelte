@@ -5,6 +5,7 @@
 	import ChevronsUpDown from 'lucide-svelte/icons/chevrons-up-down';
 	import Kbd from './Kbd.svelte';
 	import Sticker from './Sticker.svelte';
+	import { OptionIcon } from 'lucide-svelte';
 
 	// This should be `Component` after lucide-svelte updates types
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -47,7 +48,7 @@
 				side={sidebar.isMobile ? 'bottom' : 'right'}
 				sideOffset={4}
 			>
-				<DropdownMenu.Label class="text-xs text-muted-foreground no-interaction"
+				<DropdownMenu.Label class="font-mono text-xs uppercase text-muted-foreground no-interaction"
 					>Applications
 				</DropdownMenu.Label>
 
@@ -74,9 +75,12 @@
 							<span class="pointer-events-none">{team.name}</span>
 
 							{#if !team.disabled}
-								<DropdownMenu.Shortcut class="pointer-events-none">
-									<Kbd class="min-w-[48px] py-1 tracking-tighter">
-										<span class="text-[13px] inline-block">⌥</span>
+								<DropdownMenu.Shortcut class="pointer-events-none pb-1">
+									<Kbd class="min-w-[48px] -translate-x-12 py-1 tracking-tighter">
+										<!-- <span class="inline-block text-[13px]">⌥</span> -->
+										<span class="inline-block translate-y-1 text-sm">
+											<OptionIcon style="width: 10px; aspect-ratio: 1 / 1;" />
+										</span>
 										<span>+</span>
 										<span>{index + 1}</span>
 									</Kbd>

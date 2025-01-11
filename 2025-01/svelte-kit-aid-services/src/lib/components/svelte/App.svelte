@@ -146,7 +146,7 @@
 			<Kbd
 				class="text-xs! absolute right-[44px] top-0 z-[-1] mt-[14px] hidden h-[20px] w-auto font-normal text-sidebar-foreground no-highlight no-interaction md:inline-flex"
 			>
-				<span class="-translate-x-px pb-1 text-base">⇥</span>
+				<span class="-translate-x-px translate-y-0.5 pb-1 text-base">⇥</span>
 				<span class="tracking-tight">Tab</span>
 			</Kbd>
 			<span

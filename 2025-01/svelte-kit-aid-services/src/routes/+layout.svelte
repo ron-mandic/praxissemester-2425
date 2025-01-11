@@ -1,5 +1,6 @@
 <script lang="ts">
 	import 'normalize.css';
+	import '@fontsource-variable/inter';
 	import '@fontsource/montecarlo';
 	import '../app.scss';
 

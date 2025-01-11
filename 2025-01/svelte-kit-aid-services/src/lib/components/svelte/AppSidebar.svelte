@@ -157,7 +157,7 @@
 		<Sidebar.Separator /> -->
 
 		<Sidebar.Group>
-			<Sidebar.GroupLabel>Collection</Sidebar.GroupLabel>
+			<Sidebar.GroupLabel class="font-mono uppercase">Collection</Sidebar.GroupLabel>
 			<Sidebar.Menu>
 				{#each services as service (service.title)}
 					<Collapsible.Root
@@ -188,8 +188,8 @@
 												class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
 											/>
 										</Sidebar.MenuButton>
-										<Sidebar.MenuBadge class="-translate-x-6 text-right"
-											>{service.items.length}</Sidebar.MenuBadge
+										<Sidebar.MenuBadge class="-translate-x-6 text-right font-mono"
+											>{@html service.items.length}</Sidebar.MenuBadge
 										>
 									{/snippet}
 								</Collapsible.Trigger>
@@ -223,7 +223,7 @@
 		</Sidebar.Group>
 
 		<Sidebar.Group class="mt-auto">
-			<Sidebar.GroupLabel>Links</Sidebar.GroupLabel>
+			<Sidebar.GroupLabel class="font-mono uppercase">Links</Sidebar.GroupLabel>
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
 					{#each links as item (item.title)}

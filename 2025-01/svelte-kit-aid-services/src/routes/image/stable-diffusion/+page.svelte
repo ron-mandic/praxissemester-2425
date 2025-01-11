@@ -9,7 +9,8 @@
 		Info,
 		ChevronsUpDown,
 		Check,
-		Terminal
+		Terminal,
+		CornerDownLeft
 	} from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import Kbd from '@/components/svelte/Kbd.svelte';
@@ -20,7 +21,7 @@
 	import * as HoverCard from '@/components/ui/hover-card';
 	import Input from '@/components/ui/input/input.svelte';
 	import Slider from '@/components/ui/slider/slider.svelte';
-	import { tick } from 'svelte';
+	import { onMount, tick } from 'svelte';
 	import * as Popover from '@/components/ui/popover';
 	import * as Command from '@/components/ui/command';
 	import { cn } from '@/utils';
@@ -58,12 +59,13 @@
 	let refForm = $state<HTMLDivElement>(null!);
 	let refSelect = $state<HTMLButtonElement>(null!);
 
-	const selectResult = $derived.by(() => {
-		const index = selectList.findIndex((f) => f.value === selectValue);
-		const value = index !== -1 ? selectList[index] : undefined;
+	// TODO: Implement scrolling feature for the dropdown
+	// const selectResult = $derived.by(() => {
+	// 	const index = selectList.findIndex((f) => f.value === selectValue);
+	// 	const value = index !== -1 ? selectList[index] : undefined;
 
-		return { index, ...value };
-	});
+	// 	return { index, ...value };
+	// });
 
 	function closeAndFocusTrigger() {
 		selectOpen = false;
@@ -71,6 +73,49 @@
 			refSelect.focus();
 		});
 	}
+
+	// https://stackoverflow.com/questions/11381673/detecting-a-mobile-browser
+	function isMobile() {
+		return (
+			/iphone|ipad|ipod|nokia|tablet|nexus\s7|nexus\s10|KFAPWI|opera\smini|webos|windows\smobile|windows\sphone|iemobile|android|blackberry|fennec/i.test(
+				navigator.userAgent
+			) &&
+			window.navigator.maxTouchPoints > 1 &&
+			!window.matchMedia('(hover: hover)').matches
+		);
+	}
+	function handleGenerate(e: MouseEvent | KeyboardEvent) {
+		e.preventDefault();
+		if (!value) return;
+
+		value = '';
+
+		const formData = new FormData();
+		formData.append('prompt', value);
+		formData.append('cfg_scale', values[0].toString());
+		formData.append('steps', values[1].toString());
+		formData.append('seed', values[2].toString());
+		formData.append('sampler_index', selectValue);
+
+		for (let [key, value] of formData.entries()) {
+			console.log(key, value);
+		}
+
+		tick().then(() => {
+			// Reset the entire form by restoring the initial height
+			refTextarea!.style.height = 'auto';
+
+			setTimeout(() => {
+				refTextarea?.focus();
+			}, 750);
+		});
+	}
+
+	let isMobileDevice: boolean;
+
+	onMount(() => {
+		isMobileDevice = isMobile();
+	});
 
 	$effect(() => {
 		// Whenever pressed changes, adjust the height of the textarea accordingly
@@ -85,51 +130,41 @@
 			refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
 		});
 	});
-
-	let clientWidth = $state(0);
-
-	$inspect(clientWidth);
 </script>
 
 <Section class="relative">
 	<div
 		class="group flex h-[calc(100dvh-74px)] max-h-[calc(100dvh-74px)] w-full flex-col justify-end overflow-y-hidden pb-[clamp(198px,10%,200px)] @container"
 	>
-		<!-- <div class="relative h-full w-full rounded-lg bg-red-900/30">
-			<img
-				src="https://images.unsplash.com/photo-1736319551652-4378fc7f9502?q=80&w=1887&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-				alt="Placeholder"
-				class="h-full w-full rounded-lg object-cover"
-			/>
-		</div> -->
-
 		<div
-			class="relative flex h-full w-full items-center justify-center overflow-x-hidden rounded-lg bg-transparent"
+			id="image-layout"
+			class="relative flex h-full w-full items-center justify-center overflow-x-hidden rounded-lg"
 		></div>
 
 		{#if pressed}
 			<!--
 				NOTE: iPhone 4 support, currently full iPhone SE compatibility
-				[@media(max-height:552px)]:h-[108px] 
+				[@media(max-height:552px)]:h-[108px] ?
 			-->
 			<div
+				id="modal-layout"
 				role="dialog"
-				aria-labelledby="modal-title"
-				aria-describedby="modal-description"
-				id="modal-settings"
-				class="mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-full max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
-				style="position: absolute; left: 50%; transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px);"
+				class="mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-[calc(100%-4px)] max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
+				style="position: absolute; left: calc(50% + 2px); transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px); counter: section; --length: '{values.length}';"
 				in:fly={{ y: 50, opacity: 0, duration: 300, delay: 300, easing: quartOut }}
 				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 100, easing: backIn }}
 			>
 				<section
 					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					style="counter-increment: section;"
 				>
 					<header>
 						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
 							<HoverCard.Root>
-								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
-									CFG <Info class="hidden size-4 md:block" />
+								<HoverCard.Trigger
+									class="flex items-center gap-x-2 font-mono uppercase after:absolute after:top-[38px] after:font-mono after:text-xs after:font-normal after:tracking-[-2px] after:content-[counter(section)_'_/_'_var(--length)] hover:animate-pulse"
+								>
+									CFG <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
 								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Controls how closely the image matches the prompt. The higher the value, the more
@@ -137,9 +172,10 @@
 								</HoverCard.Content>
 							</HoverCard.Root>
 						</h2>
+
 						<Input
-							class="absolute right-2 top-2 w-auto min-w-24"
 							bind:value={values[0]}
+							class="absolute right-2 top-2 w-auto min-w-24 font-mono"
 							type="number"
 							min="1"
 							max="30"
@@ -183,12 +219,15 @@
 
 				<section
 					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					style="counter-increment: section;"
 				>
 					<header>
 						<h2 class="w-max select-none pl-1 text-base font-bold text-muted-foreground md:text-sm">
 							<HoverCard.Root>
-								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
-									Steps <Info class="hidden size-4 md:block" />
+								<HoverCard.Trigger
+									class="flex items-center gap-x-2 font-mono uppercase after:absolute after:top-[38px] after:font-mono after:text-xs after:font-normal after:tracking-[-2px] after:content-[counter(section)_'_/_'_var(--length)] hover:animate-pulse"
+								>
+									Steps <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
 								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Defines the number of iterations for refining the image. More steps lead to finer
@@ -197,8 +236,8 @@
 							</HoverCard.Root>
 						</h2>
 						<Input
-							class="absolute right-2 top-2 w-auto min-w-24"
 							bind:value={values[1]}
+							class="absolute right-2 top-2 w-auto min-w-24 font-mono"
 							type="number"
 							min="1"
 							max="150"
@@ -240,14 +279,17 @@
 
 				<section
 					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					style="counter-increment: section;"
 				>
 					<header>
 						<h2
 							class="w-max select-none pl-2 pt-1 text-base font-bold text-muted-foreground md:text-sm"
 						>
 							<HoverCard.Root>
-								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
-									Seed <Info class="hidden size-4 md:block" />
+								<HoverCard.Trigger
+									class="flex items-center gap-x-2 font-mono uppercase after:absolute after:top-[38px] after:font-mono after:text-xs after:font-normal after:tracking-[-2px] after:content-[counter(section)_'_/_'_var(--length)] hover:animate-pulse"
+								>
+									Seed <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
 								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Sets the starting point for consistent results. Using the same seed ensures
@@ -259,6 +301,7 @@
 					<footer class="flex h-full w-full flex-col items-center justify-end">
 						<Input
 							bind:value={values[2]}
+							class="font-mono"
 							type="number"
 							min="1"
 							max="150"
@@ -286,14 +329,17 @@
 
 				<section
 					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-2 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
+					style="counter-increment: section;"
 				>
 					<header>
 						<h2
 							class="w-max select-none pl-2 pt-1 text-base font-bold text-muted-foreground md:text-sm"
 						>
 							<HoverCard.Root>
-								<HoverCard.Trigger class="flex items-center gap-x-2 hover:animate-pulse">
-									Sampler <Info class="hidden size-4 md:block" />
+								<HoverCard.Trigger
+									class="flex items-center gap-x-2 font-mono uppercase after:absolute after:top-[38px] after:font-mono after:text-xs after:font-normal after:tracking-[-2px] after:content-[counter(section)_'_/_'_var(--length)] hover:animate-pulse"
+								>
+									Sampler <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
 								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>The sampling method shapes the style and quality of the image. The sampler can
@@ -304,25 +350,7 @@
 					</header>
 					<footer class="flex h-full w-full flex-col items-center justify-end">
 						<Popover.Root bind:open={selectOpen}>
-							<Popover.Trigger
-								bind:ref={refSelect}
-								tabindex={0}
-								onwheel={(e) => {
-									e.preventDefault();
-									let deltaY = e.deltaY;
-									let i = selectResult.index;
-
-									// if (selectOpen) return;
-
-									if (deltaY < 0) {
-										i = i === 0 ? selectList.length - 1 : i - 1;
-									} else {
-										i = i === selectList.length - 1 ? 0 : i + 1;
-									}
-
-									selectValue = selectList[i].value;
-								}}
-							>
+							<Popover.Trigger bind:ref={refSelect} tabindex={0}>
 								{#snippet child({ props })}
 									<Button
 										variant="outline"
@@ -331,7 +359,7 @@
 										role="combobox"
 										aria-expanded={selectOpen}
 									>
-										{selectResult?.label || 'Select a framework...'}
+										{selectValue || 'Select a framework...'}
 										<ChevronsUpDown class="ml-2 size-4 shrink-0 opacity-50" />
 									</Button>
 								{/snippet}
@@ -370,21 +398,23 @@
 		{/if}
 	</div>
 
+	<!-- w-full und left: 50% -->
 	<div
 		bind:this={refForm}
 		id="form"
-		class="absolute bottom-9 flex h-auto w-full max-w-[640px] flex-col items-center justify-end"
-		style="position: absolute; left: 50%; transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px);"
+		class="absolute bottom-9 flex h-auto w-[calc(100%-4px)] max-w-[640px] flex-col items-center justify-end"
+		class:typing={value.length > 0}
+		class:jello={value.length >= 1}
+		style="position: absolute; left: calc(50% + 2px); transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px);"
 	>
 		<div
-			class="relative h-full w-full rounded-lg border border-sidebar-border bg-sidebar p-2 shadow-sm backdrop-blur-xl transition-[width,transform,margin]"
+			class="relative h-full w-full rounded-lg border border-sidebar-border bg-sidebar/85 p-2 shadow-sm backdrop-blur-2xl transition-[border-color,width,transform,margin] duration-300 has-[textarea:focus-visible]:border-white/15"
 		>
 			<Textarea
 				bind:value
 				bind:ref={refTextarea}
 				placeholder="What will you create?"
-				draggable="true"
-				class="h-auto max-h-[150px] w-full resize-none border-none bg-transparent text-base leading-tight transition-colors duration-300 placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
+				class="h-auto max-h-[150px] w-full resize-none border-none bg-transparent text-base leading-tight transition-colors duration-300 selection:bg-white/10 selection:text-white placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
 				oninput={(_) => {
 					// Registering changes to the value (only alphanumeric characters, but with Copy / Paste)
 					if (value.length === 0) {
@@ -416,7 +446,7 @@
 				}}
 				onkeydown={(e) => {
 					// Registering keyboard interactions (non-alphanumeric characters) prior to input changes
-					if (e.key === 'Enter' && e.shiftKey) {
+					if ((e.key === 'Enter' && isMobileDevice) || (e.key === 'Enter' && e.shiftKey)) {
 						e.preventDefault();
 						value += '\n';
 
@@ -433,31 +463,8 @@
 					}
 
 					// TODO: Enter should also return a new line on mobile
-					if (e.key === 'Enter') {
-						e.preventDefault();
-						if (!value) return;
-
-						value = '';
-
-						const formData = new FormData();
-						formData.append('prompt', value);
-						formData.append('cfg_scale', values[0].toString());
-						formData.append('steps', values[1].toString());
-						formData.append('seed', values[2].toString());
-						formData.append('sampler_index', selectValue);
-
-						for (let [key, value] of formData.entries()) {
-							console.log(key, value);
-						}
-
-						tick().then(() => {
-							// Reset the entire form by restoring the initial height
-							refTextarea!.style.height = 'auto';
-
-							setTimeout(() => {
-								refTextarea?.focus();
-							}, 1_000);
-						});
+					if (e.key === 'Enter' && !isMobileDevice) {
+						handleGenerate(e);
 						return;
 					}
 				}}
@@ -469,7 +476,7 @@
 				<div class="flex select-none items-center gap-x-2">
 					<Toggle
 						bind:pressed
-						class="border-2 border-transparent text-muted-foreground hover:text-sidebar-accent-foreground focus-visible:animate-pulse focus-visible:ring-sidebar-ring data-[state=on]:bg-blue-900/30 data-[state=on]:text-blue-500 hover:data-[state=on]:!border-blue-500 hover:data-[state=on]:bg-blue-900/40 data-[state=on]:focus-visible:animate-pulse"
+						class="w-10 border-2 border-transparent px-2 text-muted-foreground hover:bg-white/10 hover:text-sidebar-accent-foreground hover:text-white focus-visible:animate-pulse focus-visible:ring-gray-300 data-[state=on]:bg-white/20 data-[state=on]:text-white hover:data-[state=on]:!border-white hover:data-[state=on]:bg-white/30 data-[state=on]:focus-visible:animate-pulse"
 						onPressedChange={(pressed) => {
 							if (pressed) {
 								refTextarea!.style.height = 'auto';
@@ -482,8 +489,9 @@
 							}
 						}}
 						tabindex={0}
+						variant="default"
 					>
-						<Settings2 />
+						<Settings2 class="h-10 w-10" />
 					</Toggle>
 
 					<!-- <Toggle
@@ -502,31 +510,34 @@
 						<ImagePlus />
 					</Toggle> -->
 
-					<Separator class="h-6" orientation="vertical" />
+					<Separator class="h-5 bg-white/10" orientation="vertical" />
 
-					<Button
-						class="inline-flex gap-x-2.5 bg-transparent px-3 text-muted-foreground"
-						variant="ghost"
+					<!-- TODO: Make toggle group (single) -->
+					<Toggle
+						class="w-10 border-2 border-transparent px-2 text-muted-foreground hover:bg-white/10 hover:text-sidebar-accent-foreground hover:text-white focus-visible:animate-pulse focus-visible:ring-gray-300 data-[state=on]:bg-white/20 data-[state=on]:text-white hover:data-[state=on]:!border-white hover:data-[state=on]:bg-white/30 data-[state=on]:focus-visible:animate-pulse"
 						tabindex={0}
+						variant="default"
 					>
 						<Pencil />
-						<span class="hidden sm:block">Improve prompt</span>
-					</Button>
+					</Toggle>
 				</div>
 
 				<div>
-					<!-- TODO: Button should also create a FormData instance -->
+					<!-- class="disabled:bg-blue-600! select-none bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 px-3 text-white transition-[opacity,transform] duration-300 ease-out-cubic hover:-translate-y-[2px] active:-translate-y-[2px] disabled:opacity-30" -->
 					<Button
-						class="disabled:bg-blue-600! select-none bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 px-3 text-white transition-[opacity,transform] duration-300 ease-out-cubic hover:-translate-y-[2px] active:-translate-y-[2px] disabled:opacity-30"
-						tabindex={0}
+						class="ease relative select-none bg-gradient-to-r from-white to-white px-3 text-sidebar transition-[background,background-image,opacity,transform] duration-100 hover:-translate-y-[3px] focus-visible:ring-gray-300 active:translate-y-0 disabled:opacity-30 data-[disabled=true]:from-secondary data-[disabled=true]:to-secondary data-[disabled=true]:text-white"
+						onclick={handleGenerate}
 						disabled={value.length === 0}
+						data-disabled={value.length === 0}
+						tabindex={0}
 					>
 						<Sparkles class="mx-.5" />
-						<span>Generate</span>
 						<Kbd
 							class="ml-0.5 hidden items-center gap-x-1 border-slate-300/30 bg-transparent md:inline-flex"
 						>
-							<span class="translate-y-[0.5px] text-sm">↵</span>
+							<span class="text-sm">
+								<CornerDownLeft style="width: 12px; aspect-ratio: 1 / 1;" />
+							</span>
 						</Kbd>
 					</Button>
 				</div>
@@ -536,15 +547,116 @@
 </Section>
 
 <style lang="scss">
-	#form::after {
-		content: 'Do not use for malicious purposes';
-		@apply absolute left-1/2 top-full w-full -translate-x-1/2 translate-y-3 cursor-auto text-center text-xs text-muted-foreground/50 transition-transform duration-200 ease-out-cubic no-interaction;
+	#form {
+		&.typing::before {
+			content: '';
+			@apply absolute rounded-lg bg-transparent;
+			inset: -2px;
+			background-size: 300% 300%;
+			// Source: https://uiverse.io/StealthWorm/spotty-horse-48
+			background-image: linear-gradient(
+				137.48deg,
+				#ffdb3b 10%,
+				#fe53bb 45%,
+				#8f51ea 67%,
+				#1f55e7 87%
+			);
+			background-origin: border-box;
+			background-clip: content-box, border-box;
+			transition: background-image 0.75s ease;
+		}
+		&.typing::before {
+			transition: background-image 0.75s ease;
+			animation: gradient 8s ease infinite;
+		}
+		&::after {
+			content: 'Do not use for malicious purposes';
+			@apply absolute left-1/2 top-full w-full -translate-x-1/2 translate-y-3 cursor-auto text-center text-xs text-muted-foreground/50 transition-transform duration-200 ease-out-cubic no-interaction;
+		}
 	}
 
-	#modal-settings {
+	@media (print), (prefers-reduced-motion: reduce) {
+		#form {
+			animation: none !important;
+		}
+	}
+
+	#form > div > textarea {
+		&::-webkit-scrollbar-thumb {
+			background: white !important;
+			border-radius: var(--radius);
+		}
+	}
+
+	#modal-layout {
 		scrollbar-width: none;
 		&::-webkit-scrollbar {
 			display: none;
 		}
+	}
+
+	#image-layout {
+		@apply h-full w-full;
+		scrollbar-width: none;
+		&::-webkit-scrollbar {
+			display: none;
+		}
+	}
+
+	@keyframes gradient {
+		0% {
+			background-position: 0% 50%;
+		}
+
+		50% {
+			background-position: 100% 50%;
+		}
+
+		100% {
+			background-position: 0% 50%;
+		}
+	}
+
+	@keyframes jello {
+		from,
+		11.1%,
+		to {
+			transform: translate3D(-50%, 0, 0) preserve-3d;
+		}
+
+		22.2% {
+			transform: skewX(-0.75deg) skewY(-0.75deg);
+		}
+
+		33.3% {
+			transform: skewX(0.375deg) skewY(0.375deg);
+		}
+
+		44.4% {
+			transform: skewX(-0.175deg) skewY(-0.175deg);
+		}
+
+		55.5% {
+			transform: skewX(0.0875deg) skewY(0.0875deg);
+		}
+
+		66.6% {
+			transform: skewX(-0.05deg) skewY(-0.05deg);
+		}
+
+		77.7% {
+			transform: skewX(0.0125deg) skewY(0.0125deg);
+		}
+
+		88.8% {
+			transform: skewX(-0.005deg) skewY(-0.005deg);
+		}
+	}
+
+	.jello {
+		animation-name: jello;
+		animation-timing-function: ease-in-out;
+		animation-duration: 0.875s;
+		transform-origin: center;
 	}
 </style>
