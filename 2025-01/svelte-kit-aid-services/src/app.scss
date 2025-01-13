@@ -107,12 +107,12 @@
 	// button {
 	// 	@apply cursor-pointer;
 	// }
-	img,
-	picture,
-	svg,
-	video {
-		@apply block max-w-full;
-	}
+	// img,
+	// picture,
+	// svg,
+	// video {
+	// 	@apply block max-w-full;
+	// }
 	html,
 	body {
 		@apply w-full touch-manipulation scroll-smooth bg-background text-foreground;

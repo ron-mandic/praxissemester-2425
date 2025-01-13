@@ -10,12 +10,15 @@
 		ChevronsUpDown,
 		Check,
 		Terminal,
-		CornerDownLeft
+		CornerDownLeft,
+		LoaderPinwheel,
+		LoaderCircle,
+		Bot
 	} from 'lucide-svelte';
 	import { Button } from '@/components/ui/button';
 	import Kbd from '@/components/svelte/Kbd.svelte';
 	import { fly, scale } from 'svelte/transition';
-	import { backIn, backOut, quartOut } from 'svelte/easing';
+	import { backIn, backOut, quartIn, quartOut } from 'svelte/easing';
 	import { Toggle } from '@/components/ui/toggle';
 	import Separator from '@/components/ui/separator/separator.svelte';
 	import * as HoverCard from '@/components/ui/hover-card';
@@ -26,6 +29,7 @@
 	import * as Command from '@/components/ui/command';
 	import { cn } from '@/utils';
 	import * as Carousel from '@/components/ui/carousel';
+	import * as Card from '@/components/ui/card';
 
 	let value = $state('');
 	let pressed = $state(false);
@@ -59,6 +63,15 @@
 	let refForm = $state<HTMLDivElement>(null!);
 	let refSelect = $state<HTMLButtonElement>(null!);
 
+	let loading = $state(false);
+	let apiResponse = $state<
+		Promise<{
+			images: string[];
+			info: string;
+			parameters: { [key: string]: unknown };
+		}>
+	>();
+
 	// TODO: Implement scrolling feature for the dropdown
 	// const selectResult = $derived.by(() => {
 	// 	const index = selectList.findIndex((f) => f.value === selectValue);
@@ -84,22 +97,38 @@
 			!window.matchMedia('(hover: hover)').matches
 		);
 	}
-	function handleGenerate(e: MouseEvent | KeyboardEvent) {
+	async function handleGenerate(e: MouseEvent | KeyboardEvent) {
 		e.preventDefault();
 		if (!value) return;
 
+		apiResponse = undefined;
+
+		const objData = {
+			prompt: value,
+			cfg_scale: values[0],
+			steps: values[1],
+			seed: values[2],
+			sampler_index: selectValue,
+			batch_size: 4
+		};
+
 		value = '';
+		console.log(objData);
 
-		const formData = new FormData();
-		formData.append('prompt', value);
-		formData.append('cfg_scale', values[0].toString());
-		formData.append('steps', values[1].toString());
-		formData.append('seed', values[2].toString());
-		formData.append('sampler_index', selectValue);
-
-		for (let [key, value] of formData.entries()) {
-			console.log(key, value);
+		loading = true;
+		try {
+			const response = await fetch('https://e338525100e74e3085.gradio.live/sdapi/v1/txt2img', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(objData)
+			});
+			apiResponse = response.json();
+		} catch (error) {
+			console.error(error);
 		}
+		loading = false;
 
 		tick().then(() => {
 			// Reset the entire form by restoring the initial height
@@ -130,16 +159,91 @@
 			refTextarea?.scrollTo({ top: refTextarea!.scrollHeight, behavior: 'smooth' });
 		});
 	});
+
+	function handleEscape(event: KeyboardEvent & { currentTarget: EventTarget & HTMLElement }) {
+		if (event.key === 'Escape' && pressed) {
+			pressed = false;
+		}
+	}
 </script>
+
+<svelte:body onkeydown={handleEscape} />
 
 <Section class="relative">
 	<div
-		class="group flex h-[calc(100dvh-74px)] max-h-[calc(100dvh-74px)] w-full flex-col justify-end overflow-y-hidden pb-[clamp(198px,10%,200px)] @container"
+		class="group flex h-[calc(100dvh-74px)] max-h-[calc(100dvh-74px)] w-full flex-col justify-end overflow-y-hidden rounded-lg pb-[clamp(198px,10%,200px)] @container"
 	>
 		<div
 			id="image-layout"
-			class="relative flex h-full w-full items-center justify-center overflow-x-hidden rounded-lg"
-		></div>
+			class="relative flex h-full min-h-[83.25px] w-full items-center justify-center overflow-hidden rounded-lg"
+		>
+			<!-- <section
+				class="mx-[auto] flex h-full max-h-full w-full items-center justify-center bg-red-900"
+			>
+				<img
+					class="object-cover"
+					style="max-width: 100%; max-height: 100%;"
+					alt="Palms"
+					src="/test.png"
+				/>
+			</section> -->
+
+			<section class="relative flex w-full items-center justify-center">
+				{#if apiResponse}
+					{#await apiResponse}
+						<div class="flex flex-col items-center justify-center gap-y-1">
+							<Bot class="size-10 text-muted" />
+							<p class="text-muted">Processing images ...</p>
+						</div>
+					{:then { images }}
+						<Carousel.Root
+							orientation="horizontal"
+							class="h-full min-h-full overflow-hidden rounded-lg"
+							opts={{
+								align: 'center',
+								loop: false,
+								containScroll: false /* Source: https://github.com/davidjerleke/embla-carousel/discussions/935 */
+							}}
+						>
+							<Carousel.Previous
+								class="absolute left-2 top-1/2 z-[10] size-10 -translate-y-1/2 border border-white/20 bg-sidebar/90 ring-offset-0 backdrop-blur-xl"
+							/>
+							<Carousel.Content class="-ml-3 h-full">
+								{#each images as image, i (image)}
+									<Carousel.Item
+										class="relative grid h-full max-w-[800px] place-content-center pl-4 transition-[flex] [@media(max-height:1077px)]:basis-[min(480px,100%)] [@media(max-height:594px)]:basis-[min(120px,100%)] [@media(max-height:839px)]:basis-[min(240px,100%)]"
+									>
+										<a
+											download="{i}.jpg"
+											href={`data:image/png;base64,${image}`}
+											title="Image generated from the prompt. #${i + 1}"
+										>
+											<img
+												class="object-fit block w-[800px] select-none rounded-lg md:rounded-xl"
+												alt="Image generated from the prompt. #${i + 1}"
+												src={`data:image/png;base64,${image}`}
+											/>
+										</a>
+									</Carousel.Item>
+								{/each}
+							</Carousel.Content>
+							<Carousel.Next
+								class="absolute right-2 top-1/2 z-[10] size-10 -translate-y-1/2 border border-white/20 bg-sidebar/90 ring-offset-0 backdrop-blur-xl"
+							/>
+						</Carousel.Root>
+					{/await}
+				{:else if loading}
+					<div class="flex flex-col items-center justify-center gap-y-1">
+						<Bot class="size-10 text-muted" />
+						<p class="text-muted">Generating ...</p>
+					</div>
+				{:else}
+					<div class="flex h-full w-full items-center justify-center">
+						<Bot class="size-10 text-muted" />
+					</div>
+				{/if}
+			</section>
+		</div>
 
 		{#if pressed}
 			<!--
@@ -149,10 +253,10 @@
 			<div
 				id="modal-layout"
 				role="dialog"
-				class="mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-[calc(100%-4px)] max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
+				class="z-[99] mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-[calc(100%-4px)] max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
 				style="position: absolute; left: calc(50% + 2px); transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px); counter: section; --length: '{values.length}';"
 				in:fly={{ y: 50, opacity: 0, duration: 300, delay: 300, easing: quartOut }}
-				out:fly={{ y: 50, opacity: 0, duration: 300, delay: 100, easing: backIn }}
+				out:fly={{ y: 50, opacity: 0, duration: 250, easing: quartIn }}
 			>
 				<section
 					class="relative grid h-[clamp(124px,15%,240px)] w-full flex-shrink-0 snap-start scroll-mt-2 grid-cols-1 grid-rows-[auto,1fr] gap-y-2 rounded-md border border-sidebar-border bg-sidebar p-3 shadow-lg @[540px]:h-full @[540px]:flex-shrink"
@@ -166,7 +270,7 @@
 								>
 									CFG <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Controls how closely the image matches the prompt. The higher the value, the more
 									strictly the image adheres to the prompt.
 								</HoverCard.Content>
@@ -229,7 +333,7 @@
 								>
 									Steps <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Defines the number of iterations for refining the image. More steps lead to finer
 									details, but higher values may also increase processing time.
 								</HoverCard.Content>
@@ -291,7 +395,7 @@
 								>
 									Seed <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Sets the starting point for consistent results. Using the same seed ensures
 									consistent results while changing it adds variation.
 								</HoverCard.Content>
@@ -341,7 +445,7 @@
 								>
 									Sampler <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>The sampling method shapes the style and quality of the image. The sampler can
 									influence how smooth, detailed, and closely the image follows the prompt.
 								</HoverCard.Content>
@@ -364,7 +468,7 @@
 									</Button>
 								{/snippet}
 							</Popover.Trigger>
-							<Popover.Content class="w-inherit bg-sidebar! p-0">
+							<Popover.Content class="w-inherit bg-sidebar! z-[999] p-0">
 								<Command.Root>
 									<Command.Input />
 									<Command.List class="bg-sidebar/60">
@@ -402,9 +506,9 @@
 	<div
 		bind:this={refForm}
 		id="form"
-		class="absolute bottom-9 flex h-auto w-[calc(100%-4px)] max-w-[640px] flex-col items-center justify-end"
+		class="absolute bottom-9 z-[100] flex h-auto w-[calc(100%-4px)] max-w-[640px] flex-col items-center justify-end"
 		class:typing={value.length > 0}
-		class:jello={value.length >= 1}
+		class:jello={value.length === 0}
 		style="position: absolute; left: calc(50% + 2px); transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px);"
 	>
 		<div
@@ -413,8 +517,9 @@
 			<Textarea
 				bind:value
 				bind:ref={refTextarea}
-				placeholder="What will you create?"
 				class="h-auto max-h-[150px] w-full resize-none border-none bg-transparent text-base leading-tight transition-colors duration-300 selection:bg-white/10 selection:text-white placeholder:animate-in focus-visible:ring-0 focus-visible:ring-[none] md:max-h-[220px]"
+				placeholder="What will you create?"
+				maxlength={1024}
 				oninput={(_) => {
 					// Registering changes to the value (only alphanumeric characters, but with Copy / Paste)
 					if (value.length === 0) {
@@ -464,6 +569,10 @@
 
 					// TODO: Enter should also return a new line on mobile
 					if (e.key === 'Enter' && !isMobileDevice) {
+						if (loading) {
+							e.preventDefault();
+							return;
+						}
 						handleGenerate(e);
 						return;
 					}
@@ -517,6 +626,7 @@
 						class="w-10 border-2 border-transparent px-2 text-muted-foreground hover:bg-white/10 hover:text-sidebar-accent-foreground hover:text-white focus-visible:animate-pulse focus-visible:ring-gray-300 data-[state=on]:bg-white/20 data-[state=on]:text-white hover:data-[state=on]:!border-white hover:data-[state=on]:bg-white/30 data-[state=on]:focus-visible:animate-pulse"
 						tabindex={0}
 						variant="default"
+						disabled
 					>
 						<Pencil />
 					</Toggle>
@@ -526,12 +636,22 @@
 					<!-- class="disabled:bg-blue-600! select-none bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-600 px-3 text-white transition-[opacity,transform] duration-300 ease-out-cubic hover:-translate-y-[2px] active:-translate-y-[2px] disabled:opacity-30" -->
 					<Button
 						class="ease relative select-none bg-gradient-to-r from-white to-white px-3 text-sidebar transition-[background,background-image,opacity,transform] duration-100 hover:-translate-y-[3px] focus-visible:ring-gray-300 active:translate-y-0 disabled:opacity-30 data-[disabled=true]:from-secondary data-[disabled=true]:to-secondary data-[disabled=true]:text-white"
-						onclick={handleGenerate}
-						disabled={value.length === 0}
-						data-disabled={value.length === 0}
+						onclick={(e) => {
+							if (loading) {
+								e.preventDefault();
+								return;
+							}
+							handleGenerate(e);
+						}}
+						disabled={loading || value.length === 0}
+						data-disabled={loading || value.length === 0}
 						tabindex={0}
 					>
-						<Sparkles class="mx-.5" />
+						{#if !loading}
+							<Sparkles class="mx-.5" />
+						{:else}
+							<LoaderCircle class="size-5 animate-spin" />
+						{/if}
 						<Kbd
 							class="ml-0.5 hidden items-center gap-x-1 border-slate-300/30 bg-transparent md:inline-flex"
 						>
@@ -571,20 +691,13 @@
 		}
 		&::after {
 			content: 'Do not use for malicious purposes';
-			@apply absolute left-1/2 top-full w-full -translate-x-1/2 translate-y-3 cursor-auto text-center text-xs text-muted-foreground/50 transition-transform duration-200 ease-out-cubic no-interaction;
+			@apply absolute left-1/2 top-full w-auto -translate-x-1/2 translate-y-[6.75px] cursor-auto whitespace-nowrap rounded-full bg-background/60 px-3 py-1 text-center text-xs text-muted-foreground/50 backdrop-blur-2xl transition-transform duration-200 ease-out-cubic no-interaction;
 		}
 	}
 
 	@media (print), (prefers-reduced-motion: reduce) {
 		#form {
 			animation: none !important;
-		}
-	}
-
-	#form > div > textarea {
-		&::-webkit-scrollbar-thumb {
-			background: white !important;
-			border-radius: var(--radius);
 		}
 	}
 

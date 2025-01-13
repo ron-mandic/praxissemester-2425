@@ -4,5 +4,5 @@
 </script>
 
 <Section class="grid place-content-center">
-	<Button href="/image/stable-diffusion">Open Stable Diffusion</Button>
+	<Button href="/txt2img">Open Stable Diffusion</Button>
 </Section>
