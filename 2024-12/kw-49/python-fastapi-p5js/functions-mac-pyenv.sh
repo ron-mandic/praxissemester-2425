@@ -20,6 +20,13 @@ function pyenv_venv() {
     pyenv activate "$ENVIRONMENT_NAME"
 
     ln -s "$(pyenv prefix "$ENVIRONMENT_NAME")" "$ENVIRONMENT_NAME"
+
+    source activate "$ENVIRONMENT_NAME/bin/activate"
+}
+
+function pyenv_deactivate() {
+    pyenv deactivate
+    conda deactivate
 }
 
 function start() {

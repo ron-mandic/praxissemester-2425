@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Section from '@/components/svelte/Article.svelte';
 	import { Textarea } from '@/components/ui/textarea';
+	import { SidebarRail } from '@/components/ui/sidebar';
 	import {
 		Settings2,
 		Sparkles,
@@ -117,7 +118,7 @@
 
 		loading = true;
 		try {
-			const response = await fetch('https://e338525100e74e3085.gradio.live/sdapi/v1/txt2img', {
+			const response = await fetch('https://2fa1da8bb8d83b77ba.gradio.live/sdapi/v1/txt2img', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json'
@@ -206,7 +207,7 @@
 							}}
 						>
 							<Carousel.Previous
-								class="absolute left-2 top-1/2 z-[10] size-10 -translate-y-1/2 border border-white/20 bg-sidebar/90 ring-offset-0 backdrop-blur-xl"
+								class="absolute left-2 top-1/2 z-10 size-10 -translate-y-1/2 border border-white/20 bg-sidebar/90 ring-offset-0 backdrop-blur-xl"
 							/>
 							<Carousel.Content class="-ml-3 h-full">
 								{#each images as image, i (image)}
@@ -228,7 +229,7 @@
 								{/each}
 							</Carousel.Content>
 							<Carousel.Next
-								class="absolute right-2 top-1/2 z-[10] size-10 -translate-y-1/2 border border-white/20 bg-sidebar/90 ring-offset-0 backdrop-blur-xl"
+								class="absolute right-2 top-1/2 z-10 size-10 -translate-y-1/2 border border-white/20 bg-sidebar/90 ring-offset-0 backdrop-blur-xl"
 							/>
 						</Carousel.Root>
 					{/await}
@@ -253,7 +254,7 @@
 			<div
 				id="modal-layout"
 				role="dialog"
-				class="z-[99] mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-[calc(100%-4px)] max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
+				class="mx-[auto] flex h-full max-h-[280px] min-h-[208px] w-[calc(100%-4px)] max-w-[640px] snap-y snap-mandatory grid-cols-2 grid-rows-2 flex-col gap-2 overflow-auto overflow-y-auto rounded-lg border border-sidebar-border bg-sidebar/80 p-2 shadow-sm backdrop-blur-xl @[540px]:grid"
 				style="position: absolute; left: calc(50% + 2px); transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px); counter: section; --length: '{values.length}';"
 				in:fly={{ y: 50, opacity: 0, duration: 300, delay: 300, easing: quartOut }}
 				out:fly={{ y: 50, opacity: 0, duration: 250, easing: quartIn }}
@@ -270,7 +271,7 @@
 								>
 									CFG <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Controls how closely the image matches the prompt. The higher the value, the more
 									strictly the image adheres to the prompt.
 								</HoverCard.Content>
@@ -333,7 +334,7 @@
 								>
 									Steps <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Defines the number of iterations for refining the image. More steps lead to finer
 									details, but higher values may also increase processing time.
 								</HoverCard.Content>
@@ -395,7 +396,7 @@
 								>
 									Seed <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>Sets the starting point for consistent results. Using the same seed ensures
 									consistent results while changing it adds variation.
 								</HoverCard.Content>
@@ -445,7 +446,7 @@
 								>
 									Sampler <Info class="hidden size-4 min-[540px]:block" />
 								</HoverCard.Trigger>
-								<HoverCard.Content class="z-[101] bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
+								<HoverCard.Content class="bg-sidebar/50 px-4 py-3 text-sm backdrop-blur-xl"
 									>The sampling method shapes the style and quality of the image. The sampler can
 									influence how smooth, detailed, and closely the image follows the prompt.
 								</HoverCard.Content>
@@ -468,7 +469,7 @@
 									</Button>
 								{/snippet}
 							</Popover.Trigger>
-							<Popover.Content class="w-inherit bg-sidebar! z-[999] p-0">
+							<Popover.Content class="w-inherit bg-sidebar! p-0">
 								<Command.Root>
 									<Command.Input />
 									<Command.List class="bg-sidebar/60">
@@ -506,7 +507,7 @@
 	<div
 		bind:this={refForm}
 		id="form"
-		class="absolute bottom-9 z-[100] flex h-auto w-[calc(100%-4px)] max-w-[640px] flex-col items-center justify-end"
+		class="absolute bottom-9 flex h-auto w-[calc(100%-4px)] max-w-[640px] flex-col items-center justify-end"
 		class:typing={value.length > 0}
 		class:jello={value.length === 0}
 		style="position: absolute; left: calc(50% + 2px); transform: translate3D(-50%, 0, 0) preserve-3d; margin-left: max(-50%,-320px);"

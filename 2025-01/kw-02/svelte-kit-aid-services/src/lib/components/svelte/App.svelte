@@ -61,7 +61,7 @@
 <div id="app" class="relative m-2 h-full min-h-[calc(100dvh-74px)] w-screen md:ml-1.5">
 	<header
 		data-scroll={!isScrolling.current}
-		class="z-[101] sticky left-0 right-0 top-2 inline-flex h-auto w-[100%] items-center justify-between gap-x-1 overflow-hidden rounded-lg border border-sidebar-border bg-sidebar/70 p-1 shadow-sm backdrop-blur-xl transition-[width,transform,margin] duration-500 ease-in-out data-[scroll=false]:!w-[calc(100%-.75rem)] data-[scroll=false]:!translate-x-1.5 dark:border-slate-200/10"
+		class="sticky left-0 right-0 top-2 inline-flex h-auto w-[100%] items-center justify-between gap-x-1 overflow-hidden rounded-lg border border-sidebar-border bg-sidebar/70 p-1 shadow-sm backdrop-blur-xl transition-[width,transform,margin] duration-500 ease-in-out data-[scroll=false]:!w-[calc(100%-.75rem)] data-[scroll=false]:!translate-x-1.5 dark:border-slate-200/10"
 	>
 		<div class="inline-flex items-center gap-x-1">
 			<Trigger
@@ -144,13 +144,13 @@
 				bind:value={input}
 			/>
 			<Kbd
-				class="text-xs! absolute right-[44px] top-0 z-[-1] mt-[14px] hidden h-[20px] w-auto font-normal text-sidebar-foreground no-highlight no-interaction md:inline-flex"
+				class="text-xs! absolute right-[44px] top-0 mt-[14px] hidden h-[20px] w-auto font-normal text-sidebar-foreground no-highlight no-interaction md:inline-flex"
 			>
 				<span class="-translate-x-px translate-y-0.5 pb-1 text-base">⇥</span>
 				<span class="tracking-tight">Tab</span>
 			</Kbd>
 			<span
-				class="text-base! absolute left-[47.5px] top-0 z-[-1] mt-3 h-auto w-full translate-y-px text-muted-foreground/50 no-highlight no-interaction md:!translate-y-[0.5px] md:!text-sm"
+				class="text-base! absolute left-[47.5px] top-0 mt-3 h-auto w-full translate-y-px text-muted-foreground/50 no-highlight no-interaction md:!translate-y-[0.5px] md:!text-sm"
 			>
 				{#if input.length > 0 && input !== output && output.startsWith(input)}
 					{output}
@@ -180,7 +180,7 @@
 			{#if !input}
 				<div class="grid h-10 w-full place-content-center">
 					<span
-						class="z-10 -rotate-[11.5deg] scale-[1.375] px-3 font-vintage text-muted-foreground/90 no-interaction"
+						class="-rotate-[11.5deg] scale-[1.375] px-3 font-vintage text-muted-foreground/90 no-interaction"
 					>
 						<span class="mr-1.5">The</span>End
 					</span>
